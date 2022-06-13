@@ -7,7 +7,7 @@ namespace Labyrinth.Runtime
 
     public sealed class Entity : MonoBehaviour
     {
-        private Identity m_network = new Identity();
+        private Instance m_network = new Instance();
 
         private bool Constraint(Local host)
         {

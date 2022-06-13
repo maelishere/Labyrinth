@@ -1,60 +1,101 @@
 ﻿using System;
-using System.Security.Cryptography;
+using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Labyrinth
 {
-    public struct Instance : IIdentifier<int>, IEquatable<int>, IEquatable<Instance>
+    using Bolt;
+
+    [Serializable]
+    public sealed class Instance
     {
-        private static readonly RNGCryptoServiceProvider m_randomiser = new RNGCryptoServiceProvider();
+        private static Dictionary<int, Instance> m_instances = new Dictionary<int, Instance>();
 
-        public Instance(int value)
+        [SerializeField, Range(1, 60)] private int m_sync = 10;
+
+        private readonly Dictionary<short, Signature> m_signatures = new Dictionary<short, Signature>();
+        private readonly Dictionary<short, Procedure> m_procedures = new Dictionary<short, Procedure>();
+
+        public Identity identity { get; private set; }
+        public Identity authority { get; private set; }
+
+        public bool Create(int identifier, int connection)
         {
-            Value = value;
-        }
-
-        public int Value { get; }
-
-        public static Instance Generate(Func<int, bool> filter)
-        {
-            int value = 0;
-            do
+            if (!m_instances.ContainsKey(identifier))
             {
-                byte[] buffer = new byte[sizeof(int)];
-                m_randomiser.GetNonZeroBytes(buffer);
-                value = BitConverter.ToInt32(buffer, 0);
+                identity = new Identity(identifier);
+                authority = new Identity(connection);
+                m_instances.Add(identifier, this);
+                return true;
             }
-            while (filter?.Invoke(value) ?? false || value == 0);
-            return new Instance(value);
+            return false;
         }
 
-        public bool Equals(int value)
+        public bool Destroy()
         {
-            return Value == value;
+            return m_instances.Remove(identity.Value);
         }
 
-        public bool Equals(Instance other)
+        internal bool Register(Signature signature)
         {
-            return Value == other.Value;
+            if (!m_signatures.ContainsKey(signature.Value))
+            {
+                m_signatures.Add(signature.Value, signature);
+                return true;
+            }
+            return false;
         }
 
-        public override bool Equals(object other)
+        internal bool Register(Procedure procedure)
         {
-            if (other.GetType() == GetType())
-                return Equals((Instance)other);
-            else if (other.GetType() == Value.GetType())
-                return Equals((int)other);
-            else
-                return false;
+            if (!m_procedures.ContainsKey(procedure.Value))
+            {
+                m_procedures.Add(procedure.Value, procedure);
+                return true;
+            }
+            return false;
         }
 
-        public override int GetHashCode()
+        internal IEnumerator Synchronize()
         {
-            return Value.GetHashCode();
+            // with reference to the rule
+            // client to server 
+            // server to clients
+            yield return new WaitForSecondsRealtime(1.0f / m_sync);
         }
 
-        public override string ToString()
+        public static Identity Unique()
         {
-            return $"Instance[{Value}]";
+            return Identity.Generate(
+                (int value) =>
+                {
+                    return m_instances.ContainsKey(value);
+                });
+        }
+
+        internal static void OnProcedure(int connection, int identity, short procedure, ref Reader reader)
+        {
+            if (m_instances.ContainsKey(identity))
+            {
+                Instance instance = m_instances[identity];
+                if (instance.m_procedures.ContainsKey(procedure))
+                {
+                    instance.m_procedures[procedure].Callback(ref reader);
+                }
+            }
+        }
+
+        internal static void OnSignature(int connection, int identity, short signature, ref Reader reader)
+        {
+            if (m_instances.ContainsKey(identity))
+            {
+                Instance instance = m_instances[identity];
+                if (instance.m_signatures.ContainsKey(signature))
+                {
+                    instance.m_signatures[signature].Recieving(ref reader);
+                }
+            }
         }
     }
 }

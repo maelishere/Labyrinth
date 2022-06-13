@@ -7,7 +7,7 @@ namespace Labyrinth.Runtime
         [SerializeField] private float m_cell = 100;
         [SerializeField] private Vector3 m_size = Vector3.one;
 
-        private Identity m_network = new Identity();
+        private Instance m_network = new Instance();
 
         private void Start()
         {
