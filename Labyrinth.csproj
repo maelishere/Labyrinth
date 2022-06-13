@@ -5,8 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Bolt\Bolt.csproj" />
+    <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Lattice\Lattice.csproj" />
+    <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Snare\Snare.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\..\..\Program Files\Unity Engine\2020.3.17f1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Unity Engine\2020.3.17f1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
