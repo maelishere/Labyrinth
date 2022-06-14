@@ -1,13 +1,19 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
 {
-    public sealed class Station : MonoBehaviour
+    public sealed class Station : Instance
     {
+        // a station isn't spawned over the network
+        // it's expected to already exist in the scene
+        [SerializeField] private int m_idenity;
+
+        // for relevance
         [SerializeField] private float m_cell = 100;
         [SerializeField] private Vector3 m_size = Vector3.one;
 
-        private Instance m_network = new Instance();
+        private readonly Dictionary<int, Observer> m_observers = new Dictionary<int, Observer>();
 
         private void Start()
         {

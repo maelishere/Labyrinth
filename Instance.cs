@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,8 +6,7 @@ namespace Labyrinth
 {
     using Bolt;
 
-    [Serializable]
-    public sealed class Instance
+    public abstract class Instance : MonoBehaviour
     {
         private static Dictionary<int, Instance> m_instances = new Dictionary<int, Instance>();
 
@@ -20,7 +18,7 @@ namespace Labyrinth
         public Identity identity { get; private set; }
         public Identity authority { get; private set; }
 
-        public bool Create(int identifier, int connection)
+        internal bool Create(int identifier, int connection)
         {
             if (!m_instances.ContainsKey(identifier))
             {
@@ -32,7 +30,7 @@ namespace Labyrinth
             return false;
         }
 
-        public bool Destroy()
+        internal bool Destroy()
         {
             return m_instances.Remove(identity.Value);
         }
