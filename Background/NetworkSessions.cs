@@ -11,6 +11,8 @@ namespace Labyrinth.Background
     {
         private readonly static Dictionary<int, Session> m_sessions = new Dictionary<int, Session>();
 
+        public static bool Running => m_sessions.Count > 0;
+
         internal static void Create(int port)
         {
             m_sessions.Add(port, new Session(AddressFamily.InterNetwork, new IPEndPoint(IPAddress.Any, port), 60));
@@ -33,19 +35,34 @@ namespace Labyrinth.Background
             {
                 session.Value.Update(0,
                     OnJoined,
-                    (int peer, byte type, ref Reader reader) =>
+                    (int peer, ref Reader reader) =>
                     {
-                        OnReceive(session.Key, peer, type, ref reader);
+                        OnReceive(session.Key, peer, ref reader);
                     });
             }
+        }
+
+        private static void OnInternalError()
+        {
+
+        }
+
+        private static void OnError(int connection)
+        {
+
+        }
+
+        private static void OnLeft(int connection)
+        {
         }
 
         private static void OnJoined(int connection)
         {
         }
 
-        private static void OnReceive(int session, int peer, byte type, ref Reader reader)
+        private static void OnReceive(int session, int connection, ref Reader reader)
         {
+            Network.Receive(connection, session, ref reader);
         }
     }
 }

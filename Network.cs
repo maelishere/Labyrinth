@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
+
+using UnityEngine;
 
 namespace Labyrinth
 {
@@ -11,7 +14,21 @@ namespace Labyrinth
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
         private static readonly Dictionary<int, Comms> m_connections = new Dictionary<int, Comms>();
 
-        public static bool Register(byte flag, Read callback)
+        /*public static bool running => ?;*/
+
+        internal static void Receive(int connection, object state, ref Reader reader)
+        {
+            byte flag = reader.Read();
+            if (m_callbacks.ContainsKey(flag))
+            {
+                m_callbacks[flag].Callback(connection, state, ref reader);
+                return;
+            }
+            Debug.LogError($"Network received invalid flag [{flag}]");
+        }
+
+        // add a custom callback for a network flag
+        public static bool Register(byte flag, Flag.Recieved callback)
         {
             if (!m_callbacks.ContainsKey(flag))
             {
@@ -21,10 +38,23 @@ namespace Labyrinth
             return false;
         }
 
-        // we need to deceive if this is a dedicated server or just a client
-        public static void Initialize()
+        // intitialize a dedicated server or just a client
+        public static void Initialize(int port)
         {
+            NetworkServer.Create(port);
+            NetworkSessions.Create(port);
+        }
 
+        // intitialize a client and connect to server
+        public static void Initialize(string host, int port)
+        {
+            IPAddress[] addresses = Dns.GetHostAddresses(host);
+            if (addresses.Length < 1) 
+                throw new ArgumentException($"{host} host not found");
+
+            IPEndPoint endpoint = new IPEndPoint(addresses[0], port);
+            NetworkClient.Connect(endpoint);
+            NetworkPeers.Join(endpoint);
         }
 
         public static void Terminate()
@@ -32,48 +62,48 @@ namespace Labyrinth
 
         }
 
-        private static void OnNetworkConnected(ref Reader reader)
+        private static void OnNetworkConnected(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        private static void OnNetworkCreate(ref Reader reader)
+        private static void OnNetworkCreate(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        private static void OnNetworkDestory(ref Reader reader)
+        private static void OnNetworkDestory(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        private static void OnNetworkProcedure(ref Reader reader)
+        private static void OnNetworkProcedure(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        private static void OnNetworkSignature(ref Reader reader)
+        private static void OnNetworkSignature(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
 
-        private static void OnUserJoint(ref Reader reader)
+        private static void OnNetworkJoint(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        private static void OnUserLeft(ref Reader reader)
+        private static void OnNetworkLeft(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        private static void OnNetworkVoice(ref Reader reader)
+        private static void OnNetworkVoice(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        private static void OnNetworkMessage(ref Reader reader)
+        private static void OnNetworkMessage(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
@@ -88,8 +118,8 @@ namespace Labyrinth
             m_callbacks.Add(Flag.Procedure, new Flag(Flag.Connected, OnNetworkProcedure));
             m_callbacks.Add(Flag.Signature, new Flag(Flag.Disconnected, OnNetworkSignature));
             // others
-            m_callbacks.Add(Flag.Joint, new Flag(Flag.Connected, OnUserJoint));
-            m_callbacks.Add(Flag.Disconnected, new Flag(Flag.Disconnected, OnUserLeft));
+            m_callbacks.Add(Flag.Joint, new Flag(Flag.Connected, OnNetworkJoint));
+            m_callbacks.Add(Flag.Disconnected, new Flag(Flag.Disconnected, OnNetworkLeft));
             m_callbacks.Add(Flag.Voice, new Flag(Flag.Voice, OnNetworkVoice));
             m_callbacks.Add(Flag.Message, new Flag(Flag.Message, OnNetworkMessage));
         }

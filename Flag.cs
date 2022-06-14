@@ -2,7 +2,7 @@
 {
     using Bolt;
 
-    public struct Flag : IRemote<byte>
+    public struct Flag : IIdentifier<byte>
     {
         // primary in game (udp)
         public const byte Connected = 1;
@@ -18,14 +18,15 @@
         public const byte Voice = 9;
         public const byte Message = 10;
 
-        public Flag(byte value, Read callback)
+        public delegate void Recieved(int connection, object state, ref Reader reader);
+
+        public Flag(byte value, Recieved callback)
         {
             Value = value;
             Callback = callback;
         }
 
         public byte Value { get; }
-        public Read Callback { get; }
-
+        public Recieved Callback { get; }
     }
 }

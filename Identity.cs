@@ -5,6 +5,8 @@ namespace Labyrinth
 {
     public struct Identity : IIdentifier<int>, IEquatable<int>, IEquatable<Identity>
     {
+        public const int Any = 0;
+
         private static readonly RNGCryptoServiceProvider m_randomiser = new RNGCryptoServiceProvider();
 
         public Identity(int value)
@@ -23,7 +25,7 @@ namespace Labyrinth
                 m_randomiser.GetNonZeroBytes(buffer);
                 value = BitConverter.ToInt32(buffer, 0);
             }
-            while (filter?.Invoke(value) ?? false || value == 0);
+            while (filter?.Invoke(value) ?? false || value == Any);
             return new Identity(value);
         }
 
