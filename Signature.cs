@@ -2,18 +2,20 @@
 {
     using Bolt;
 
-    public struct Signature : ISynchronizer<short>
+    public struct Signature : ISynchronizer<byte>
     {
-        public Signature(short value, Rule control, bool relevance, Write sending, Read recieving)
+        public Signature(byte value, int sync, Rule control, bool relevance, Write sending, Read recieving)
         {
             Value = value;
+            Sync = sync;
             Control = control;
             Relevance = relevance;
             Sending = sending;
             Recieving = recieving;
         }
 
-        public short Value { get; }
+        public byte Value { get; }
+        public int Sync { get; }
         public Rule Control { get; }
         public bool Relevance { get; }
         public Write Sending { get; }

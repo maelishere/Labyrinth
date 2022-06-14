@@ -10,13 +10,23 @@ namespace Labyrinth
     {
         private static Dictionary<int, Instance> m_instances = new Dictionary<int, Instance>();
 
-        [SerializeField, Range(1, 60)] private int m_sync = 10;
+        private Appendix[] m_appendices;
 
         private readonly Dictionary<short, Signature> m_signatures = new Dictionary<short, Signature>();
         private readonly Dictionary<short, Procedure> m_procedures = new Dictionary<short, Procedure>();
 
         public Identity identity { get; private set; }
         public Identity authority { get; private set; }
+
+        protected virtual void Awake()
+        {
+            m_appendices = GetComponentsInChildren<Appendix>();
+            for (int i = 0; i < m_appendices.Length; i++)
+            {
+                m_appendices[i].m_offset = (byte)(i + 1);
+                m_appendices[i].m_network = this;
+            }
+        }
 
         internal bool Create(int identifier, int connection)
         {
@@ -25,6 +35,8 @@ namespace Labyrinth
                 identity = new Identity(identifier);
                 authority = new Identity(connection);
                 m_instances.Add(identifier, this);
+
+                /// after start synchronizing signatures
                 return true;
             }
             return false;
@@ -32,24 +44,30 @@ namespace Labyrinth
 
         internal bool Destroy()
         {
+            /// before stop synchronizing signatures
+            
             return m_instances.Remove(identity.Value);
         }
 
-        internal bool Register(Signature signature)
+        internal bool Register(byte offset, Signature signature)
         {
             if (!m_signatures.ContainsKey(signature.Value))
             {
-                m_signatures.Add(signature.Value, signature);
+                // combine (Extension) in the event two components have the same signature value
+                //      or the instances of the same class are on the gameobject
+                m_signatures.Add(offset.Combine(signature.Value), signature);
                 return true;
             }
             return false;
         }
 
-        internal bool Register(Procedure procedure)
+        internal bool Register(byte offset, Procedure procedure)
         {
             if (!m_procedures.ContainsKey(procedure.Value))
             {
-                m_procedures.Add(procedure.Value, procedure);
+                // combine (Extension) in the event two components have the same procedure value
+                //      or the instances of the same class are on the gameobject
+                m_procedures.Add(offset.Combine(procedure.Value), procedure);
                 return true;
             }
             return false;
@@ -57,10 +75,10 @@ namespace Labyrinth
 
         internal IEnumerator Synchronize()
         {
-            // with reference to the rule
+            // with reference signature settings
             // client to server 
             // server to clients
-            yield return new WaitForSecondsRealtime(1.0f / m_sync);
+            yield return new WaitForSecondsRealtime(1.0f /*/ m_sync*/);
         }
 
         public static Identity Unique()

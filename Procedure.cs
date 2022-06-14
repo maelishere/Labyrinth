@@ -2,15 +2,15 @@
 {
     using Bolt;
 
-    public struct Procedure : IRemote<short>
+    public struct Procedure : IRemote<byte>
     {
-        public Procedure(short value, Read callback)
+        public Procedure(byte value, Read callback)
         {
             Value = value;
             Callback = callback;
         }
 
-        public short Value { get; }
+        public byte Value { get; }
         public Read Callback { get; }
     }
 }
