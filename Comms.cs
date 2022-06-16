@@ -4,12 +4,12 @@ namespace Labyrinth
 {
     public class Comms
     {
-        public int Primary { get; }
-        public readonly HashSet<int> Secondary = new HashSet<int>();
+        public int Primary;
+        public HashSet<int> Secondary;
 
-        public Comms(int primary)
+        public Comms()
         {
-            Primary = primary;
+            Secondary = new HashSet<int>();
         }
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.PlayerLoop;
 
 namespace Labyrinth.Background
 {
-    public static class NetworkHost
+    public static class NetworkLoop
     {
         static bool AddToPlayerLoop(PlayerLoopSystem.UpdateFunction function, Type ownerType, ref PlayerLoopSystem playerLoop, Type playerLoopSystemType, bool beginning)
         {
@@ -58,8 +58,8 @@ namespace Labyrinth.Background
         {
             PlayerLoopSystem playerLoop = PlayerLoop.GetCurrentPlayerLoop();
 
-            AddToPlayerLoop(NetworkEarlyUpdate, typeof(NetworkHost), ref playerLoop, typeof(EarlyUpdate), false);
-            AddToPlayerLoop(NetworkLateUpdate, typeof(NetworkHost), ref playerLoop, typeof(PreLateUpdate), false);
+            AddToPlayerLoop(NetworkEarlyUpdate, typeof(NetworkLoop), ref playerLoop, typeof(EarlyUpdate), false);
+            AddToPlayerLoop(NetworkLateUpdate, typeof(NetworkLoop), ref playerLoop, typeof(PreLateUpdate), false);
 
             //// set the new loop
             PlayerLoop.SetPlayerLoop(playerLoop);

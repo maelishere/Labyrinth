@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Labyrinth
+namespace Labyrinth.Runtime
 {
     using Bolt;
+    using System;
 
+    [DisallowMultipleComponent]
     public abstract class Instance : MonoBehaviour
     {
         private static Dictionary<int, Instance> m_instances = new Dictionary<int, Instance>();
@@ -16,14 +18,15 @@ namespace Labyrinth
         private readonly Dictionary<short, Procedure> m_procedures = new Dictionary<short, Procedure>();
 
         public Identity identity { get; private set; }
+
         public Identity authority { get; private set; }
 
-        protected virtual void Awake()
+        private void Awake()
         {
             m_appendices = GetComponentsInChildren<Appendix>();
             for (int i = 0; i < m_appendices.Length; i++)
             {
-                m_appendices[i].m_offset = (byte)(i + 1);
+                m_appendices[i].m_offset = (byte)(i + 1); // offset 0 belongs to the class inheriting from instance
                 m_appendices[i].m_network = this;
             }
         }
@@ -90,7 +93,12 @@ namespace Labyrinth
                 });
         }
 
-        internal static void OnProcedure(int connection, int identity, short procedure, ref Reader reader)
+        internal static void OnNetworkProcedure(int connection, object state, ref Reader reader)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void HandleProcedure(int connection, int identity, short procedure, ref Reader reader)
         {
             if (m_instances.ContainsKey(identity))
             {
@@ -102,7 +110,12 @@ namespace Labyrinth
             }
         }
 
-        internal static void OnSignature(int connection, int identity, short signature, ref Reader reader)
+        internal static void OnNetworkSignature(int connection, object state, ref Reader reader)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void HandleSignature(int connection, int identity, short signature, ref Reader reader)
         {
             if (m_instances.ContainsKey(identity))
             {

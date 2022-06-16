@@ -16,19 +16,6 @@ namespace Labyrinth
 
         public int Value { get; }
 
-        public static Identity Generate(Func<int, bool> filter)
-        {
-            int value = 0;
-            do
-            {
-                byte[] buffer = new byte[sizeof(int)];
-                m_randomiser.GetNonZeroBytes(buffer);
-                value = BitConverter.ToInt32(buffer, 0);
-            }
-            while (filter?.Invoke(value) ?? false || value == Any);
-            return new Identity(value);
-        }
-
         public bool Equals(int value)
         {
             return Value == value;
@@ -57,6 +44,19 @@ namespace Labyrinth
         public override string ToString()
         {
             return $"Identity[{Value}]";
+        }
+
+        public static Identity Generate(Func<int, bool> filter)
+        {
+            int value = 0;
+            do
+            {
+                byte[] buffer = new byte[sizeof(int)];
+                m_randomiser.GetNonZeroBytes(buffer);
+                value = BitConverter.ToInt32(buffer, 0);
+            }
+            while (filter?.Invoke(value) ?? false || value == Any);
+            return new Identity(value);
         }
     }
 }

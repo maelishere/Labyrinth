@@ -1,6 +1,5 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using System.Collections.Generic;
+﻿using System;
+using System.Net;
 
 namespace Labyrinth.Background
 {
@@ -39,6 +38,11 @@ namespace Labyrinth.Background
         internal static void Update()
         {
             m_client?.Update(OnError);
+        }
+
+        internal static void Send(Channel channel, Write write)
+        {
+            m_client?.Send(channel, write);
         }
 
         private static void OnError(Error error)

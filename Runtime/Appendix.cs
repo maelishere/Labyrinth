@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Labyrinth
+namespace Labyrinth.Runtime
 {
     using Bolt;
 

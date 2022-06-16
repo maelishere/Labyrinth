@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Sockets;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Labyrinth.Background
@@ -9,20 +8,32 @@ namespace Labyrinth.Background
 
     public static class NetworkSessions
     {
-        private readonly static Dictionary<int, Session> m_sessions = new Dictionary<int, Session>();
+        public class Meeting
+        {
+            public readonly Session Handle;
+            public readonly HashSet<int> Peers;
+
+            public Meeting(Family family, int port, int max)
+            {
+                Handle = new Session(Family.IPV4, port, max);
+                Peers = new HashSet<int>();
+            }
+        }
+
+        private readonly static Dictionary<int, Meeting> m_sessions = new Dictionary<int, Meeting>();
 
         public static bool Running => m_sessions.Count > 0;
 
-        internal static void Create(int port)
+        internal static void Listen(int port)
         {
-            m_sessions.Add(port, new Session(AddressFamily.InterNetwork, new IPEndPoint(IPAddress.Any, port), 60));
+            m_sessions.Add(port, new Meeting(Family.IPV4, port, 60));
         }
 
         internal static bool Destroy(int session)
         {
-            if (m_sessions.TryGetValue(session, out Session meeting))
+            if (m_sessions.TryGetValue(session, out Meeting meeting))
             {
-                meeting.Close();
+                meeting.Handle.Close();
                 m_sessions.Remove(session);
                 return true;
             }
@@ -33,30 +44,59 @@ namespace Labyrinth.Background
         {
             foreach (var session in m_sessions)
             {
-                session.Value.Update(0,
-                    OnJoined,
+                session.Value.Handle.Update(0,
+                    OnConnected,
                     (int peer, ref Reader reader) =>
                     {
                         OnReceive(session.Key, peer, ref reader);
-                    });
+                    }, OnDisconnected);
             }
         }
 
-        private static void OnInternalError()
+        internal static bool Send(int session, Write write)
         {
-
+            if (m_sessions.TryGetValue(session, out Meeting meeting))
+            {
+                foreach (var peer in meeting.Peers)
+                {
+                    meeting.Handle.Send(peer, write);
+                }
+                return true;
+            }
+            return false;
         }
 
-        private static void OnError(int connection)
+        internal static bool Send(int session, int peer, Write write)
         {
-
+            if (m_sessions.TryGetValue(session, out Meeting meeting))
+            {
+                meeting.Handle.Send(peer, write);
+                return true;
+            }
+            return false;
         }
 
-        private static void OnLeft(int connection)
+        internal static bool Send(int session, Func<int, bool> predicate, Write write)
+        {
+            if (m_sessions.TryGetValue(session, out Meeting meeting))
+            {
+                foreach (var peer in meeting.Peers)
+                {
+                    if (predicate(peer))
+                    {
+                        meeting.Handle.Send(peer, write);
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private static void OnConnected(int connection)
         {
         }
 
-        private static void OnJoined(int connection)
+        private static void OnDisconnected(int connection)
         {
         }
 

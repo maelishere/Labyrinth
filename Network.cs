@@ -11,10 +11,8 @@ namespace Labyrinth
 
     public static class Network
     {
+        internal static Comms m_local = new Comms();
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
-        private static readonly Dictionary<int, Comms> m_connections = new Dictionary<int, Comms>();
-
-        /*public static bool running => ?;*/
 
         internal static void Receive(int connection, object state, ref Reader reader)
         {
@@ -41,8 +39,8 @@ namespace Labyrinth
         // intitialize a dedicated server or just a client
         public static void Initialize(int port)
         {
-            NetworkServer.Create(port);
-            NetworkSessions.Create(port);
+            NetworkServer.Listen(port);
+            NetworkSessions.Listen(port);
         }
 
         // intitialize a client and connect to server
@@ -54,7 +52,17 @@ namespace Labyrinth
 
             IPEndPoint endpoint = new IPEndPoint(addresses[0], port);
             NetworkClient.Connect(endpoint);
-            NetworkPeers.Join(endpoint);
+            NetworkPeers.Connect(endpoint);
+        }
+
+        public static void Transmit(byte flag, Write write)
+        {
+
+        }
+
+        public static void Forward(int session, byte flag, Write write)
+        {
+
         }
 
         public static void Terminate()
@@ -67,61 +75,15 @@ namespace Labyrinth
             throw new NotImplementedException();
         }
 
-        private static void OnNetworkCreate(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void OnNetworkDestory(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void OnNetworkProcedure(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void OnNetworkSignature(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        private static void OnNetworkJoint(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void OnNetworkLeft(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void OnNetworkVoice(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void OnNetworkMessage(int connection, object state, ref Reader reader)
+        private static void OnNetworkDisconnected(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
         static Network()
         {
-            // register built-in flags
-            m_callbacks.Add(Flag.Connected, new Flag(Flag.Connected, OnNetworkConnected));
-            m_callbacks.Add(Flag.Disconnected, new Flag(Flag.Disconnected, OnNetworkConnected));
-            m_callbacks.Add(Flag.Create, new Flag(Flag.Connected, OnNetworkCreate));
-            m_callbacks.Add(Flag.Destroy, new Flag(Flag.Disconnected, OnNetworkDestory));
-            m_callbacks.Add(Flag.Procedure, new Flag(Flag.Connected, OnNetworkProcedure));
-            m_callbacks.Add(Flag.Signature, new Flag(Flag.Disconnected, OnNetworkSignature));
-            // others
-            m_callbacks.Add(Flag.Joint, new Flag(Flag.Connected, OnNetworkJoint));
-            m_callbacks.Add(Flag.Disconnected, new Flag(Flag.Disconnected, OnNetworkLeft));
-            m_callbacks.Add(Flag.Voice, new Flag(Flag.Voice, OnNetworkVoice));
-            m_callbacks.Add(Flag.Message, new Flag(Flag.Message, OnNetworkMessage));
+            Network.Register(Flag.Connected, OnNetworkConnected);
+            Network.Register(Flag.Disconnected, OnNetworkDisconnected);
         }
     }
 }
