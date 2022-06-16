@@ -41,6 +41,6 @@ namespace Labyrinth.Runtime
             }
         }
 
-        internal static bool Find(int asset, out Entity entity) => m_resources.TryGetValue(asset, out entity);
+        internal static bool Find(int asset, out Entity prefab) => m_resources.TryGetValue(asset, out prefab);
     }
 }

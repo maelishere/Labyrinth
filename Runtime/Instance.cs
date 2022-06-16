@@ -5,7 +5,6 @@ using System.Collections.Generic;
 namespace Labyrinth.Runtime
 {
     using Bolt;
-    using System;
 
     [DisallowMultipleComponent]
     public abstract class Instance : MonoBehaviour
@@ -84,6 +83,18 @@ namespace Labyrinth.Runtime
             yield return new WaitForSecondsRealtime(1.0f /*/ m_sync*/);
         }
 
+        internal void Remote(int target, byte offset, byte procedure, Write write)
+        {
+            Network.Forward(
+                Network.Abnormal, 
+                Flags.Procedure,
+                (ref Writer writer) =>
+                {
+                    writer.WriteCall(target, identity.Value, offset.Combine(procedure));
+                    write(ref writer);
+                });
+        }
+
         public static Identity Unique()
         {
             return Identity.Generate(
@@ -95,36 +106,39 @@ namespace Labyrinth.Runtime
 
         internal static void OnNetworkProcedure(int connection, object state, ref Reader reader)
         {
-            throw new NotImplementedException();
-        }
-
-        private static void HandleProcedure(int connection, int identity, short procedure, ref Reader reader)
-        {
-            if (m_instances.ContainsKey(identity))
+            Packets.Call call = reader.ReadCall();
+            if (m_instances.ContainsKey(call.Identity))
             {
-                Instance instance = m_instances[identity];
-                if (instance.m_procedures.ContainsKey(procedure))
+                Instance instance = m_instances[call.Identity];
+                if (instance.m_procedures.ContainsKey(call.Procedure))
                 {
-                    instance.m_procedures[procedure].Callback(ref reader);
+                    instance.m_procedures[call.Procedure].Callback(ref reader);
                 }
             }
         }
 
         internal static void OnNetworkSignature(int connection, object state, ref Reader reader)
         {
-            throw new NotImplementedException();
-        }
-
-        private static void HandleSignature(int connection, int identity, short signature, ref Reader reader)
-        {
-            if (m_instances.ContainsKey(identity))
+            Packets.Sync sync = reader.ReadSync();
+            if (m_instances.ContainsKey(sync.Identity))
             {
-                Instance instance = m_instances[identity];
-                if (instance.m_signatures.ContainsKey(signature))
+                Instance instance = m_instances[sync.Identity];
+                if (instance.m_signatures.ContainsKey(sync.Signature))
                 {
-                    instance.m_signatures[signature].Recieving(ref reader);
+                    instance.m_signatures[sync.Signature].Recieving(ref reader);
                 }
             }
+        }
+
+        public static bool Find<T>(int identity, out T instance) where T : Instance
+        {
+            if (m_instances.TryGetValue(identity, out Instance value))
+            {
+                instance = (T)value;
+                return true;
+            }
+            instance = null;
+            return false;
         }
     }
 }

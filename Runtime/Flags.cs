@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using UnityEngine;
 
 namespace Labyrinth.Runtime
 {
@@ -14,5 +12,17 @@ namespace Labyrinth.Runtime
 
         // secondary chat rooms (tcp)
         public const byte Message = 9;
+
+        static Flags()
+        {
+            // register flags
+            Network.Register(Signature, Instance.OnNetworkSignature);
+            Network.Register(Procedure, Instance.OnNetworkProcedure);
+
+            Network.Register(Create, Entity.OnNetworkCreate);
+            Network.Register(Destroy, Entity.OnNetworkDestory);
+
+            Network.Register(Message, Conference.OnNetworkMessage);
+        }
     }
 }

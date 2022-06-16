@@ -1,6 +1,6 @@
 ﻿namespace Labyrinth
 {
-    public enum Local
+    public enum Host
     {
         Any,
         Server,

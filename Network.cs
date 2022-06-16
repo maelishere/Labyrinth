@@ -8,11 +8,25 @@ namespace Labyrinth
 {
     using Bolt;
     using Background;
+    using Lattice.Delivery;
 
     public static class Network
     {
-        internal static Comms m_local = new Comms();
+        // so you don't need to use "using Lattice.Delivery" every time you need to send
+        public const Channel Fickle = Channel.Direct;
+        public const Channel Abnormal = Channel.Irregular;
+        public const Channel Reliable = Channel.Ordered;
+
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
+
+        internal static Write Pack(byte flag, Write write)
+        {
+            return (ref Writer writer) =>
+            {
+                writer.Write(flag);
+                write?.Invoke(ref writer);
+            };
+        }
 
         internal static void Receive(int connection, object state, ref Reader reader)
         {
@@ -36,45 +50,81 @@ namespace Labyrinth
             return false;
         }
 
-        // intitialize a dedicated server or just a client
-        public static void Initialize(int port)
-        {
-            NetworkServer.Listen(port);
-            NetworkSessions.Listen(port);
-        }
-
-        // intitialize a client and connect to server
-        public static void Initialize(string host, int port)
+        public static IPEndPoint Resolve(string host, int port)
         {
             IPAddress[] addresses = Dns.GetHostAddresses(host);
-            if (addresses.Length < 1) 
-                throw new ArgumentException($"{host} host not found");
-
-            IPEndPoint endpoint = new IPEndPoint(addresses[0], port);
-            NetworkClient.Connect(endpoint);
-            NetworkPeers.Connect(endpoint);
+            if (addresses.Length > 1)
+            {
+                return new IPEndPoint(addresses[0], port);
+            }
+            throw new ArgumentException($"{host} host not found");
         }
 
-        public static void Transmit(byte flag, Write write)
+        public static void Stream(int session, Write write)
         {
 
         }
 
-        public static void Forward(int session, byte flag, Write write)
+        public static void Forward(Channel channel, byte flag, Write write)
         {
-
+            if (NetworkServer.Running)
+            {
+                NetworkServer.Send(channel, Pack(flag, write));
+            }
+            if (NetworkClient.Running)
+            {
+                NetworkClient.Send(channel, Pack(flag, write));
+            }
         }
 
-        public static void Terminate()
+        public static void Forward(int connection, Channel channel, byte flag, Write write)
         {
-
+            if (NetworkServer.Running)
+            {
+                NetworkServer.Send(connection, channel, Pack(flag, write));
+            }
         }
 
+        public static void Forward(Func<int, bool> predicate, Channel channel, byte flag, Write write)
+        {
+            if (NetworkServer.Running)
+            {
+                NetworkServer.Send(predicate, channel, Pack(flag, write));
+            }
+        }
+
+        public static int Authority(bool remote = false)
+        {
+            if (NetworkServer.Running)
+                return NetworkServer.m_server.Listen;
+            if (NetworkClient.Running)
+            {
+                if (remote)
+                    return NetworkClient.m_client.Remote;
+                else
+                    return NetworkClient.m_client.Local;
+            }
+            return Identity.Any;
+        }
+
+        public static bool Internal(Host local)
+        {
+            switch (local)
+            {
+                default:
+                case Host.Any: return NetworkServer.Running | NetworkClient.Running;
+                case Host.Client: return NetworkClient.Running;
+                case Host.Server: return NetworkServer.Running;
+            }
+        }
+
+        /// from server or session about new connections or existing connections
         private static void OnNetworkConnected(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
+        /// from server or session about diconnections
         private static void OnNetworkDisconnected(int connection, object state, ref Reader reader)
         {
             throw new NotImplementedException();
@@ -82,8 +132,8 @@ namespace Labyrinth
 
         static Network()
         {
-            Network.Register(Flag.Connected, OnNetworkConnected);
-            Network.Register(Flag.Disconnected, OnNetworkDisconnected);
+            Register(Flag.Connected, OnNetworkConnected);
+            Register(Flag.Disconnected, OnNetworkDisconnected);
         }
     }
 }

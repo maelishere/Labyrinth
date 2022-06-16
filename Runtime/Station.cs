@@ -18,7 +18,7 @@ namespace Labyrinth.Runtime
 
         private void Start()
         {
-            if (!Create(m_idenity, 0/* change to server */))
+            if (!Create(m_idenity, Network.Authority(true)))
             {
                 Debug.LogError($"Instance Idenitifier {m_idenity} already exists");
                 Destroy(gameObject);

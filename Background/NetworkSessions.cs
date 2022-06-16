@@ -26,7 +26,11 @@ namespace Labyrinth.Background
 
         internal static void Listen(int port)
         {
-            m_sessions.Add(port, new Meeting(Family.IPV4, port, 60));
+            if (!NetworkPeers.Running)
+            {
+                m_sessions.Add(port, new Meeting(Family.IPV4, port, 60)); ;
+            }
+            throw new InvalidOperationException($"Network Peers is currently running");
         }
 
         internal static bool Destroy(int session)
@@ -45,11 +49,11 @@ namespace Labyrinth.Background
             foreach (var session in m_sessions)
             {
                 session.Value.Handle.Update(0,
-                    OnConnected,
+                    (int connection) => OnConnected(session.Key, connection),
                     (int peer, ref Reader reader) =>
                     {
                         OnReceive(session.Key, peer, ref reader);
-                    }, OnDisconnected);
+                    }, (int connection) => OnDisconnected(session.Key, connection));
             }
         }
 
@@ -92,11 +96,11 @@ namespace Labyrinth.Background
             return false;
         }
 
-        private static void OnConnected(int connection)
+        private static void OnConnected(int session, int connection)
         {
         }
 
-        private static void OnDisconnected(int connection)
+        private static void OnDisconnected(int session, int connection)
         {
         }
 

@@ -9,15 +9,24 @@ namespace Labyrinth.Background
 
     public static class NetworkServer
     {
-        private static Server m_server;
+        internal static Server m_server;
         private static readonly HashSet<int> m_connections = new HashSet<int>();
 
         public static bool Running => m_server != null;
 
         internal static void Listen(int port)
         {
-            m_connections.Clear();
-            m_server = new Server(port, Mode.IPV4);
+            if (!NetworkClient.Running)
+            {
+                if (!Running)
+                {
+                    m_connections.Clear();
+                    m_server = new Server(port, Mode.IPV4);
+                    return;
+                }
+                throw new InvalidOperationException($"Network Server was already running");
+            }
+            throw new InvalidOperationException($"Network Client is currently running");
         }
 
         internal static void Destroy()
@@ -29,7 +38,7 @@ namespace Labyrinth.Background
 
         internal static void Update()
         {
-            m_server?.Update(OnReceive, OnSync, OnError);
+            m_server?.Update(OnReceive, OnRequest, OnAcknowledge, OnError);
         }
 
         internal static void Send(Channel channel, Write write)
@@ -72,26 +81,42 @@ namespace Labyrinth.Background
             switch (error)
             {
                 case Error.Timeout:
-                case Error.Disconnected:
+                    m_connections.Remove(connection);
+                    break;
+            }
+        }
+
+        // request that was pushed from there(Client)
+        private static void OnRequest(int connection, uint ts, Request request)
+        {
+            switch (request)
+            {
+                case Request.Connect:
+                    if (m_connections.Add(connection))
+                    {
+                        // new connection
+                    }
+                    break;
+                case Request.Disconnect:
                     m_connections.Remove(connection);
                     break;
             }
         }
 
         // acknowledge of a connect or disconnect request that was pushed from here(Server)
-        private static void OnSync(int connection, Sync sync, uint rtt)
+        private static void OnAcknowledge(int connection, Request request, uint rtt)
         {
-            switch (sync)
+            switch (request)
             {
-                case Sync.Ping:
-                case Sync.Connect:
-                    if (!m_connections.Contains(connection))
+                case Request.Ping:
+                case Request.Connect:
+                    if (m_connections.Add(connection))
                     {
                         // new connection
-                        m_connections.Add(connection);
                     }
                     break;
-                case Sync.Disconnect:
+                case Request.Disconnect:
+                    m_connections.Remove(connection);
                     break;
             }
         }

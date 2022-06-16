@@ -1,4 +1,4 @@
-﻿namespace Labyrinth
+﻿namespace Labyrinth.Runtime
 {
     public enum Rule
     {

@@ -58,5 +58,25 @@ namespace Labyrinth
             while (filter?.Invoke(value) ?? false || value == Any);
             return new Identity(value);
         }
+
+        public static bool operator ==(Identity a, Identity b)
+        {
+            return a.Value == b.Value;
+        }
+
+        public static bool operator !=(Identity a, Identity b)
+        {
+            return a.Value != b.Value;
+        }
+
+        public static bool operator ==(Identity instance, int value)
+        {
+            return instance.Value == value;
+        }
+
+        public static bool operator !=(Identity instance, int value)
+        {
+            return instance.Value != value;
+        }
     }
 }

@@ -11,24 +11,10 @@ namespace Labyrinth.Runtime
         internal byte m_offset;
         internal Instance m_network;
 
-        private bool Constraint(Local host)
-        {
-            /*if (NetworkHost.Running)
-            {
-                if (NetworkHost.Constraint(host))*/
-            return true;
-            /*}
-            else
-            {
-                notRunning?.Invoke();
-            }*/
-            /*return false;*/
-        }
-
-        public bool Var<T>(byte signature, int sync, Rule control, bool relevance, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, int rate, Rule control, bool relevance, Func<T> get, Action<T> set)
         {
             return m_network.Register(m_offset,
-                new Signature(signature, sync, control, relevance,
+                new Signature(signature, rate, control, relevance,
                 (ref Writer writer) =>
                 {
                     if (get != null)
@@ -82,130 +68,74 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public void RPC(byte procedure, Local host = Local.Any, Action notRunning = null)
+        public void RPC(byte procedure, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCall(signature, null);*/
-            }
-            else
-            {
-                notRunning?.Invoke();
-            }
+            m_network.Remote(Identity.Any, m_offset, procedure, null);
         }
 
-        public void RPC<T>(byte procedure, T arg, Local host = Local.Any, Action<T> notRunning = null)
+        public void RPC<T>(byte procedure, T arg, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCall(signature,
-                    (ref Writer writer) =>
-                    {
-                        writer.Write(arg);
-                    });*/
-            }
-            else
-            {
-                notRunning?.Invoke(arg);
-            }
+            m_network.Remote(Identity.Any, m_offset, procedure,
+                (ref Writer writer) =>
+                {
+                    writer.Write(arg);
+                });
         }
 
-        public void RPC<T1, T2>(byte procedure, T1 arg1, T2 arg2, Local host = Local.Any, Action<T1, T2> notRunning = null)
+        public void RPC<T1, T2>(byte procedure, T1 arg1, T2 arg2, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCall(signature,
-                    (ref BufferWriter writer) =>
-                    {
-                        writer.Write(arg1);
-                        writer.Write(arg2);
-                    });*/
-            }
-            else
-            {
-                notRunning?.Invoke(arg1, arg2);
-            }
+            m_network.Remote(Identity.Any, m_offset, procedure,
+                (ref Writer writer) =>
+                {
+                    writer.Write(arg1);
+                    writer.Write(arg2);
+                });
         }
 
-        public void RPC<T1, T2, T3>(byte procedure, T1 arg1, T2 arg2, T3 arg3, Local host = Local.Any, Action<T1, T2, T3> notRunning = null)
+        public void RPC<T1, T2, T3>(byte procedure, T1 arg1, T2 arg2, T3 arg3, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCall(signature,
-                    (ref BufferWriter writer) =>
-                    {
-                        writer.Write(arg1);
-                        writer.Write(arg2);
-                        writer.Write(arg3);
-                    });*/
-            }
-            else
-            {
-                notRunning?.Invoke(arg1, arg2, arg3);
-            }
+            m_network.Remote(Identity.Any, m_offset, procedure,
+                (ref Writer writer) =>
+                {
+                    writer.Write(arg1);
+                    writer.Write(arg2);
+                    writer.Write(arg3);
+                });
         }
 
-        public void RPC(int connection, int signature, Local host = Local.Any, Action notRunning = null)
+        public void RPC(int connection, byte procedure, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCallTarget(connection, signature, null);*/
-            }
-            else
-            {
-                notRunning?.Invoke();
-            }
+            m_network.Remote(connection, m_offset, procedure, null);
         }
 
-        public void RPC<T>(int connection, int signature, T arg, Local host = Local.Any, Action<T> notRunning = null)
+        public void RPC<T>(int connection, byte procedure, T arg, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCallTarget(connection, signature,
-                    (ref BufferWriter writer) =>
-                    {
-                        writer.Write(arg);
-                    });*/
-            }
-            else
-            {
-                notRunning?.Invoke(arg);
-            }
+            m_network.Remote(connection, m_offset, procedure,
+                (ref Writer writer) =>
+                {
+                    writer.Write(arg);
+                });
         }
 
-        public void RPC<T1, T2>(int connection, int signature, T1 arg1, T2 arg2, Local host = Local.Any, Action<T1, T2> notRunning = null)
+        public void RPC<T1, T2>(int connection, byte procedure, T1 arg1, T2 arg2, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCallTarget(connection, signature,
-                    (ref BufferWriter writer) =>
-                    {
-                        writer.Write(arg1);
-                        writer.Write(arg2);
-                    });*/
-            }
-            else
-            {
-                notRunning?.Invoke(arg1, arg2);
-            }
+            m_network.Remote(connection, m_offset, procedure,
+                (ref Writer writer) =>
+                {
+                    writer.Write(arg1);
+                    writer.Write(arg2);
+                });
         }
 
-        public void RPC<T1, T2, T3>(int connection, int signature, T1 arg1, T2 arg2, T3 arg3, Local host = Local.Any, Action<T1, T2, T3> notRunning = null)
+        public void RPC<T1, T2, T3>(int connection, byte procedure, T1 arg1, T2 arg2, T3 arg3, Host host = Host.Any)
         {
-            if (Constraint(host))
-            {
-                /*m_network.RemoteCallTarget(connection, signature,
-                    (ref BufferWriter writer) =>
-                    {
-                        writer.Write(arg1);
-                        writer.Write(arg2);
-                        writer.Write(arg3);
-                    });*/
-            }
-            else
-            {
-                notRunning?.Invoke(arg1, arg2, arg3);
-            }
+            m_network.Remote(connection, m_offset, procedure,
+                (ref Writer writer) =>
+                {
+                    writer.Write(arg1);
+                    writer.Write(arg2);
+                    writer.Write(arg3);
+                });
         }
     }
 }

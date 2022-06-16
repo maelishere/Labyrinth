@@ -1,13 +1,13 @@
-﻿namespace Labyrinth
+﻿namespace Labyrinth.Runtime
 {
     using Bolt;
 
     public struct Signature : ISynchronizer<byte>
     {
-        public Signature(byte value, int sync, Rule control, bool relevance, Write sending, Read recieving)
+        public Signature(byte value, int rate, Rule control, bool relevance, Write sending, Read recieving)
         {
             Value = value;
-            Sync = sync;
+            Rate = rate;
             Control = control;
             Relevance = relevance;
             Sending = sending;
@@ -15,7 +15,7 @@
         }
 
         public byte Value { get; }
-        public int Sync { get; }
+        public int Rate { get; }
         public Rule Control { get; }
         public bool Relevance { get; }
         public Write Sending { get; }
