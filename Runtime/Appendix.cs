@@ -11,7 +11,7 @@ namespace Labyrinth.Runtime
         internal byte m_offset;
         internal Instance m_network;
 
-        public bool Var<T>(byte signature, int rate, Rule control, bool relevance, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, bool relevance, Func<T> get, Action<T> set)
         {
             return m_network.Register(m_offset,
                 new Signature(signature, rate, control, relevance,
@@ -28,40 +28,40 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Method(byte procedure, Action method)
+        public bool Method(byte procedure, Procedure.Rule control, Action method)
         {
             return m_network.Register(m_offset, 
-                new Procedure(procedure,
+                new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
                     method?.Invoke();
                 }));
         }
 
-        public bool Method<T>(byte procedure, Action<T> method)
+        public bool Method<T>(byte procedure, Procedure.Rule control, Action<T> method)
         {
             return m_network.Register(m_offset, 
-                new Procedure(procedure,
+                new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
                     method?.Invoke(reader.Read<T>());
                 }));
         }
 
-        public bool Method<T1, T2>(byte procedure, Action<T1, T2> method)
+        public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Action<T1, T2> method)
         {
             return m_network.Register(m_offset, 
-                new Procedure(procedure,
+                new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
                     method?.Invoke(reader.Read<T1>(), reader.Read<T2>());
                 }));
         }
 
-        public bool Method<T1, T2, T3>(byte procedure, Action<T1, T2, T3> method)
+        public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Action<T1, T2, T3> method)
         {
             return m_network.Register(m_offset, 
-                new Procedure(procedure,
+                new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
                     method?.Invoke(reader.Read<T1>(), reader.Read<T2>(), reader.Read<T3>());

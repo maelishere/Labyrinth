@@ -4,13 +4,21 @@
 
     public struct Procedure : IRemote<byte>
     {
-        public Procedure(byte value, Read callback)
+        public enum Rule
         {
-            Value = value;
-            Callback = callback;
+            Both,
+            Server,
+            Client
         }
 
+        public Procedure(byte value, Rule control, Read callback)
+        {
+            Value = value;
+            Control = control;
+            Callback = callback;
+        }
         public byte Value { get; }
+        public Rule Control { get; }
         public Read Callback { get; }
     }
 }

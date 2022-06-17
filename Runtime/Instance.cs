@@ -28,7 +28,10 @@ namespace Labyrinth.Runtime
                 m_appendices[i].m_offset = (byte)(i + 1); // offset 0 belongs to the class inheriting from instance
                 m_appendices[i].m_network = this;
             }
+            Wake();
         }
+
+        protected abstract void Wake();
 
         internal bool Create(int identifier, int connection)
         {
@@ -112,7 +115,38 @@ namespace Labyrinth.Runtime
                 Instance instance = m_instances[call.Identity];
                 if (instance.m_procedures.ContainsKey(call.Procedure))
                 {
-                    instance.m_procedures[call.Procedure].Callback(ref reader);
+                    /// before i can call the procedure, check:
+                    /// if this prodecure can run on client or server or both
+                    /// if the network is a client or server
+                    /// if the network is the target
+
+                    Procedure procedure = instance.m_procedures[call.Procedure];
+
+                    switch (procedure.Control)
+                    {
+                        case Procedure.Rule.Both:
+                            break;
+                        case Procedure.Rule.Server:
+                            break;
+                        case Procedure.Rule.Client:
+                            break;
+                    }
+
+                    if (call.Target == Identity.Any)
+                    {
+                    }
+                    if (call.Target != Network.Authority())
+                    {
+                    }
+                    if (Network.Internal(Host.Server))
+                    {
+                        Network.Forward((int c) => c != connection, Network.Abnormal, Flags.Procedure, (ref Writer writer) => writer.WriteCall(call));
+                    }
+                    if (Network.Internal(Host.Client))
+                    {
+                    }
+
+                    /*instance.m_procedures[call.Procedure].Callback(ref reader);*/
                 }
             }
         }

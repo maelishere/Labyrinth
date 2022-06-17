@@ -47,6 +47,10 @@ namespace Labyrinth.Runtime
         {
             return new Call(reader.ReadInt(), reader.ReadInt(), reader.ReadShort());
         }
+        public static void WriteCall(this Writer writer, Call call)
+        {
+            writer.WriteCall(call.Target, call.Identity, call.Procedure);
+        }
 
         public static void WriteCall(this Writer writer, int target, int identity, short procedure)
         {

@@ -2,8 +2,7 @@
 
 namespace Labyrinth.Runtime
 {
-    [RequireComponent(typeof(Entity))]
-    public sealed class Observer : Appendix
+    public sealed class Observer : MonoBehaviour
     {
         [SerializeField] private float m_relevance = 100;
     }

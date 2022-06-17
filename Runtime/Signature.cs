@@ -4,6 +4,13 @@
 
     public struct Signature : ISynchronizer<byte>
     {
+        public enum Rule
+        {
+            None,
+            Server,
+            Authority
+        }
+
         public Signature(byte value, int rate, Rule control, bool relevance, Write sending, Read recieving)
         {
             Value = value;

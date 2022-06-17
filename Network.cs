@@ -70,6 +70,7 @@ namespace Labyrinth
             if (NetworkServer.Running)
             {
                 NetworkServer.Send(channel, Pack(flag, write));
+                return;
             }
             if (NetworkClient.Running)
             {
