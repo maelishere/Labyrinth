@@ -85,7 +85,7 @@ namespace Labyrinth.Runtime
 
         public static void WriteSpawn(this Writer writer, Entity entity)
         {
-            writer.Write(entity.m_asset);
+            writer.Write(entity.n_asset);
             writer.Write(entity.identity.Value);
             writer.Write(entity.authority.Value);
             writer.Write(entity.transform.position);

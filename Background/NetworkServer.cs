@@ -9,10 +9,10 @@ namespace Labyrinth.Background
 
     public static class NetworkServer
     {
-        internal static Server m_server;
+        internal static Server n_server;
         private static readonly HashSet<int> m_connections = new HashSet<int>();
 
-        public static bool Running => m_server != null;
+        public static bool Running => n_server != null;
 
         internal static void Listen(int port)
         {
@@ -21,7 +21,7 @@ namespace Labyrinth.Background
                 if (!Running)
                 {
                     m_connections.Clear();
-                    m_server = new Server(port, Mode.IPV4);
+                    n_server = new Server(port, Mode.IPV4);
                     return;
                 }
                 throw new InvalidOperationException($"Network Server was already running");
@@ -32,31 +32,31 @@ namespace Labyrinth.Background
         internal static void Destroy()
         {
             m_connections.Clear();
-            m_server.Close();
-            m_server = null;
+            n_server.Close();
+            n_server = null;
         }
 
         internal static void Update()
         {
-            m_server?.Update(OnReceive, OnRequest, OnAcknowledge, OnError);
+            n_server?.Update(OnReceive, OnRequest, OnAcknowledge, OnError);
         }
 
         internal static void Send(Channel channel, Write write)
         {
-            if (m_server != null)
+            if (n_server != null)
             {
                 foreach (var connection in m_connections)
                 {
-                    m_server.Send(connection, channel, write);
+                    n_server.Send(connection, channel, write);
                 }
             }
         }
 
         internal static bool Send(int connection, Channel channel, Write write)
         {
-            if (m_server != null && m_connections.Contains(connection))
+            if (n_server != null && m_connections.Contains(connection))
             {
-                m_server.Send(connection, channel, write);
+                n_server.Send(connection, channel, write);
                 return true;
             }
             return false;
@@ -64,13 +64,13 @@ namespace Labyrinth.Background
 
         internal static void Send(Func<int, bool> predicate, Channel channel, Write write)
         {
-            if (m_server != null)
+            if (n_server != null)
             {
                 foreach (var connection in m_connections)
                 {
                     if (predicate(connection))
                     {
-                        m_server.Send(connection, channel, write);
+                        n_server.Send(connection, channel, write);
                     }
                 }
             }

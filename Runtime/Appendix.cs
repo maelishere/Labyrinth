@@ -6,14 +6,26 @@ namespace Labyrinth.Runtime
     using Bolt;
 
     [RequireComponent(typeof(Instance))]
-    public abstract class Appendix : MonoBehaviour
+    public class Appendix : MonoBehaviour
     {
-        internal byte m_offset;
-        internal Instance m_network;
+        [Serializable]
+        public struct Variable<T> where T : struct
+        {
+            public int Rate;
+            public bool Relevance;
+            [HideInInspector] public T State;
+        }
+
+        internal byte n_offset;
+        internal Instance n_network;
+
+        public int identity => n_network.identity.Value;
+        public int authority => n_network.authority.Value;
+        public bool owner => authority == Network.Authority();
 
         public bool Var<T>(byte signature, int rate, Signature.Rule control, bool relevance, Func<T> get, Action<T> set)
         {
-            return m_network.Register(m_offset,
+            return n_network.Register(n_offset,
                 new Signature(signature, rate, control, relevance,
                 (ref Writer writer) =>
                 {
@@ -30,7 +42,7 @@ namespace Labyrinth.Runtime
 
         public bool Method(byte procedure, Procedure.Rule control, Action method)
         {
-            return m_network.Register(m_offset, 
+            return n_network.Register(n_offset, 
                 new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
@@ -40,7 +52,7 @@ namespace Labyrinth.Runtime
 
         public bool Method<T>(byte procedure, Procedure.Rule control, Action<T> method)
         {
-            return m_network.Register(m_offset, 
+            return n_network.Register(n_offset, 
                 new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
@@ -50,7 +62,7 @@ namespace Labyrinth.Runtime
 
         public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Action<T1, T2> method)
         {
-            return m_network.Register(m_offset, 
+            return n_network.Register(n_offset, 
                 new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
@@ -60,7 +72,7 @@ namespace Labyrinth.Runtime
 
         public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Action<T1, T2, T3> method)
         {
-            return m_network.Register(m_offset, 
+            return n_network.Register(n_offset, 
                 new Procedure(procedure, control,
                 (ref Reader reader) =>
                 {
@@ -70,12 +82,12 @@ namespace Labyrinth.Runtime
 
         public void RPC(byte procedure, Host host = Host.Any)
         {
-            m_network.Remote(Identity.Any, m_offset, procedure, null);
+            n_network.Remote(Identity.Any, n_offset, procedure, null);
         }
 
         public void RPC<T>(byte procedure, T arg, Host host = Host.Any)
         {
-            m_network.Remote(Identity.Any, m_offset, procedure,
+            n_network.Remote(Identity.Any, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg);
@@ -84,7 +96,7 @@ namespace Labyrinth.Runtime
 
         public void RPC<T1, T2>(byte procedure, T1 arg1, T2 arg2, Host host = Host.Any)
         {
-            m_network.Remote(Identity.Any, m_offset, procedure,
+            n_network.Remote(Identity.Any, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -94,7 +106,7 @@ namespace Labyrinth.Runtime
 
         public void RPC<T1, T2, T3>(byte procedure, T1 arg1, T2 arg2, T3 arg3, Host host = Host.Any)
         {
-            m_network.Remote(Identity.Any, m_offset, procedure,
+            n_network.Remote(Identity.Any, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -105,12 +117,12 @@ namespace Labyrinth.Runtime
 
         public void RPC(int connection, byte procedure, Host host = Host.Any)
         {
-            m_network.Remote(connection, m_offset, procedure, null);
+            n_network.Remote(connection, n_offset, procedure, null);
         }
 
         public void RPC<T>(int connection, byte procedure, T arg, Host host = Host.Any)
         {
-            m_network.Remote(connection, m_offset, procedure,
+            n_network.Remote(connection, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg);
@@ -119,7 +131,7 @@ namespace Labyrinth.Runtime
 
         public void RPC<T1, T2>(int connection, byte procedure, T1 arg1, T2 arg2, Host host = Host.Any)
         {
-            m_network.Remote(connection, m_offset, procedure,
+            n_network.Remote(connection, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -129,7 +141,7 @@ namespace Labyrinth.Runtime
 
         public void RPC<T1, T2, T3>(int connection, byte procedure, T1 arg1, T2 arg2, T3 arg3, Host host = Host.Any)
         {
-            m_network.Remote(connection, m_offset, procedure,
+            n_network.Remote(connection, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);

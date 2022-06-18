@@ -11,12 +11,12 @@ namespace Labyrinth.Background
         public class Meeting
         {
             public readonly Session Handle;
-            public readonly HashSet<int> Peers;
+            public readonly HashSet<int> Members;
 
             public Meeting(Family family, int port, int max)
             {
                 Handle = new Session(Family.IPV4, port, max);
-                Peers = new HashSet<int>();
+                Members = new HashSet<int>();
             }
         }
 
@@ -26,11 +26,11 @@ namespace Labyrinth.Background
 
         internal static void Listen(int port)
         {
-            if (!NetworkPeers.Running)
+            if (!NetworkMembers.Running)
             {
                 m_sessions.Add(port, new Meeting(Family.IPV4, port, 60)); ;
             }
-            throw new InvalidOperationException($"Network Peers is currently running");
+            throw new InvalidOperationException($"Network Members is currently running");
         }
 
         internal static bool Destroy(int session)
@@ -50,9 +50,9 @@ namespace Labyrinth.Background
             {
                 session.Value.Handle.Update(0,
                     (int connection) => OnConnected(session.Key, connection),
-                    (int peer, ref Reader reader) =>
+                    (int member, ref Reader reader) =>
                     {
-                        OnReceive(session.Key, peer, ref reader);
+                        OnReceive(session.Key, member, ref reader);
                     }, (int connection) => OnDisconnected(session.Key, connection));
             }
         }
@@ -61,20 +61,20 @@ namespace Labyrinth.Background
         {
             if (m_sessions.TryGetValue(session, out Meeting meeting))
             {
-                foreach (var peer in meeting.Peers)
+                foreach (var member in meeting.Members)
                 {
-                    meeting.Handle.Send(peer, write);
+                    meeting.Handle.Send(member, write);
                 }
                 return true;
             }
             return false;
         }
 
-        internal static bool Send(int session, int peer, Write write)
+        internal static bool Send(int session, int member, Write write)
         {
             if (m_sessions.TryGetValue(session, out Meeting meeting))
             {
-                meeting.Handle.Send(peer, write);
+                meeting.Handle.Send(member, write);
                 return true;
             }
             return false;
@@ -84,11 +84,11 @@ namespace Labyrinth.Background
         {
             if (m_sessions.TryGetValue(session, out Meeting meeting))
             {
-                foreach (var peer in meeting.Peers)
+                foreach (var member in meeting.Members)
                 {
-                    if (predicate(peer))
+                    if (predicate(member))
                     {
-                        meeting.Handle.Send(peer, write);
+                        meeting.Handle.Send(member, write);
                     }
                 }
                 return true;
@@ -98,14 +98,21 @@ namespace Labyrinth.Background
 
         private static void OnConnected(int session, int connection)
         {
+            m_sessions[session].Members.Add(connection);
         }
 
         private static void OnDisconnected(int session, int connection)
         {
+            m_sessions[session].Members.Remove(connection);
         }
 
         private static void OnReceive(int session, int connection, ref Reader reader)
         {
+            // session send to all members imideatily 
+            byte[] bytes = reader.Read(reader.Length - reader.Current);
+            Send(session, (c) => c != connection, (ref Writer writer) => writer.Write(bytes));
+
+            // incase server has to process something
             Network.Receive(connection, session, ref reader);
         }
     }

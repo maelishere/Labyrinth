@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,7 +9,7 @@ namespace Labyrinth.Runtime
     using Bolt;
 
     [DisallowMultipleComponent]
-    public abstract class Instance : MonoBehaviour
+    public class Instance : MonoBehaviour
     {
         private static Dictionary<int, Instance> m_instances = new Dictionary<int, Instance>();
 
@@ -17,31 +19,27 @@ namespace Labyrinth.Runtime
         private readonly Dictionary<short, Procedure> m_procedures = new Dictionary<short, Procedure>();
 
         public Identity identity { get; private set; }
-
         public Identity authority { get; private set; }
-
-        private void Awake()
-        {
-            m_appendices = GetComponentsInChildren<Appendix>();
-            for (int i = 0; i < m_appendices.Length; i++)
-            {
-                m_appendices[i].m_offset = (byte)(i + 1); // offset 0 belongs to the class inheriting from instance
-                m_appendices[i].m_network = this;
-            }
-            Wake();
-        }
-
-        protected abstract void Wake();
 
         internal bool Create(int identifier, int connection)
         {
             if (!m_instances.ContainsKey(identifier))
             {
+                m_appendices = GetComponentsInChildren<Appendix>();
+                for (int i = 0; i < m_appendices.Length; i++)
+                {
+                    m_appendices[i].n_offset = (byte)(i + 1); // offset 0 belongs to the class inheriting from instance
+                    m_appendices[i].n_network = this;
+                }
+
                 identity = new Identity(identifier);
                 authority = new Identity(connection);
                 m_instances.Add(identifier, this);
 
                 /// after start synchronizing signatures
+                foreach (var signature in m_signatures)
+                    StartCoroutine(Synchronize(signature.Key, signature.Value));
+
                 return true;
             }
             return false;
@@ -50,7 +48,7 @@ namespace Labyrinth.Runtime
         internal bool Destroy()
         {
             /// before stop synchronizing signatures
-            
+            StopAllCoroutines();
             return m_instances.Remove(identity.Value);
         }
 
@@ -78,12 +76,73 @@ namespace Labyrinth.Runtime
             return false;
         }
 
-        internal IEnumerator Synchronize()
+        internal IEnumerator Synchronize(short key, Signature signature)
         {
-            // with reference signature settings
-            // client to server 
-            // server to clients
-            yield return new WaitForSecondsRealtime(1.0f /*/ m_sync*/);
+            // with reference signature rule
+            //              client to server 
+            //              server to clients
+
+            Func<bool> relevant = () =>
+            {
+                if (signature.Relevance)
+                {
+
+                }
+                return true;
+            };
+
+            Action send = () =>
+            {
+                if (relevant())
+                {
+                    Network.Forward(Network.Fickle, Flags.Signature,
+                        (ref Writer writer) =>
+                        {
+                            writer.WriteSync(identity.Value, key);
+                            signature.Sending(ref writer);
+                        });
+                }
+            };
+
+            while (Network.Internal(Host.Any))
+            {
+                switch (signature.Control)
+                {
+                    case Signature.Rule.Round:
+                        if (Network.Internal(Host.Server))
+                        {
+                            send();
+                        }
+                        if (Network.Internal(Host.Client) && authority.Value == Network.Authority())
+                        {
+                            send();
+                        }
+                        break;
+                    case Signature.Rule.Server:
+                        if (Network.Internal(Host.Server))
+                        {
+                            send();
+                        }
+                        break;
+                    case Signature.Rule.Authority:
+                        if (authority.Value == Network.Authority())
+                        {
+                            send();
+                        }
+                        else if (Network.Internal(Host.Server) && relevant())
+                        {
+                            Network.Forward((c) => c != authority.Value,
+                                Network.Fickle, Flags.Signature,
+                                (ref Writer writer) =>
+                                {
+                                    writer.WriteSync(identity.Value, key);
+                                    signature.Sending(ref writer);
+                                });
+                        }
+                        break;
+                }
+                yield return new WaitForSecondsRealtime(1.0f / signature.Rate);
+            }
         }
 
         internal void Remote(int target, byte offset, byte procedure, Write write)
@@ -135,7 +194,7 @@ namespace Labyrinth.Runtime
                     if (call.Target == Identity.Any)
                     {
                     }
-                    if (call.Target != Network.Authority())
+                    if (call.Target == Network.Authority())
                     {
                     }
                     if (Network.Internal(Host.Server))

@@ -7,9 +7,9 @@ namespace Labyrinth.Background
     using Bolt;
     using Snare;
 
-    public static class NetworkPeers
+    public static class NetworkMembers
     {
-        private readonly static Dictionary<int, Peer> m_sessions = new Dictionary<int, Peer>();
+        private readonly static Dictionary<int, Member> m_sessions = new Dictionary<int, Member>();
 
         public static bool Running => m_sessions.Count > 0;
 
@@ -17,7 +17,7 @@ namespace Labyrinth.Background
         {
             if (!NetworkSessions.Running)
             {
-                Peer peer = new Peer(Family.IPV4, session, OnConnected);
+                Member peer = new Member(Family.IPV4, session, OnConnected);
                 m_sessions.Add(peer.Remote, peer);
             }
             throw new InvalidOperationException($"Network Sessions is currently running");
@@ -25,7 +25,7 @@ namespace Labyrinth.Background
 
         internal static bool Diconnect(int session)
         {
-            if (m_sessions.TryGetValue(session, out Peer peer))
+            if (m_sessions.TryGetValue(session, out Member peer))
             {
                 peer.Disconnect();
                 m_sessions.Remove(session);
@@ -51,7 +51,7 @@ namespace Labyrinth.Background
 
         internal static bool Send(int session, Write write)
         {
-            if (m_sessions.TryGetValue(session, out Peer peer))
+            if (m_sessions.TryGetValue(session, out Member peer))
             {
                 peer.Send(write);
                 return true;

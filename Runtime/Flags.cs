@@ -11,18 +11,20 @@ namespace Labyrinth.Runtime
         public const byte Destroy = 6;
 
         // secondary chat rooms (tcp)
-        public const byte Message = 9;
+        public const byte Text = 9;
+        public const byte Speech = 10;
 
+        // register flags
         static Flags()
         {
-            // register flags
             Network.Register(Signature, Instance.OnNetworkSignature);
             Network.Register(Procedure, Instance.OnNetworkProcedure);
 
             Network.Register(Create, Entity.OnNetworkCreate);
             Network.Register(Destroy, Entity.OnNetworkDestory);
 
-            Network.Register(Message, Conference.OnNetworkMessage);
+            Network.Register(Text, Conference.OnNetworkText);
+            Network.Register(Speech, Conference.OnNetworkSpeech);
         }
     }
 }

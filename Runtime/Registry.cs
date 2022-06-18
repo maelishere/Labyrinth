@@ -29,8 +29,8 @@ namespace Labyrinth.Runtime
                     Entity entity = Resources.Load<Entity>(registries[i].m_prefabs[x]);
                     if (entity)
                     {
-                        entity.m_asset = identity.Combine(x);
-                        m_resources.Add(entity.m_asset, entity);
+                        entity.n_asset = identity.Combine(x);
+                        m_resources.Add(entity.n_asset, entity);
                         identity++;
                     }
                     else

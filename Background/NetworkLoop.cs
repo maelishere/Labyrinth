@@ -74,7 +74,7 @@ namespace Labyrinth.Background
         static void NetworkLateUpdate()
         {
             NetworkSessions.Update();
-            NetworkPeers.Update();
+            NetworkMembers.Update();
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Labyrinth
 
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
 
-        internal static Write Pack(byte flag, Write write)
+        private static Write Pack(byte flag, Write write)
         {
             return (ref Writer writer) =>
             {
@@ -60,9 +60,32 @@ namespace Labyrinth
             throw new ArgumentException($"{host} host not found");
         }
 
-        public static void Stream(int session, Write write)
+        public static void Stream(int session, byte flag, Write write)
         {
+            if (NetworkSessions.Running)
+            {
+                NetworkSessions.Send(session, Pack(flag, write));
+            }
+            if (NetworkMembers.Running)
+            {
+                NetworkMembers.Send(session, Pack(flag, write));
+            }
+        }
 
+        public static void Stream(int session, int member, byte flag, Write write)
+        {
+            if (NetworkSessions.Running)
+            {
+                NetworkSessions.Send(session, member, Pack(flag, write));
+            }
+        }
+
+        public static void Stream(int session, Func<int, bool> predicate, byte flag, Write write)
+        {
+            if (NetworkSessions.Running)
+            {
+                NetworkSessions.Send(session, predicate, Pack(flag, write));
+            }
         }
 
         public static void Forward(Channel channel, byte flag, Write write)
@@ -97,13 +120,13 @@ namespace Labyrinth
         public static int Authority(bool remote = false)
         {
             if (NetworkServer.Running)
-                return NetworkServer.m_server.Listen;
+                return NetworkServer.n_server.Listen;
             if (NetworkClient.Running)
             {
                 if (remote)
-                    return NetworkClient.m_client.Remote;
+                    return NetworkClient.n_client.Remote;
                 else
-                    return NetworkClient.m_client.Local;
+                    return NetworkClient.n_client.Local;
             }
             return Identity.Any;
         }

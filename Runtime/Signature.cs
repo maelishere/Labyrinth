@@ -7,6 +7,7 @@
         public enum Rule
         {
             None,
+            Round,
             Server,
             Authority
         }
