@@ -11,7 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Bolt\Bolt.csproj" />
     <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Lattice\Lattice.csproj" />
-    <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Snare\Snare.csproj" />
   </ItemGroup>
 
   <ItemGroup>

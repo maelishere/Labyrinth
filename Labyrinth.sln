@@ -3,13 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.32228.343
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Labyrinth", "Labyrinth.csproj", "{98F11A0C-AEF6-4438-B9B7-25B51B5E0C3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Labyrinth", "Labyrinth.csproj", "{98F11A0C-AEF6-4438-B9B7-25B51B5E0C3D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bolt", "..\..\..\Workspace (C#)\Networking\Bolt\Bolt.csproj", "{28DDD7AC-2F08-423A-9E27-BF088FDD4409}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bolt", "..\Bolt\Bolt.csproj", "{28DDD7AC-2F08-423A-9E27-BF088FDD4409}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snare", "..\..\..\Workspace (C#)\Networking\Snare\Snare.csproj", "{A715BBB7-0A9C-4ED6-BFDB-12102A6C28B5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lattice", "..\..\..\Workspace (C#)\Networking\Lattice\Lattice.csproj", "{23E10A58-EBE4-4340-A3A2-19A94F2C126C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lattice", "..\Lattice\Lattice.csproj", "{23E10A58-EBE4-4340-A3A2-19A94F2C126C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,10 +23,6 @@ Global
 		{28DDD7AC-2F08-423A-9E27-BF088FDD4409}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28DDD7AC-2F08-423A-9E27-BF088FDD4409}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28DDD7AC-2F08-423A-9E27-BF088FDD4409}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A715BBB7-0A9C-4ED6-BFDB-12102A6C28B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A715BBB7-0A9C-4ED6-BFDB-12102A6C28B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A715BBB7-0A9C-4ED6-BFDB-12102A6C28B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A715BBB7-0A9C-4ED6-BFDB-12102A6C28B5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23E10A58-EBE4-4340-A3A2-19A94F2C126C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{23E10A58-EBE4-4340-A3A2-19A94F2C126C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23E10A58-EBE4-4340-A3A2-19A94F2C126C}.Release|Any CPU.ActiveCfg = Release|Any CPU
