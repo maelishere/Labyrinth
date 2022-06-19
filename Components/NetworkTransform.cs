@@ -6,6 +6,7 @@ namespace Labyrinth.Components
     using Labyrinth.Runtime;
 
     [RequireComponent(typeof(Entity))]
+    [AddComponentMenu("Labyrinth/Components/Network Transform")]
     public class NetworkTransform : Appendix
     {
         [SerializeField] private int m_rate = 10;

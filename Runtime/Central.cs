@@ -7,7 +7,7 @@ namespace Labyrinth.Runtime
 
     // processed mainly on the server 
     // main network manager and for relevance
-    [RequireComponent(typeof(World))]
+    [RequireComponent(typeof(World)), AddComponentMenu("Labyrinth/Central")]
     public sealed class Central : MonoBehaviour
     {
         internal static readonly HashSet<Station> n_stations = new HashSet<Station>();

@@ -5,6 +5,7 @@ namespace Labyrinth.Runtime
 {
     using Bolt;
 
+    [AddComponentMenu("Labyrinth/Entity")]
     public sealed class Entity : Instance
     {
         [SerializeField] private int m_world;

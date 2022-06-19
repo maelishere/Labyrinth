@@ -8,6 +8,7 @@ namespace Labyrinth.Runtime
     using Bolt;
 
     // server authority instances
+    [AddComponentMenu("Labyrinth/World")]
     public sealed class World : Instance
     {
         // network representation of a scene

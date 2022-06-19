@@ -6,6 +6,7 @@ namespace Labyrinth.Components
 
     [RequireComponent(typeof(Animator))]
     [RequireComponent(typeof(Entity))]
+    [AddComponentMenu("Labyrinth/Components/Network Animator")]
     public class NetworkAnimator : Appendix
     {
         public struct Parameter
@@ -28,7 +29,6 @@ namespace Labyrinth.Components
         }
 
         [SerializeField] private int m_rate = 10;
-        [SerializeField] private bool m_relevance = true;
         [SerializeField] private float m_smoothing = 10.0f;
 
         private Animator m_animator;

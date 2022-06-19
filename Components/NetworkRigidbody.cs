@@ -6,6 +6,7 @@ namespace Labyrinth.Components
 
     [RequireComponent(typeof(Entity))]
     [RequireComponent(typeof(Rigidbody))]
+    [AddComponentMenu("Labyrinth/Components/Network Rigidbody")]
     public class NetworkRigidbody : Appendix
     {
         [SerializeField] private int m_rate = 10;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
 {
-    [AddComponentMenu("Network/Registry")]
+    [CreateAssetMenuAttribute(fileName = "Registry", menuName = "Labyrith/Registry", order = 100)]
     public class Registry : ScriptableObject
     {
         private static readonly Dictionary<int, Entity> m_resources = new Dictionary<int, Entity>();
