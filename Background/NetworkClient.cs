@@ -16,6 +16,8 @@ namespace Labyrinth.Background
 
         private static void Close()
         {
+            Network.Outgoing(n_client.Local, n_client.Remote);
+            Network.terminating.Invoke(n_client.Local);
             n_connected = false;
             n_client.Close();
             n_client = null;
@@ -29,6 +31,7 @@ namespace Labyrinth.Background
                 {
                     n_connected = false;
                     n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge);
+                    Network.initialized.Invoke(n_client.Local);
                     return;
                 }
                 throw new InvalidOperationException($"Network Client was already running");
@@ -70,6 +73,7 @@ namespace Labyrinth.Background
                     if (!n_connected)
                     {
                         n_connected = true;
+                        Network.Incoming(n_client.Local, n_client.Remote);
                     }
                     break;
                 case Request.Disconnect:
@@ -88,6 +92,7 @@ namespace Labyrinth.Background
                     if (!n_connected)
                     {
                         n_connected = true;
+                        Network.Incoming(n_client.Local, n_client.Remote);
                     }
                     break;
                 case Request.Disconnect:
@@ -98,7 +103,7 @@ namespace Labyrinth.Background
 
         private static void OnReceive(uint timestamp, ref Reader reader)
         {
-            Network.Receive(n_client.Remote, timestamp, ref reader);
+            Network.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);
         }
     }
 }

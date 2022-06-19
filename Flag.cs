@@ -7,7 +7,7 @@
         public const byte Connected = 1;
         public const byte Disconnected = 2;
 
-        public delegate void Recieved(int connection, object state, ref Reader reader);
+        public delegate void Recieved(int socket, int connection, object state, ref Reader reader);
 
         public Flag(byte value, Recieved callback)
         {

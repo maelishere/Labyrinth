@@ -15,7 +15,7 @@ namespace Labyrinth.Runtime
 
         // this should only be called once because the network can always be restarted
         [RuntimeInitializeOnLoadMethod]
-        internal static void Initialize()
+        private static void Initialize()
         {
             // when assigning each entity prefab a idenitifer it must be preditable
             ushort identity = 1; // we start at 1 because an asset with 0 is an empty

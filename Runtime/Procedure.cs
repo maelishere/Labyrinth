@@ -6,7 +6,7 @@
     {
         public enum Rule
         {
-            Both,
+            Any,
             Server,
             Client
         }

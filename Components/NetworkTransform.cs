@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 namespace Labyrinth.Components
 {
@@ -8,30 +9,16 @@ namespace Labyrinth.Components
     public class NetworkTransform : Appendix
     {
         [SerializeField] private int m_rate = 10;
-        [SerializeField] private bool m_relevance = true;
-        [SerializeField] private float m_snapThreshold = 3;
-
-        /*public bool Parent, Position, Rotation, Scale;*/
+        [SerializeField] private float m_smoothing = 3;
 
         private Instance m_parent;
         private Vector3 m_position, m_rotation, m_scale;
 
         private void Awake()
         {
-            Var(1, m_rate, Signature.Rule.Round, m_relevance,
-                () =>
-                {
-                    return m_parent.identity.Value;
-                },
-                (int parent) =>
-                {
-                    if (Instance.Find(parent, out Instance instance))
-                    {
-                        m_parent = instance;
-                    }
-                });
+            Method<int>(1, Procedure.Rule.Any, OnNetworkParent);
 
-            Var(2, m_rate, Signature.Rule.Round, m_relevance,
+            Var(2, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
                 {
                     return transform.position;
@@ -41,7 +28,7 @@ namespace Labyrinth.Components
                     m_position = position;
                 });
 
-            Var(3, m_rate, Signature.Rule.Round, m_relevance,
+            Var(3, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
                 {
                     return transform.rotation.eulerAngles;
@@ -51,23 +38,48 @@ namespace Labyrinth.Components
                     m_rotation = rotation;
                 });
 
-            Var(3, m_rate, Signature.Rule.Round, m_relevance,
+            Var(3, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
                 {
-                    return transform.lossyScale;
+                    return transform.localScale;
                 },
                 (Vector3 scale) =>
                 {
                     m_scale = scale;
                 });
+
+            StartCoroutine(CheckParent());
+        }
+
+        private IEnumerator CheckParent()
+        {
+            while (Network.Internal(Host.Any))
+            {
+                if (m_parent?.transform ?? null != transform.parent)
+                {
+                    m_parent = transform.parent.GetComponent<Instance>();
+                    RPC(1, m_parent?.identity.Value ?? Identity.Any);
+                }
+                yield return new WaitForSecondsRealtime(1);
+            }
+        }
+
+        private void OnNetworkParent(int instance)
+        {
+            if (Instance.Find(instance, out Instance parent))
+            {
+                m_parent = parent;
+            }
         }
 
         private void Update()
         {
-            //if network isn't the server
-            if (Network.Authority(true) != authority)
+            if (!owner)
             {
-
+                transform.SetParent(m_parent?.transform ?? null);
+                transform.position = Vector3.Lerp(transform.position, m_position, m_smoothing * Time.deltaTime);
+                transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(m_rotation), m_smoothing * Time.deltaTime);
+                transform.localScale = Vector3.Lerp(transform.localScale, m_scale, m_smoothing * Time.deltaTime);
             }
         }
     }

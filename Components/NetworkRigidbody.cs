@@ -5,30 +5,33 @@ namespace Labyrinth.Components
     using Labyrinth.Runtime;
 
     [RequireComponent(typeof(Entity))]
+    [RequireComponent(typeof(Rigidbody))]
     public class NetworkRigidbody : Appendix
     {
         [SerializeField] private int m_rate = 10;
-        [SerializeField] private bool m_relevance = true;
         [SerializeField] private float m_smoothing = 10.0f;
 
+        private Rigidbody m_rigidbody;
         private Vector3 m_position, m_rotation;
 
         private void Awake()
         {
-            Var(1, m_rate, Signature.Rule.Round, m_relevance,
+            m_rigidbody = GetComponent<Rigidbody>();
+
+            Var(1, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
                 {
-                    return transform.position;
+                    return m_rigidbody.position;
                 },
                 (Vector3 position) =>
                 {
                     m_position = position;
                 });
 
-            Var(2, m_rate, Signature.Rule.Round, m_relevance,
+            Var(2, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
                 {
-                    return transform.rotation.eulerAngles;
+                    return m_rigidbody.rotation.eulerAngles;
                 },
                 (Vector3 rotation) =>
                 {
@@ -38,10 +41,10 @@ namespace Labyrinth.Components
 
         private void FixedUpdate()
         {
-            //if network isn't the server
-            if (Network.Authority(true) != authority)
+            if (!owner)
             {
-
+                m_rigidbody.MovePosition(Vector3.Lerp(m_rigidbody.position, m_position, m_smoothing * Time.deltaTime));
+                m_rigidbody.MoveRotation(Quaternion.Lerp(m_rigidbody.rotation, Quaternion.Euler(m_rotation), m_smoothing * Time.deltaTime));
             }
         }
     }

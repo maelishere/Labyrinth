@@ -94,22 +94,25 @@ namespace Labyrinth.Runtime
 
         public struct Cease
         {
-            public Cease(int identity)
+            public Cease(int identity, int authority)
             {
                 Identity = identity;
+                Authority = authority;
             }
 
             public int Identity { get; }
+            public int Authority { get; }
         }
 
         public static Cease ReadCease(this Reader reader)
         {
-            return new Cease(reader.ReadInt());
+            return new Cease(reader.ReadInt(), reader.ReadInt());
         }
 
-        public static void WriteCease(this Writer writer, int identity)
+        public static void WriteCease(this Writer writer, int identity, int authority)
         {
             writer.Write(identity);
+            writer.Write(authority);
         }
     }
 }

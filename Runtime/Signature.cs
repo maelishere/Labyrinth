@@ -12,12 +12,12 @@
             Authority
         }
 
-        public Signature(byte value, int rate, Rule control, bool relevance, Write sending, Read recieving)
+        public Signature(byte value, int rate, Rule control, Relevance relevancy, Write sending, Read recieving)
         {
             Value = value;
             Rate = rate;
             Control = control;
-            Relevance = relevance;
+            Relevancy = relevancy;
             Sending = sending;
             Recieving = recieving;
         }
@@ -25,7 +25,7 @@
         public byte Value { get; }
         public int Rate { get; }
         public Rule Control { get; }
-        public bool Relevance { get; }
+        public Relevance Relevancy { get; }
         public Write Sending { get; }
         public Read Recieving { get; }
     }

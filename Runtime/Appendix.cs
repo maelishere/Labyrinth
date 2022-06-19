@@ -21,12 +21,12 @@ namespace Labyrinth.Runtime
 
         public int identity => n_network.identity.Value;
         public int authority => n_network.authority.Value;
-        public bool owner => authority == Network.Authority();
+        public bool owner => Network.Authority(authority);
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, bool relevance, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevancy, Func<T> get, Action<T> set)
         {
             return n_network.Register(n_offset,
-                new Signature(signature, rate, control, relevance,
+                new Signature(signature, rate, control, relevancy,
                 (ref Writer writer) =>
                 {
                     if (get != null)

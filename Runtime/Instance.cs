@@ -21,25 +21,32 @@ namespace Labyrinth.Runtime
         public Identity identity { get; private set; }
         public Identity authority { get; private set; }
 
+        private void Awake()
+        {
+            m_appendices = GetComponentsInChildren<Appendix>();
+            for (int i = 0; i < m_appendices.Length; i++)
+            {
+                // offset 0 belongs to the class inheriting from instance (World or Entity)
+                //      therefore we start at offseting at 1
+                m_appendices[i].n_offset = (byte)(i + 1);
+                m_appendices[i].n_network = this;
+            }
+        }
+
         internal bool Create(int identifier, int connection)
         {
             if (!m_instances.ContainsKey(identifier))
             {
-                m_appendices = GetComponentsInChildren<Appendix>();
-                for (int i = 0; i < m_appendices.Length; i++)
-                {
-                    m_appendices[i].n_offset = (byte)(i + 1); // offset 0 belongs to the class inheriting from instance
-                    m_appendices[i].n_network = this;
-                }
-
                 identity = new Identity(identifier);
                 authority = new Identity(connection);
                 m_instances.Add(identifier, this);
 
                 /// after start synchronizing signatures
-                foreach (var signature in m_signatures)
-                    StartCoroutine(Synchronize(signature.Key, signature.Value));
-
+                if (Network.Internal(Host.Server) || Network.Authority(authority.Value))
+                {
+                    foreach (var signature in m_signatures)
+                        StartCoroutine(Synchronize(signature.Key));
+                }
                 return true;
             }
             return false;
@@ -76,7 +83,7 @@ namespace Labyrinth.Runtime
             return false;
         }
 
-        internal IEnumerator Synchronize(short key, Signature signature)
+        internal IEnumerator Synchronize(short signature)
         {
             // with reference signature rule
             //              client to server 
@@ -84,9 +91,10 @@ namespace Labyrinth.Runtime
 
             Func<bool> relevant = () =>
             {
-                if (signature.Relevance)
+                // relevance is a server operation
+                if (Network.Internal(Host.Server))
                 {
-
+                    return Central.Relevant(authority.Value, transform.position, m_signatures[signature].Relevancy);
                 }
                 return true;
             };
@@ -98,15 +106,16 @@ namespace Labyrinth.Runtime
                     Network.Forward(Network.Fickle, Flags.Signature,
                         (ref Writer writer) =>
                         {
-                            writer.WriteSync(identity.Value, key);
-                            signature.Sending(ref writer);
+                            writer.WriteSync(identity.Value, signature);
+                            m_signatures[signature].Sending(ref writer);
                         });
                 }
             };
 
+            float wait = 1.0f / m_signatures[signature].Rate;
             while (Network.Internal(Host.Any))
             {
-                switch (signature.Control)
+                switch (m_signatures[signature].Control)
                 {
                     case Signature.Rule.Round:
                         if (Network.Internal(Host.Server))
@@ -135,13 +144,13 @@ namespace Labyrinth.Runtime
                                 Network.Fickle, Flags.Signature,
                                 (ref Writer writer) =>
                                 {
-                                    writer.WriteSync(identity.Value, key);
-                                    signature.Sending(ref writer);
+                                    writer.WriteSync(identity.Value, signature);
+                                    m_signatures[signature].Sending(ref writer);
                                 });
                         }
                         break;
                 }
-                yield return new WaitForSecondsRealtime(1.0f / signature.Rate);
+                yield return new WaitForSecondsRealtime(wait);
             }
         }
 
@@ -166,10 +175,19 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        internal static void OnNetworkProcedure(int connection, object state, ref Reader reader)
+        internal static void OnNetworkProcedure(int socket, int connection, object state, ref Reader reader)
         {
             Packets.Call call = reader.ReadCall();
-            if (m_instances.ContainsKey(call.Identity))
+            bool target = call.Target == Identity.Any && call.Target == Network.Authority();
+            if (!target)
+            {
+                if (Network.Internal(Host.Server))
+                {
+                    Network.Forward(call.Target, Network.Abnormal, Flags.Procedure, 
+                        (ref Writer writer) => writer.WriteCall(call));
+                }
+            }
+            else if (m_instances.ContainsKey(call.Identity))
             {
                 Instance instance = m_instances[call.Identity];
                 if (instance.m_procedures.ContainsKey(call.Procedure))
@@ -179,38 +197,40 @@ namespace Labyrinth.Runtime
                     /// if the network is a client or server
                     /// if the network is the target
 
+                    bool run = false;
                     Procedure procedure = instance.m_procedures[call.Procedure];
 
-                    switch (procedure.Control)
-                    {
-                        case Procedure.Rule.Both:
-                            break;
-                        case Procedure.Rule.Server:
-                            break;
-                        case Procedure.Rule.Client:
-                            break;
-                    }
-
-                    if (call.Target == Identity.Any)
-                    {
-                    }
-                    if (call.Target == Network.Authority())
-                    {
-                    }
                     if (Network.Internal(Host.Server))
                     {
-                        Network.Forward((int c) => c != connection, Network.Abnormal, Flags.Procedure, (ref Writer writer) => writer.WriteCall(call));
-                    }
-                    if (Network.Internal(Host.Client))
-                    {
+                        Network.Forward((int c) => c != connection, Network.Abnormal, Flags.Procedure,
+                            (ref Writer writer) => writer.WriteCall(call));
+
+                        switch (procedure.Control)
+                        {
+                            case Procedure.Rule.Any:
+                            case Procedure.Rule.Server:
+                                run = target;
+                                break;
+                        }
                     }
 
-                    /*instance.m_procedures[call.Procedure].Callback(ref reader);*/
+                    if (Network.Internal(Host.Client))
+                    {
+                        switch (procedure.Control)
+                        {
+                            case Procedure.Rule.Any:
+                            case Procedure.Rule.Client:
+                                run = target;
+                                break;
+                        }
+                    }
+
+                    if (run) instance.m_procedures[call.Procedure].Callback(ref reader);
                 }
             }
         }
 
-        internal static void OnNetworkSignature(int connection, object state, ref Reader reader)
+        internal static void OnNetworkSignature(int socket, int connection, object state, ref Reader reader)
         {
             Packets.Sync sync = reader.ReadSync();
             if (m_instances.ContainsKey(sync.Identity))
@@ -227,11 +247,38 @@ namespace Labyrinth.Runtime
         {
             if (m_instances.TryGetValue(identity, out Instance value))
             {
-                instance = (T)value;
-                return true;
+                if (value as T)
+                {
+                    instance = (T)value;
+                    return true;
+                }
             }
             instance = null;
             return false;
+        }
+
+        public static void Find<T>(Action<T> callback) where T : Instance
+        {
+            foreach(var instance in m_instances)
+            {
+                if (instance.Value as T)
+                {
+                    callback((T)instance.Value);
+                }
+            }
+        }
+
+        public static T[] Find<T>() where T : Instance
+        {
+            List<T> instances = new List<T>();
+            foreach (var instance in m_instances)
+            {
+                if (instance.Value as T)
+                {
+                    instances.Add((T)instance.Value);
+                }
+            }
+            return instances.ToArray();
         }
     }
 }

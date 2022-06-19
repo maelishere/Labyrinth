@@ -3,6 +3,7 @@ using System.Net;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Labyrinth
 {
@@ -19,6 +20,11 @@ namespace Labyrinth
 
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
 
+        public static UnityEvent<int> initialized { get; } = new UnityEvent<int>();
+        public static UnityEvent<int> terminating { get; } = new UnityEvent<int>();
+        public static UnityEvent<int, int> connected { get; } = new UnityEvent<int, int>();
+        public static UnityEvent<int, int> disconnected { get; } = new UnityEvent<int, int>();
+
         private static Write Pack(byte flag, Write write)
         {
             return (ref Writer writer) =>
@@ -28,12 +34,40 @@ namespace Labyrinth
             };
         }
 
-        internal static void Receive(int connection, object state, ref Reader reader)
+        internal static void Incoming(int socket, int connection)
+        {
+            if (NetworkServer.Running)
+            {
+                if (socket == NetworkServer.n_server.Listen)
+                {
+                    Forward((c) => c != connection, Reliable, 
+                        Flag.Connected, (ref Writer writer) => writer.Write(connection));
+                }
+            }
+
+            connected.Invoke(socket, connection);
+        }
+
+        internal static void Outgoing(int socket, int connection)
+        {
+            if (NetworkServer.Running)
+            {
+                if (socket == NetworkServer.n_server.Listen)
+                {
+                    Forward((c) => c != connection, Reliable,
+                        Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
+                }
+            }
+
+            disconnected.Invoke(socket, connection);
+        }
+
+        internal static void Receive(int socket, int connection, object state, ref Reader reader)
         {
             byte flag = reader.Read();
             if (m_callbacks.ContainsKey(flag))
             {
-                m_callbacks[flag].Callback(connection, state, ref reader);
+                m_callbacks[flag].Callback(socket, connection, state, ref reader);
                 return;
             }
             Debug.LogError($"Network received invalid flag [{flag}]");
@@ -58,34 +92,6 @@ namespace Labyrinth
                 return new IPEndPoint(addresses[0], port);
             }
             throw new ArgumentException($"{host} host not found");
-        }
-
-        public static void Stream(int session, byte flag, Write write)
-        {
-            if (NetworkSessions.Running)
-            {
-                NetworkSessions.Send(session, Pack(flag, write));
-            }
-            if (NetworkMembers.Running)
-            {
-                NetworkMembers.Send(session, Pack(flag, write));
-            }
-        }
-
-        public static void Stream(int session, int member, byte flag, Write write)
-        {
-            if (NetworkSessions.Running)
-            {
-                NetworkSessions.Send(session, member, Pack(flag, write));
-            }
-        }
-
-        public static void Stream(int session, Func<int, bool> predicate, byte flag, Write write)
-        {
-            if (NetworkSessions.Running)
-            {
-                NetworkSessions.Send(session, predicate, Pack(flag, write));
-            }
         }
 
         public static void Forward(Channel channel, byte flag, Write write)
@@ -131,6 +137,11 @@ namespace Labyrinth
             return Identity.Any;
         }
 
+        public static bool Authority(int connection, bool remote = false)
+        {
+            return connection == Identity.Any ? false : connection == Authority(remote);
+        }
+
         public static bool Internal(Host local)
         {
             switch (local)
@@ -142,22 +153,23 @@ namespace Labyrinth
             }
         }
 
-        /// from server or session about new connections or existing connections
-        private static void OnNetworkConnected(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// from server or session about diconnections
-        private static void OnNetworkDisconnected(int connection, object state, ref Reader reader)
-        {
-            throw new NotImplementedException();
-        }
-
-        static Network()
+        [RuntimeInitializeOnLoadMethod]
+        private static void Initialize()
         {
             Register(Flag.Connected, OnNetworkConnected);
             Register(Flag.Disconnected, OnNetworkDisconnected);
+        }
+
+        /// from server [to client] about new connections
+        private static void OnNetworkConnected(int socket, int connection, object state, ref Reader reader)
+        {
+            connected.Invoke(connection, reader.ReadInt());
+        }
+
+        /// from server [to client] about diconnections
+        private static void OnNetworkDisconnected(int socket, int connection, object state, ref Reader reader)
+        {
+            disconnected.Invoke(connection, reader.ReadInt());
         }
     }
 }

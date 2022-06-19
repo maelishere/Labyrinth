@@ -48,7 +48,7 @@ namespace Labyrinth.Components
                         case AnimatorControllerParameterType.Int:
                             m_parameters[i] = Parameter.Create<int>(parameters[i].name, parameters[i].type);
 
-                            Var(i, m_rate, Signature.Rule.Server, m_relevance,
+                            Var(i, m_rate, Signature.Rule.Server, Relevance.General,
                                 () =>
                                 {
                                     return m_animator.GetInteger(m_parameters[i].Name);
@@ -62,7 +62,7 @@ namespace Labyrinth.Components
                         case AnimatorControllerParameterType.Float:
                             m_parameters[i] = Parameter.Create<float>(parameters[i].name, parameters[i].type);
 
-                            Var(i, m_rate, Signature.Rule.Server, m_relevance,
+                            Var(i, m_rate, Signature.Rule.Server, Relevance.General,
                                 () =>
                                 {
                                     return m_animator.GetFloat(m_parameters[i].Name);
@@ -76,7 +76,7 @@ namespace Labyrinth.Components
                         case AnimatorControllerParameterType.Bool:
                             m_parameters[i] = Parameter.Create<bool>(parameters[i].name, parameters[i].type);
 
-                            Var(i, m_rate, Signature.Rule.Server, m_relevance,
+                            Var(i, m_rate, Signature.Rule.Server, Relevance.General,
                                 () =>
                                 {
                                     return m_animator.GetBool(m_parameters[i].Name);
@@ -95,6 +95,7 @@ namespace Labyrinth.Components
 
         private void Update()
         {
+            // server controls the animator state
             //if network isn't the server
             if (Network.Authority(true) != authority)
             {

@@ -22,6 +22,7 @@ namespace Labyrinth.Background
                 {
                     m_connections.Clear();
                     n_server = new Server(port, Mode.IPV4);
+                    Network.initialized.Invoke(n_server.Listen);
                     return;
                 }
                 throw new InvalidOperationException($"Network Server was already running");
@@ -31,6 +32,7 @@ namespace Labyrinth.Background
 
         internal static void Destroy()
         {
+            Network.terminating.Invoke(n_server.Listen);
             m_connections.Clear();
             n_server.Close();
             n_server = null;
@@ -76,12 +78,29 @@ namespace Labyrinth.Background
             }
         }
 
+        private static void Remove(int connection)
+        {
+            if (m_connections.Remove(connection))
+            {
+                Network.Outgoing(n_server.Listen, connection);
+            }
+        }
+
+        private static void Add(int connection)
+        {
+            if (m_connections.Add(connection))
+            {
+                // new connection
+                Network.Incoming(n_server.Listen, connection);
+            }
+        }
+
         private static void OnError(int connection, Error error)
         {
             switch (error)
             {
                 case Error.Timeout:
-                    m_connections.Remove(connection);
+                    Remove(connection);
                     break;
             }
         }
@@ -92,13 +111,10 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    if (m_connections.Add(connection))
-                    {
-                        // new connection
-                    }
+                    Add(connection);
                     break;
                 case Request.Disconnect:
-                    m_connections.Remove(connection);
+                    Remove(connection);
                     break;
             }
         }
@@ -110,20 +126,17 @@ namespace Labyrinth.Background
             {
                 case Request.Ping:
                 case Request.Connect:
-                    if (m_connections.Add(connection))
-                    {
-                        // new connection
-                    }
+                    Add(connection);
                     break;
                 case Request.Disconnect:
-                    m_connections.Remove(connection);
+                    Remove(connection);
                     break;
             }
         }
 
         private static void OnReceive(int connection, uint timestamp, ref Reader reader)
         {
-            Network.Receive(connection, timestamp, ref reader);
+            Network.Receive(n_server.Listen, connection, timestamp, ref reader);
         }
     }
 }
