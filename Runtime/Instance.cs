@@ -154,14 +154,30 @@ namespace Labyrinth.Runtime
 
         internal void Remote(int target, byte offset, byte procedure, Write write)
         {
-            Network.Forward(
-                Network.Abnormal,
-                Flags.Procedure,
-                (ref Writer writer) =>
-                {
-                    writer.WriteCall(target, identity.Value, offset.Combine(procedure));
-                    write(ref writer);
-                });
+            if (Network.Internal(Host.Server))
+            {
+                Network.Forward(
+                    target,
+                    Network.Abnormal,
+                    Flags.Procedure,
+                    (ref Writer writer) =>
+                    {
+                        writer.WriteCall(target, identity.Value, offset.Combine(procedure));
+                        write(ref writer);
+                    });
+
+            }
+            if (Network.Internal(Host.Client))
+            {
+                Network.Forward(
+                    Network.Abnormal,
+                    Flags.Procedure,
+                    (ref Writer writer) =>
+                    {
+                        writer.WriteCall(target, identity.Value, offset.Combine(procedure));
+                        write(ref writer);
+                    });
+            }
         }
 
         public static Identity Unique()
@@ -176,34 +192,37 @@ namespace Labyrinth.Runtime
         internal static void OnNetworkProcedure(int socket, int connection, object state, ref Reader reader)
         {
             Packets.Call call = reader.ReadCall();
-            bool target = call.Target == Identity.Any && call.Target == Network.Authority();
-            if (!target)
+            if (Network.Internal(Host.Server))
             {
-                if (Network.Internal(Host.Server))
+                // if the target is any connection, forward to the clients
+                if (call.Target == Identity.Any)
+                {
+                    Network.Forward((int c) => c != connection, Network.Abnormal, Flags.Procedure,
+                        (ref Writer writer) => writer.WriteCall(call));
+                }
+                // if the server isn't the target, forward to the target client
+                else if (call.Target != Network.Authority())
                 {
                     Network.Forward(call.Target, Network.Abnormal, Flags.Procedure,
                         (ref Writer writer) => writer.WriteCall(call));
                 }
             }
-            else if (m_instances.ContainsKey(call.Identity))
+            if (m_instances.ContainsKey(call.Identity))
             {
                 Instance instance = m_instances[call.Identity];
                 if (instance.m_procedures.ContainsKey(call.Procedure))
                 {
                     /// before i can call the procedure, check:
-                    /// if this prodecure can run on client or server or both
                     /// if the network is a client or server
+                    /// if this prodecure can run on client or server or both
                     /// if the network is the target
 
                     bool run = false;
-                    Procedure procedure = instance.m_procedures[call.Procedure];
+                    bool target = call.Target == Identity.Any || call.Target == Network.Authority();
 
                     if (Network.Internal(Host.Server))
                     {
-                        Network.Forward((int c) => c != connection, Network.Abnormal, Flags.Procedure,
-                            (ref Writer writer) => writer.WriteCall(call));
-
-                        switch (procedure.Control)
+                        switch (instance.m_procedures[call.Procedure].Control)
                         {
                             case Procedure.Rule.Any:
                             case Procedure.Rule.Server:
@@ -214,7 +233,7 @@ namespace Labyrinth.Runtime
 
                     if (Network.Internal(Host.Client))
                     {
-                        switch (procedure.Control)
+                        switch (instance.m_procedures[call.Procedure].Control)
                         {
                             case Procedure.Rule.Any:
                             case Procedure.Rule.Client:

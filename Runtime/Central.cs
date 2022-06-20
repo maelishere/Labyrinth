@@ -13,7 +13,7 @@ namespace Labyrinth.Runtime
         internal static Central n_instance;
         internal static readonly HashSet<Station> n_stations = new HashSet<Station>();
         internal static readonly Dictionary<int, HashSet<Observer>> n_observers = new Dictionary<int, HashSet<Observer>>();
-        
+
         [SerializeField] private int[] m_networkedScenes = new int[0];
 
         private void Awake()
@@ -52,7 +52,8 @@ namespace Labyrinth.Runtime
                 {
                     if (observer.Contains(point))
                     {
-                        switch (relevancy)
+                        // until i re-edit Station class
+                        /* switch (relevancy)
                         {
                             case Relevance.General:
                                 foreach (var station in n_stations)
@@ -65,7 +66,9 @@ namespace Labyrinth.Runtime
                                 break;
                             case Relevance.Authority:
                                 return true;
-                        }
+                        } */
+
+                        return true;
                     }
                 }
             }
@@ -102,7 +105,7 @@ namespace Labyrinth.Runtime
                     /// Server -> Send Other Connections Spawn() that have loaded the world;
                     /// the server should have all the worlds loaded
                     Instance.Find(entity.PreferredScene, out World world);
-                    Network.Forward((c) => spawn.Authority != c && world.n_network.Contains(spawn.Authority), 
+                    Network.Forward((c) => spawn.Authority != c && world.n_network.Contains(spawn.Authority),
                         Network.Reliable, Flags.Create, (ref Writer writer) => writer.WriteSpawn(entity));
                 }
             }

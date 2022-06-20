@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Collections.Generic;
 
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace Labyrinth
             {
                 if (socket == NetworkServer.n_server.Listen)
                 {
-                    Forward((c) => c != connection, Reliable, 
+                    Forward((c) => c != connection, Reliable,
                         Flag.Connected, (ref Writer writer) => writer.Write(connection));
                 }
             }
@@ -89,7 +90,11 @@ namespace Labyrinth
             IPAddress[] addresses = Dns.GetHostAddresses(host);
             if (addresses.Length > 1)
             {
-                return new IPEndPoint(addresses[0], port);
+                for (int i = 0; i < addresses.Length; i++)
+                {
+                    if (addresses[i].AddressFamily == AddressFamily.InterNetwork)
+                        return new IPEndPoint(addresses[i], port);
+                }
             }
             throw new ArgumentException($"{host} host not found");
         }

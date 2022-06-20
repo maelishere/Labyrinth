@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Labyrinth.Runtime
 {
+    [AddComponentMenu("Labyrinth/Station")]
     public sealed class Station : MonoBehaviour
     {
         // for relevance (this code is wrong and very buggy, gonna re-write)

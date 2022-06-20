@@ -4,7 +4,7 @@ using UnityEditorInternal;
 
 using System.Collections.Generic;
 
-namespace Labyrinth
+namespace Labyrinth.Editor
 {
     public class Builder : EditorWindow
     {
@@ -39,7 +39,7 @@ namespace Labyrinth
             new string[] {m_server_definition});
 
             m_client_context = new Context($"{Application.productName}_Client.exe",
-            BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64, BuildOptions.Development,
+            BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64, BuildOptions.None,
             new string[] {m_client_definition});
 
             string json = EditorPrefs.GetString("BuilderWindow", JsonUtility.ToJson(this, false));

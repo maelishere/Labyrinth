@@ -24,29 +24,28 @@ namespace Labyrinth.Runtime
 
         private void OnClientRequest(int connection)
         {
+            Debug.Log($"Client({connection})");
             if (n_network.Add(connection))
             {
-                Scene scene = SceneManager.GetSceneByBuildIndex(m_scene);
-                if (scene.isLoaded)
+                /*scene.GetRootGameObjects();*/
+                foreach (var instance in n_entities)
                 {
-                    /*scene.GetRootGameObjects();*/
-                    foreach (var instance in n_entities)
+                    if (Find(instance, out Entity entity))
                     {
-                        if (Find(instance, out Entity entity))
-                        {
-                            // send connection all entities within the scene
-                            Network.Forward(connection, Network.Reliable, Flags.Create,
-                                (ref Writer writer) =>
-                                {
-                                    writer.WriteSpawn(entity);
-                                });
-                        }
+                        // send connection all entities within the scene
+                        Network.Forward(connection, Network.Reliable, Flags.Create,
+                            (ref Writer writer) =>
+                            {
+                                writer.WriteSpawn(entity);
+                            });
                     }
                 }
+                Debug.Log($"Client({connection}) loaded scene {m_scene}");
             }
             else if (n_network.Remove(connection))
             {
                 /// connection unload scene
+                Debug.Log($"Client({connection}) unloaded scene {m_scene}");
             }
         }
 
@@ -63,48 +62,46 @@ namespace Labyrinth.Runtime
 
         private void Start()
         {
-            if (m_scene == 0)
-            {
-                Debug.LogError($"Instance Idenitifier {m_scene} is invalid");
-                Destroy(gameObject);
-                return;
-            }
             // We assign Instance an identifier (scene build number) and the server identity
-            if (!Create(m_scene, Network.Authority(true)))
+            if (m_scene == 0 || !Create(m_scene, Network.Authority(true)))
             {
-                Debug.LogError($"Instance Idenitifier {m_scene} already exists");
+                Debug.LogError($"World instance idenitifier {m_scene} is invalid or already exists");
                 Destroy(gameObject);
                 return;
             }
 
-            // Remote should be called after Instance.Create
-            //      (or else the instance never receives the message)
-            // Request for entities within this scene
-            Remote(Network.Authority(true), 0, 1,
-                (ref Writer writer) =>
-                {
-                    writer.Write(Network.Authority());
-                });
+            if (Network.Internal(Host.Client))
+            {
+                // Remote should be called after Instance.Create
+                //      (or else the instance never receives the message)
+                // Request for entities within this scene
+                Remote(Network.Authority(true), 0, 1,
+                    (ref Writer writer) =>
+                    {
+                        writer.Write(Network.Authority());
+                    });
+            }
         }
 
         private void OnDestroy()
         {
-            // let server know this scene is unloaded
-            Remote(Network.Authority(true), 0, 1,
-                   (ref Writer writer) =>
-                   {
-                       writer.Write(Network.Authority());
-                   });
+            if (Network.Internal(Host.Client))
+            {
+                // let server know this scene is unloaded
+                Remote(Network.Authority(true), 0, 1,
+                       (ref Writer writer) =>
+                       {
+                           writer.Write(Network.Authority());
+                       });
+            }
+
             Destroy();
         }
 
         public void Move(GameObject gameobject)
         {
-            Scene scene = SceneManager.GetSceneByBuildIndex(m_scene); 
-            if (scene.isLoaded)
-            {
-                SceneManager.MoveGameObjectToScene(gameobject, scene);
-            }
+            Scene scene = SceneManager.GetSceneByBuildIndex(m_scene);
+            SceneManager.MoveGameObjectToScene(gameobject, scene);
         }
     }
 }

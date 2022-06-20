@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace Labyrinth.Components
 {
+    using Lattice;
     using Labyrinth.Runtime;
     using Labyrinth.Background;
 
@@ -13,6 +14,7 @@ namespace Labyrinth.Components
 
         private void Awake()
         {
+            Log.Out = Debug.Log;
             DontDestroyOnLoad(gameObject);
         }
 

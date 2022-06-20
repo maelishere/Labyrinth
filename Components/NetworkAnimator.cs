@@ -21,11 +21,6 @@ namespace Labyrinth.Components
                 Type = type;
                 State = state;
             }
-
-            public static Parameter Create<T>(string name, AnimatorControllerParameterType type) where T : struct
-            {
-                return new Parameter(name, type, default);
-            }
         }
 
         [SerializeField] private int m_rate = 10;
@@ -46,9 +41,9 @@ namespace Labyrinth.Components
                     switch (parameters[i].type)
                     {
                         case AnimatorControllerParameterType.Int:
-                            m_parameters[i] = Parameter.Create<int>(parameters[i].name, parameters[i].type);
+                            m_parameters[i] = new Parameter(parameters[i].name, parameters[i].type, (int)0);
 
-                            Var(i, m_rate, Signature.Rule.Server, Relevance.General,
+                            Var(i, m_rate, Signature.Rule.Authority, Relevance.General,
                                 () =>
                                 {
                                     return m_animator.GetInteger(m_parameters[i].Name);
@@ -60,9 +55,9 @@ namespace Labyrinth.Components
                             break;
 
                         case AnimatorControllerParameterType.Float:
-                            m_parameters[i] = Parameter.Create<float>(parameters[i].name, parameters[i].type);
+                            m_parameters[i] = new Parameter(parameters[i].name, parameters[i].type, 0.0f);
 
-                            Var(i, m_rate, Signature.Rule.Server, Relevance.General,
+                            Var(i, m_rate, Signature.Rule.Authority, Relevance.General,
                                 () =>
                                 {
                                     return m_animator.GetFloat(m_parameters[i].Name);
@@ -74,9 +69,9 @@ namespace Labyrinth.Components
                             break;
 
                         case AnimatorControllerParameterType.Bool:
-                            m_parameters[i] = Parameter.Create<bool>(parameters[i].name, parameters[i].type);
+                            m_parameters[i] = new Parameter(parameters[i].name, parameters[i].type, false);
 
-                            Var(i, m_rate, Signature.Rule.Server, Relevance.General,
+                            Var(i, m_rate, Signature.Rule.Authority, Relevance.General,
                                 () =>
                                 {
                                     return m_animator.GetBool(m_parameters[i].Name);
@@ -95,9 +90,7 @@ namespace Labyrinth.Components
 
         private void Update()
         {
-            // server controls the animator state
-            //if network isn't the server
-            if (Network.Authority(true) != authority)
+            if (!owner)
             {
                 for (byte i = 0; i < m_parameters.Length; i++)
                 {
