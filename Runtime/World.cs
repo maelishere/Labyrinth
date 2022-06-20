@@ -63,6 +63,12 @@ namespace Labyrinth.Runtime
 
         private void Start()
         {
+            if (m_scene == 0)
+            {
+                Debug.LogError($"Instance Idenitifier {m_scene} is invalid");
+                Destroy(gameObject);
+                return;
+            }
             // We assign Instance an identifier (scene build number) and the server identity
             if (!Create(m_scene, Network.Authority(true)))
             {
