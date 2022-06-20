@@ -24,20 +24,20 @@ namespace Labyrinth.Runtime
             Registry[] registries = Resources.LoadAll<Registry>("");
             for (int i = 0; i < registries.Length; i++)
             {
-                for (ushort x = 0; x < registries[i].m_prefabs.Length; i++)
+                for (ushort x = 0; x < registries[i].m_prefabs.Length; x++)
                 {
                     Entity entity = Resources.Load<Entity>(registries[i].m_prefabs[x]);
                     if (entity)
                     {
                         entity.n_asset = identity.Combine(x);
                         m_resources.Add(entity.n_asset, entity);
-                        identity++;
                     }
                     else
                     {
                         Debug.LogWarning($"Prefab located at {registries[i].m_prefabs[x]} isn't a network entity");
                     }
                 }
+                identity++;
             }
         }
 

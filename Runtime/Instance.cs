@@ -61,11 +61,12 @@ namespace Labyrinth.Runtime
 
         internal bool Register(byte offset, Signature signature)
         {
-            if (!m_signatures.ContainsKey(signature.Value))
+            // combine (Extension) in the event two components have the same signature value
+            //      or the instances of the same class are on the gameobject
+            short key = offset.Combine(signature.Value);
+            if (!m_signatures.ContainsKey(key))
             {
-                // combine (Extension) in the event two components have the same signature value
-                //      or the instances of the same class are on the gameobject
-                m_signatures.Add(offset.Combine(signature.Value), signature);
+                m_signatures.Add(key, signature);
                 return true;
             }
             return false;
@@ -73,11 +74,12 @@ namespace Labyrinth.Runtime
 
         internal bool Register(byte offset, Procedure procedure)
         {
-            if (!m_procedures.ContainsKey(procedure.Value))
+            // combine (Extension) in the event two components have the same procedure value
+            //      or the instances of the same class are on the gameobject
+            short key = offset.Combine(procedure.Value);
+            if (!m_procedures.ContainsKey(key))
             {
-                // combine (Extension) in the event two components have the same procedure value
-                //      or the instances of the same class are on the gameobject
-                m_procedures.Add(offset.Combine(procedure.Value), procedure);
+                m_procedures.Add(key, procedure);
                 return true;
             }
             return false;
@@ -99,16 +101,17 @@ namespace Labyrinth.Runtime
                 return true;
             };
 
+            Write write = (ref Writer writer) =>
+            {
+                writer.WriteSync(identity.Value, signature);
+                m_signatures[signature].Sending(ref writer);
+            };
+
             Action send = () =>
             {
                 if (relevant())
                 {
-                    Network.Forward(Network.Fickle, Flags.Signature,
-                        (ref Writer writer) =>
-                        {
-                            writer.WriteSync(identity.Value, signature);
-                            m_signatures[signature].Sending(ref writer);
-                        });
+                    Network.Forward(Network.Fickle, Flags.Signature, write);
                 }
             };
 
@@ -141,12 +144,7 @@ namespace Labyrinth.Runtime
                         else if (Network.Internal(Host.Server) && relevant())
                         {
                             Network.Forward((c) => c != authority.Value,
-                                Network.Fickle, Flags.Signature,
-                                (ref Writer writer) =>
-                                {
-                                    writer.WriteSync(identity.Value, signature);
-                                    m_signatures[signature].Sending(ref writer);
-                                });
+                                Network.Fickle, Flags.Signature, write);
                         }
                         break;
                 }
@@ -157,7 +155,7 @@ namespace Labyrinth.Runtime
         internal void Remote(int target, byte offset, byte procedure, Write write)
         {
             Network.Forward(
-                Network.Abnormal, 
+                Network.Abnormal,
                 Flags.Procedure,
                 (ref Writer writer) =>
                 {
@@ -183,7 +181,7 @@ namespace Labyrinth.Runtime
             {
                 if (Network.Internal(Host.Server))
                 {
-                    Network.Forward(call.Target, Network.Abnormal, Flags.Procedure, 
+                    Network.Forward(call.Target, Network.Abnormal, Flags.Procedure,
                         (ref Writer writer) => writer.WriteCall(call));
                 }
             }
@@ -259,7 +257,7 @@ namespace Labyrinth.Runtime
 
         public static void Find<T>(Action<T> callback) where T : Instance
         {
-            foreach(var instance in m_instances)
+            foreach (var instance in m_instances)
             {
                 if (instance.Value as T)
                 {

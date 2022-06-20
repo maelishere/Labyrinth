@@ -39,7 +39,7 @@ namespace Labyrinth.Components
                     m_rotation = rotation;
                 });
 
-            Var(3, m_rate, Signature.Rule.Round, Relevance.Authority,
+            Var(4, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
                 {
                     return transform.localScale;

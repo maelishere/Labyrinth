@@ -14,6 +14,7 @@ namespace Labyrinth
         private static string m_client_definition = "CLIENT_BUILD";
         [SerializeField] private Context m_client_context;
 
+        private int m_disabled;
         private ReorderableList scenes_list;
 
         private string server_path => $"Build/{Application.version}/Server/{m_server_context.Target.ToString().Replace("Standalone", "")}/{m_server_context.Name}";
@@ -54,10 +55,15 @@ namespace Labyrinth
             EditorPrefs.SetString("BuilderWindow", JsonUtility.ToJson(this, true));
         }
 
-        private static void DrawSceneItem(Rect rect, int index, bool isActive, bool isFocused)
+        private void DrawSceneItem(Rect rect, int index, bool isActive, bool isFocused)
         {
             Rect toggle = new Rect(rect.x, rect.y, rect.width * 0.05f, rect.height * 0.8f);
             EditorBuildSettings.scenes[index].enabled = EditorGUI.Toggle(toggle, EditorBuildSettings.scenes[index].enabled);
+
+            if (!EditorBuildSettings.scenes[index].enabled)
+            {
+                m_disabled++;
+            }
 
             var oldScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(EditorBuildSettings.scenes[index].path);
 
@@ -73,11 +79,11 @@ namespace Labyrinth
             }
 
             Rect label = new Rect(field.x + field.width, rect.y, rect.width * 0.1f, rect.height * 0.8f);
-            EditorGUI.LabelField(label, $"{index}");
+            EditorGUI.LabelField(label, $"{index - m_disabled}");
         }
 
         //Draws the header
-        private static void DrawSceneHeader(Rect rect)
+        private void DrawSceneHeader(Rect rect)
         {
             EditorGUI.LabelField(rect, "Scenes");
         }
@@ -120,6 +126,7 @@ namespace Labyrinth
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();
 
+            m_disabled = 0;
             scenes_list?.DoLayoutList();
 
             EditorGUILayout.EndVertical();

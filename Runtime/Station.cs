@@ -5,7 +5,7 @@ namespace Labyrinth.Runtime
 {
     public sealed class Station : MonoBehaviour
     {
-        // for relevance
+        // for relevance (this code is wrong and very buggy, gonna re-write)
         [SerializeField] private Vector3 m_cell = new Vector3(0.1f, 0.1f, 0.1f);
         [SerializeField] private Vector3 m_offset = Vector3.zero;
         [SerializeField] private Vector3 m_size = Vector3.one;
@@ -76,18 +76,18 @@ namespace Labyrinth.Runtime
 
         private void OnDrawGizmosSelected()
         {
-            Vector3Int bound = cells;
-            Gizmos.color = Color.cyan;
-            for (int x = -bound.x; x <= bound.y; x++)
-            {
-                for (int y = -bound.y; y <= bound.z; y++)
-                {
-                    for (int z = -bound.z; z <= bound.z; z++)
-                    {
-                        Gizmos.DrawWireCube(GetCenter(new Vector3Int(x, y, z)), m_cell);
-                    }
-                }
-            }
+            // Vector3Int bound = cells;
+            // Gizmos.color = Color.cyan;
+            // for (int x = -bound.x; x <= bound.y; x++)
+            // {
+            //     for (int y = -bound.y; y <= bound.z; y++)
+            //     {
+            //         for (int z = -bound.z; z <= bound.z; z++)
+            //         {
+            //             Gizmos.DrawWireCube(GetCenter(new Vector3Int(x, y, z)), m_cell);
+            //         }
+            //     }
+            // }
 
             Gizmos.color = Color.green;
             Gizmos.DrawWireCube(transform.position + m_offset, m_size);
