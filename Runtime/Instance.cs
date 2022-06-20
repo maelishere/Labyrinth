@@ -171,7 +171,7 @@ namespace Labyrinth.Runtime
             return Identity.Generate(
                 (int value) =>
                 {
-                    return m_instances.ContainsKey(value);
+                    return m_instances.ContainsKey(value) && (Central.n_instance?.NetworkScene(value) ?? true);
                 });
         }
 

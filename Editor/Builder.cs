@@ -2,22 +2,19 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditorInternal;
 
+using System.Collections.Generic;
+
 namespace Labyrinth
 {
     public class Builder : EditorWindow
     {
-        private static string[] m_scenes = new string[0];
-
-
         private static string m_server_definition = "SERVER_BUILD";
-        private static Context m_server_context;
+        [SerializeField] private Context m_server_context;
 
         private static string m_client_definition = "CLIENT_BUILD";
-        private static Context m_client_context;
+        [SerializeField] private Context m_client_context;
 
         private ReorderableList scenes_list;
-        private ReorderableList server_def_list;
-        private ReorderableList client_def_list;
 
         private string server_path => $"Build/{Application.version}/Server/{m_server_context.Target.ToString().Replace("Standalone", "")}/{m_server_context.Name}";
         private string client_path => $"Build/{Application.version}/Client/{m_client_context.Target.ToString().Replace("Standalone", "")}/{m_client_context.Name}";
@@ -36,37 +33,25 @@ namespace Labyrinth
 
         void OnEnable()
         {
-            string server = EditorPrefs.GetString("Builder_Server_Context",
-            JsonUtility.ToJson(new Context($"{Application.productName}_Server",
-            BuildTarget.StandaloneLinux64, BuildOptions.EnableHeadlessMode,
-            new string[] { m_server_definition })));
+            m_server_context = new Context($"{Application.productName}_Server.x86_64",
+            BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64, BuildOptions.EnableHeadlessMode,
+            new string[] {m_server_definition});
 
-            JsonUtility.FromJsonOverwrite(server, m_server_context);
+            m_client_context = new Context($"{Application.productName}_Client.exe",
+            BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64, BuildOptions.Development,
+            new string[] {m_client_definition});
 
-            string client = EditorPrefs.GetString("Builder_Client_Context",
-            JsonUtility.ToJson(new Context($"{Application.productName}_Client",
-            BuildTarget.StandaloneWindows64, BuildOptions.Development,
-            new string[] { m_client_definition })));
-
-            JsonUtility.FromJsonOverwrite(client, m_client_context);
+            string json = EditorPrefs.GetString("BuilderWindow", JsonUtility.ToJson(this, false));
+            JsonUtility.FromJsonOverwrite(json, this);
 
             scenes_list = new ReorderableList(EditorBuildSettings.scenes, typeof(EditorBuildSettingsScene), true, true, true, true);
             scenes_list.drawElementCallback = DrawSceneItem; // Delegate to draw the elements on the list
             scenes_list.drawHeaderCallback = DrawSceneHeader;
-
-            server_def_list = new ReorderableList(m_server_context.Definitions, typeof(string), true, true, true, true);
-            server_def_list.drawElementCallback = DrawSDefItem; // Delegate to draw the elements on the list
-            server_def_list.drawHeaderCallback = DrawSDefHeader;
-
-            client_def_list = new ReorderableList(m_client_context.Definitions, typeof(string), true, true, true, true);
-            client_def_list.drawElementCallback = DrawCDefItem; // Delegate to draw the elements on the list
-            client_def_list.drawHeaderCallback = DrawCDefHeader;
         }
 
         void OnDisable()
         {
-            EditorPrefs.SetString("Builder_Server_Context", JsonUtility.ToJson(m_server_context));
-            EditorPrefs.SetString("Builder_Client_Context", JsonUtility.ToJson(m_client_context));
+            EditorPrefs.SetString("BuilderWindow", JsonUtility.ToJson(this, true));
         }
 
         private static void DrawSceneItem(Rect rect, int index, bool isActive, bool isFocused)
@@ -97,28 +82,32 @@ namespace Labyrinth
             EditorGUI.LabelField(rect, "Scenes");
         }
 
-        private static void DrawSDefItem(Rect rect, int index, bool isActive, bool isFocused)
+        private BuildPlayerOptions Get(string path, Context context)
         {
-            Rect element = new Rect(rect.x, rect.y, rect.width, rect.height * 0.8f);
-            m_server_context.Definitions[index] = EditorGUI.TextField(element, m_server_context.Definitions[index]);
-        }
+            BuildPlayerOptions player = new BuildPlayerOptions();
 
-        //Draws the header
-        private static void DrawSDefHeader(Rect rect)
-        {
-            EditorGUI.LabelField(rect, "Server Script Definitions");
-        }
+            List<string> scenes = new List<string>();
+            foreach(var scene in EditorBuildSettings.scenes)
+            {
+                if (scene.enabled)
+                {
+                    scenes.Add(scene.path);
+                }
+            }
+            player.scenes = scenes.ToArray();
 
-        private static void DrawCDefItem(Rect rect, int index, bool isActive, bool isFocused)
-        {
-            Rect element = new Rect(rect.x, rect.y, rect.width, rect.height * 0.8f);
-            m_client_context.Definitions[index] = EditorGUI.TextField(element, m_client_context.Definitions[index]);
-        }
+            player.locationPathName = path;
+            player.targetGroup = context.Group;
+            player.target = context.Target;
+            player.options = context.Options;
 
-        //Draws the header
-        private static void DrawCDefHeader(Rect rect)
-        {
-            EditorGUI.LabelField(rect, "Client Script Definitions");
+            List<string> definitions = new List<string>();
+            PlayerSettings.GetScriptingDefineSymbolsForGroup(context.Group, out string[] defines);
+            definitions.AddRange(context.Definitions);
+            definitions.AddRange(defines);
+            player.extraScriptingDefines = definitions.ToArray();
+
+            return player;
         }
 
         private void OnGUI()
@@ -147,9 +136,10 @@ namespace Labyrinth
             m_server_context.Name = EditorGUILayout.TextField("Name", m_server_context.Name);
             m_server_context.Target = (BuildTarget)EditorGUILayout.EnumPopup("Target", m_server_context.Target);
             m_server_context.Options = (BuildOptions)EditorGUILayout.EnumPopup("Options", m_server_context.Options);
+            // m_server_context.Definitions = EditorGUILayout.TextField("Defintions", m_server_definition + m_server_context.Definitions?.Replace(m_server_definition, "") ?? "");
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField($"Build Path: {server_path}/");
+            EditorGUILayout.LabelField($"Build Path: {server_path}");
             EditorGUILayout.Space();
 
             // server_def_list?.DoLayoutList();
@@ -158,7 +148,7 @@ namespace Labyrinth
             EditorGUILayout.Space();
             if (GUILayout.Button("Build Server"))
             {
-                BuildPipeline.BuildPlayer(EditorBuildSettings.scenes, server_path, m_server_context.Target, m_server_context.Options);
+                BuildPipeline.BuildPlayer(Get(server_path, m_server_context));
             }
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();
@@ -177,9 +167,10 @@ namespace Labyrinth
             m_client_context.Name = EditorGUILayout.TextField("Name", m_client_context.Name);
             m_client_context.Target = (BuildTarget)EditorGUILayout.EnumPopup("Target", m_client_context.Target);
             m_client_context.Options = (BuildOptions)EditorGUILayout.EnumPopup("Options", m_client_context.Options);
+            // m_client_context.Definitions = EditorGUILayout.TextField("Defintions", m_client_definition + m_client_context.Definitions?.Replace(m_client_definition, "") ?? "");
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField($"Build Path: {client_path}/");
+            EditorGUILayout.LabelField($"Build Path: {client_path}");
             EditorGUILayout.Space();
 
             // client_def_list?.DoLayoutList();
@@ -188,7 +179,7 @@ namespace Labyrinth
             EditorGUILayout.Space();
             if (GUILayout.Button("Build Client"))
             {
-                BuildPipeline.BuildPlayer(EditorBuildSettings.scenes, client_path, m_client_context.Target, m_client_context.Options);
+                BuildPipeline.BuildPlayer(Get(client_path, m_client_context));
             }
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();

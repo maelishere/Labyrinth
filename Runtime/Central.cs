@@ -10,17 +10,38 @@ namespace Labyrinth.Runtime
     [RequireComponent(typeof(World)), AddComponentMenu("Labyrinth/Central")]
     public sealed class Central : MonoBehaviour
     {
+        internal static Central n_instance;
         internal static readonly HashSet<Station> n_stations = new HashSet<Station>();
         internal static readonly Dictionary<int, HashSet<Observer>> n_observers = new Dictionary<int, HashSet<Observer>>();
         
+        [SerializeField] private int[] m_networkedScenes = new int[0];
+
         private void Awake()
         {
-            if (FindObjectOfType<Central>() == this)
+            if (n_instance)
             {
                 Debug.LogError("There should only be 1 Central inbetween all loaded scenes");
                 Destroy(gameObject);
                 return;
             }
+            n_instance = this;
+        }
+
+        private void OnDestroy()
+        {
+            n_instance = null;
+        }
+
+        internal bool NetworkScene(int identity)
+        {
+            for (int i = 0; i < m_networkedScenes.Length; i++)
+            {
+                if (m_networkedScenes[i] == identity)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static bool Relevant(int authority, Vector3 point, Relevance relevancy)
