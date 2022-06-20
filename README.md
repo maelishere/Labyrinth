@@ -37,6 +37,7 @@ Shutting Down
     NetworkServer.Destroy(); or NetworkClient.Disconnect();
 
 Creating Entities
+
     Create a prefab with an Entity component, then save it in a resources folder
 
     Create a registry asset in the root of any resources folder, then add the path to all entities that can be spawn over the network
@@ -44,9 +45,11 @@ Creating Entities
     The registry is intialized in the background on load
 
 Instantiating Entities
+
     Use the regular unity Instantiate, the entity script does the rest
 
 Network Scenes
+
     Each scene must have a gameobject with the World component attached (also with their build index)
 
     The Server must have either have all possible scenes opened or for performance ensure that every scene any client has loaded or is about to load is loaded before all clients
@@ -54,6 +57,7 @@ Network Scenes
     When a scene is loaded on a client it sends a message to the server which in turns sends back all the entities within that scene 
 
 Network Behaviour Scripts
+
     using Laybrith.Runtime;
 
     Inhert from Appendix
