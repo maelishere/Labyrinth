@@ -14,6 +14,15 @@ namespace Labyrinth.Background
 
         public static bool Running => n_server != null;
 
+        public static void Each(Action<int> callback, Func<int, bool> fliter = null)
+        {
+            foreach (var connection in m_connections)
+            {
+                if (fliter?.Invoke(connection) ?? true)
+                    callback(connection);
+            }
+        }
+
         internal static void Listen(int port)
         {
             if (!NetworkClient.Running)
@@ -47,34 +56,20 @@ namespace Labyrinth.Background
         {
             if (n_server != null)
             {
-                foreach (var connection in m_connections)
-                {
-                    n_server.Send(connection, channel, write);
-                }
+                n_server.Send(channel, write);
             }
         }
 
         internal static bool Send(int connection, Channel channel, Write write)
         {
-            if (n_server != null && m_connections.Contains(connection))
-            {
-                n_server.Send(connection, channel, write);
-                return true;
-            }
-            return false;
+            return n_server.Send(connection, channel, write);
         }
 
         internal static void Send(Func<int, bool> predicate, Channel channel, Write write)
         {
             if (n_server != null)
             {
-                foreach (var connection in m_connections)
-                {
-                    if (predicate(connection))
-                    {
-                        n_server.Send(connection, channel, write);
-                    }
-                }
+                n_server.Send(predicate, channel, write);
             }
         }
 

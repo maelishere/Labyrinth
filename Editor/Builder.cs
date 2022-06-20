@@ -159,6 +159,8 @@ namespace Labyrinth.Editor
             }
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.Space();
 
             EditorGUILayout.EndVertical();
 
@@ -190,6 +192,8 @@ namespace Labyrinth.Editor
             }
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
 
             EditorGUILayout.EndVertical();
         }

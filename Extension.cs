@@ -28,6 +28,26 @@ namespace Labyrinth
             return ((a << 16) | (b));
         }
 
+        public static int Hash(this string s)
+        {
+            int hash = 0;
+            foreach(var c in s)
+            {
+                hash = c + (hash << 6) + (hash << 16) - hash;
+            }
+            return hash;
+        }
+
+        /* public static int Hash(this string s, int prime)
+        {
+            int hash = 0;
+            foreach(var c in s)
+            {
+                hash = hash * prime + c;
+            }
+            return hash;
+        } */
+
         public static Vector2 ReadVector2(this Reader reader)
         {
             Vector2 value;

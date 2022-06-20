@@ -18,18 +18,18 @@ namespace Labyrinth.Runtime
         private static void Initialize()
         {
             // when assigning each entity prefab a idenitifer it must be preditable
-            ushort identity = 1; // we start at 1 because an asset with 0 is an empty
+            // we start at 1 because an asset with 0 is an empty
 
             // find all registries at the root of resources folder
             Registry[] registries = Resources.LoadAll<Registry>("");
-            for (int i = 0; i < registries.Length; i++)
+            for (ushort i = 0; i < registries.Length; i++)
             {
                 for (ushort x = 0; x < registries[i].m_prefabs.Length; x++)
                 {
                     Entity entity = Resources.Load<Entity>(registries[i].m_prefabs[x]);
                     if (entity)
                     {
-                        entity.n_asset = identity.Combine(x);
+                        entity.n_asset = ((ushort)(i + 1)).Combine(x);
                         m_resources.Add(entity.n_asset, entity);
                     }
                     else
@@ -37,7 +37,6 @@ namespace Labyrinth.Runtime
                         Debug.LogWarning($"Prefab located at {registries[i].m_prefabs[x]} isn't a network entity");
                     }
                 }
-                identity++;
             }
         }
 

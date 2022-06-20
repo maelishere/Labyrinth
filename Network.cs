@@ -43,6 +43,10 @@ namespace Labyrinth
                 {
                     Forward((c) => c != connection, Reliable,
                         Flag.Connected, (ref Writer writer) => writer.Write(connection));
+
+                    NetworkServer.Each((c) => Forward(connection, Reliable,
+                    Flag.Connected, (ref Writer writer) => writer.Write(c)),
+                    (c) => c != connection);
                 }
             }
 

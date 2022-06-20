@@ -8,7 +8,11 @@ namespace Labyrinth.Runtime
     [AddComponentMenu("Labyrinth/Entity")]
     public sealed class Entity : Instance
     {
+        /// the scene this entity belongs in
         [SerializeField] private int m_world;
+
+        /// the path to find the entity in the resources folder
+        // [SerializeField] private string m_path;
 
         // unique idenitfier for the asset when spwaning through the network
         [HideInInspector, SerializeField] internal int n_asset;
@@ -51,6 +55,46 @@ namespace Labyrinth.Runtime
                     });
             }
             Destroy();
+        }
+
+        internal static void OnNetworkCreate(int socket, int connection, object state, ref Reader reader)
+        {
+            Packets.Spawn spawn = reader.ReadSpawn();
+            // Debug.Log($"Creating Entity({spawn.Identity})");
+            if (Registry.Find(spawn.Asset, out Entity prefab))
+            {
+                Entity entity = Instantiate(prefab, spawn.Position, Quaternion.Euler(spawn.Rotation));
+                entity.Create(spawn.Identity, spawn.Authority);
+
+                if (Network.Internal(Host.Server))
+                {
+                    /// Server -> Send Other Connections Spawn() that have loaded the world;
+                    /// the server should have all the worlds loaded
+                    Instance.Find(entity.PreferredScene, out World world);
+                    Network.Forward((c) => spawn.Authority != c && world.n_network.Contains(spawn.Authority),
+                        Network.Reliable, Flags.Create, (ref Writer writer) => writer.WriteSpawn(entity));
+                }
+
+                // Debug.Log($"Created Entity({spawn.Identity})");
+            }
+        }
+
+        internal static void OnNetworkDestory(int socket, int connection, object state, ref Reader reader)
+        {
+            Packets.Cease cease = reader.ReadCease();
+            if (Instance.Find(cease.Identity, out Entity entity))
+            {
+                if (Network.Internal(Host.Server))
+                {
+                    /// Server -> Send Other Connections Cease() that have loaded the world;
+                    /// the server should have all the worlds loaded
+                    Instance.Find(entity.PreferredScene, out World world);
+                    Network.Forward((c) => cease.Authority != c && world.n_network.Contains(cease.Authority),
+                        Network.Reliable, Flags.Create, (ref Writer writer) => writer.WriteSpawn(entity));
+                }
+
+                Destroy(entity.gameObject);
+            }
         }
     }
 }

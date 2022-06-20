@@ -79,7 +79,7 @@ namespace Labyrinth.Runtime
 
         public static Spawn ReadSpawn(this Reader reader)
         {
-            return new Spawn(reader.ReadInt(), reader.ReadInt(), 
+            return new Spawn(reader.ReadInt(), reader.ReadInt(),
                 reader.ReadInt(), reader.ReadVector3(), reader.ReadVector3());
         }
 
@@ -113,6 +113,29 @@ namespace Labyrinth.Runtime
         {
             writer.Write(identity);
             writer.Write(authority);
+        }
+
+        public struct Section
+        {
+            public Section(int scene, int client)
+            {
+                Scene = scene;
+                Client = client;
+            }
+
+            public int Scene { get; }
+            public int Client { get; }
+        }
+
+        public static Section ReadSection(this Reader reader)
+        {
+            return new Section(reader.ReadInt(), reader.ReadInt());
+        }
+
+        public static void WriteSection(this Writer writer, int scene, int client)
+        {
+            writer.Write(scene);
+            writer.Write(client);
         }
     }
 }

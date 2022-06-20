@@ -64,6 +64,6 @@ Network Behaviour Scripts
 
     The gameobject must include an Entity or World
 
-    Variables - use the Appendix.Var<T>() function to syncorhize between server and client
+    Variables - use the Appendix.Var<T>() function to synchronize between server and client
 
-    Function calls - use Appendix.Method() to register and Appendix.RPC() to call over network, with a max of three generic parameters
+    Function calls - use Appendix.Method() to register and Appendix.RPC() to call over network, with a max of three generic parameters. However, only primitives and some built-in unity struts are supported.

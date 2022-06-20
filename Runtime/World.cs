@@ -22,44 +22,6 @@ namespace Labyrinth.Runtime
         //      or find entities through scene.GetRootGameObjects()
         internal readonly HashSet<int> n_entities = new HashSet<int>();
 
-        private void OnClientRequest(int connection)
-        {
-            Debug.Log($"Client({connection})");
-            if (n_network.Add(connection))
-            {
-                /*scene.GetRootGameObjects();*/
-                foreach (var instance in n_entities)
-                {
-                    if (Find(instance, out Entity entity))
-                    {
-                        // send connection all entities within the scene
-                        Network.Forward(connection, Network.Reliable, Flags.Create,
-                            (ref Writer writer) =>
-                            {
-                                writer.WriteSpawn(entity);
-                            });
-                    }
-                }
-                Debug.Log($"Client({connection}) loaded scene {m_scene}");
-            }
-            else if (n_network.Remove(connection))
-            {
-                /// connection unload scene
-                Debug.Log($"Client({connection}) unloaded scene {m_scene}");
-            }
-        }
-
-        private void Awake()
-        {
-            // We can register a prodecure or signature on awake
-            //      However remote should be called after Instance.Create
-            Register(0, new Procedure(1, Procedure.Rule.Server,
-                (ref Reader reader) =>
-                {
-                    OnClientRequest(reader.ReadInt());
-                }));
-        }
-
         private void Start()
         {
             // We assign Instance an identifier (scene build number) and the server identity
@@ -69,16 +31,13 @@ namespace Labyrinth.Runtime
                 Destroy(gameObject);
                 return;
             }
-
             if (Network.Internal(Host.Client))
             {
-                // Remote should be called after Instance.Create
-                //      (or else the instance never receives the message)
                 // Request for entities within this scene
-                Remote(Network.Authority(true), 0, 1,
+                Network.Forward(Network.Reliable, Flags.Loaded,
                     (ref Writer writer) =>
                     {
-                        writer.Write(Network.Authority());
+                        writer.WriteSection(m_scene, Network.Authority());
                     });
             }
         }
@@ -88,13 +47,12 @@ namespace Labyrinth.Runtime
             if (Network.Internal(Host.Client))
             {
                 // let server know this scene is unloaded
-                Remote(Network.Authority(true), 0, 1,
-                       (ref Writer writer) =>
-                       {
-                           writer.Write(Network.Authority());
-                       });
+                Network.Forward(Network.Reliable, Flags.Offloaded,
+                    (ref Writer writer) =>
+                    {
+                        writer.WriteSection(m_scene, Network.Authority());
+                    });
             }
-
             Destroy();
         }
 
@@ -102,6 +60,42 @@ namespace Labyrinth.Runtime
         {
             Scene scene = SceneManager.GetSceneByBuildIndex(m_scene);
             SceneManager.MoveGameObjectToScene(gameobject, scene);
+        }
+
+        // this flag always comes from clients to server
+        internal static void OnNetworkLoaded(int socket, int connection, object state, ref Reader reader)
+        {
+            Packets.Section section = reader.ReadSection();
+            if (Instance.Find(section.Scene, out World world))
+            {
+                world.n_network.Add(section.Client);
+                // Debug.Log($"Sending {world.n_entities.Count} entities to Client({section.Client})");
+                foreach (var instance in world.n_entities)
+                {
+                    if (Find(instance, out Entity entity))
+                    {
+                        // send client all entities within the scene
+                        Network.Forward(section.Client, Network.Reliable, Flags.Create,
+                            (ref Writer writer) =>
+                            {
+                                writer.WriteSpawn(entity);
+                            });
+                        // Debug.Log($"Sending Entity({instance}) to Client({section.Client})");
+                    }
+                }
+                // Debug.Log($"Client({section.Client}) loaded scene {section.Scene}");
+            }
+        }
+
+        // this flag always comes from clients to server
+        internal static void OnNetworkOffloaded(int socket, int connection, object state, ref Reader reader)
+        {
+            Packets.Section section = reader.ReadSection();
+            if (Instance.Find(section.Scene, out World world))
+            {
+                world.n_network.Remove(section.Client);
+                // Debug.Log($"Client({section.Client}) unloaded scene {section.Scene}");
+            }
         }
     }
 }
