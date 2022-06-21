@@ -8,9 +8,11 @@ Dependencies: [Bolt](https://github.com/maelishere/Bolt) and [Lattice](https://g
 
 ## Description
 
+This is my attempt at writing a unity networking library without ceil (magic) behind Mirror, Unet or any other unity networking library that unity's team will eventually give up on.
+
 Dedicated Server or Clients. However, not at the same time.
 
-Allows for networked level streaming 
+Allows for networked level streaming
 
 ## Getting Started
 
@@ -66,10 +68,10 @@ Function calls - use Appendix.Method() to register and Appendix.RPC() to call ov
 
 Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data. For it to work an observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. 
 
-Note: your custom network behaviours on the gameobject with an observer; functions will always be sent back to the client with authority (if that's how your behaviour is defined), but variables only if Signature.Rule is set to Round.
-
 Note: you can have multiple observers for each client.
+
+Note: your custom network behaviours on the gameobject(s) with an observer; variables and functions will always be sent back to the client with authority (if that's how your behaviour is defined).
 
 Optionally you can add a Sector script to an empty gameobject in any network scene (doesn't require an Entity or World, the process happens on the server). This provides additionally details for relevance calculation.
 
-Note: Sector (on the server) is required if you set relevancy to Relevance.Sectors for any variables or functions.
+Note: A Sector (on the server) is required if you set relevancy to Relevance.Sectors for any variables or functions.
