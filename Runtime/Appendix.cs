@@ -80,12 +80,12 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public void RPC(byte procedure, Host host = Host.Any)
+        public void RPC(byte procedure)
         {
             n_network.Remote(Identity.Any, n_offset, procedure, null);
         }
 
-        public void RPC<T>(byte procedure, T arg, Host host = Host.Any)
+        public void RPC<T>(byte procedure, T arg)
         {
             n_network.Remote(Identity.Any, n_offset, procedure,
                 (ref Writer writer) =>
@@ -94,7 +94,7 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC<T1, T2>(byte procedure, T1 arg1, T2 arg2, Host host = Host.Any)
+        public void RPC<T1, T2>(byte procedure, T1 arg1, T2 arg2)
         {
             n_network.Remote(Identity.Any, n_offset, procedure,
                 (ref Writer writer) =>
@@ -104,7 +104,7 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC<T1, T2, T3>(byte procedure, T1 arg1, T2 arg2, T3 arg3, Host host = Host.Any)
+        public void RPC<T1, T2, T3>(byte procedure, T1 arg1, T2 arg2, T3 arg3)
         {
             n_network.Remote(Identity.Any, n_offset, procedure,
                 (ref Writer writer) =>
@@ -115,12 +115,12 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC(int connection, byte procedure, Host host = Host.Any)
+        public void RPC(int connection, byte procedure)
         {
             n_network.Remote(connection, n_offset, procedure, null);
         }
 
-        public void RPC<T>(int connection, byte procedure, T arg, Host host = Host.Any)
+        public void RPC<T>(int connection, byte procedure, T arg)
         {
             n_network.Remote(connection, n_offset, procedure,
                 (ref Writer writer) =>
@@ -129,7 +129,7 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC<T1, T2>(int connection, byte procedure, T1 arg1, T2 arg2, Host host = Host.Any)
+        public void RPC<T1, T2>(int connection, byte procedure, T1 arg1, T2 arg2)
         {
             n_network.Remote(connection, n_offset, procedure,
                 (ref Writer writer) =>
@@ -139,7 +139,7 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC<T1, T2, T3>(int connection, byte procedure, T1 arg1, T2 arg2, T3 arg3, Host host = Host.Any)
+        public void RPC<T1, T2, T3>(int connection, byte procedure, T1 arg1, T2 arg2, T3 arg3)
         {
             n_network.Remote(connection, n_offset, procedure,
                 (ref Writer writer) =>

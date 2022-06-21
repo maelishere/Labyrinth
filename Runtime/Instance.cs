@@ -144,20 +144,13 @@ namespace Labyrinth.Runtime
 
         internal void Remote(int target, byte offset, byte procedure, Write write)
         {
-            if (Network.Internal(Host.Server))
+            if (target == Network.Authority())
             {
-                Network.Forward(
-                    target,
-                    Network.Abnormal,
-                    Flags.Procedure,
-                    (ref Writer writer) =>
-                    {
-                        writer.WriteCall(target, identity.Value, offset.Combine(procedure));
-                        write(ref writer);
-                    });
-
+                Debug.LogWarning($"Procedure call target is self");
+                return;
             }
-            if (Network.Internal(Host.Client))
+
+            if (target == Identity.Any || Network.Internal(Host.Client))
             {
                 Network.Forward(
                     Network.Abnormal,
@@ -167,6 +160,18 @@ namespace Labyrinth.Runtime
                         writer.WriteCall(target, identity.Value, offset.Combine(procedure));
                         write(ref writer);
                     });
+            }
+            else if (Network.Internal(Host.Server))
+            {
+                /// make sure receivers are relevant
+                Central.Relavant(transform.position, m_procedures[offset.Combine(procedure)].Relevancy,
+                    (c) => Network.Forward(c, Network.Abnormal, Flags.Procedure,
+                    (ref Writer writer) =>
+                    {
+                        writer.WriteCall(target, identity.Value, offset.Combine(procedure));
+                        write(ref writer);
+                    }));
+
             }
         }
 
@@ -189,13 +194,20 @@ namespace Labyrinth.Runtime
                 {
                     if (Network.Internal(Host.Server))
                     {
-                        // if the target is any connection, forward to the clients
+                        Reader reference = reader;
+                        // if the target is any connection, forward to the other clients
                         if (call.Target == Identity.Any)
                         {
-                            /// make sure receivers are relevant
+                            /// make sure receivers are relevant excluding who sent it
                             Central.Relavant(instance.transform.position, instance.m_procedures[call.Procedure].Relevancy,
-                                (c) => Network.Forward(c, Network.Abnormal, Flags.Procedure, (ref Writer writer) => writer.WriteCall(call)),
-                                (int c) => c != connection);
+                                (c) => Network.Forward(c, Network.Abnormal, Flags.Procedure,
+                                (ref Writer writer) =>
+                                {
+                                    writer.WriteCall(call);
+                                    // write the parameters without reading the buffer
+                                    writer.Write(reference.Peek(reference.Length - reference.Current));
+                                }),
+                                (c) => c != connection);
                         }
                         // if the server isn't the target, forward to the target client
                         else if (call.Target != Network.Authority())
@@ -203,7 +215,13 @@ namespace Labyrinth.Runtime
                             /// make sure target is relevant
                             if (Central.Relevant(call.Target, instance.transform.position, instance.m_procedures[call.Procedure].Relevancy))
                             {
-                                Network.Forward(call.Target, Network.Abnormal, Flags.Procedure, (ref Writer writer) => writer.WriteCall(call));
+                                Network.Forward(call.Target, Network.Abnormal, Flags.Procedure,
+                                (ref Writer writer) =>
+                                {
+                                    writer.WriteCall(call);
+                                    // write the parameters without reading the buffer
+                                    writer.Write(reference.Peek(reference.Length - reference.Current));
+                                });
                             }
                             // exit since server isn't the target
                             return;

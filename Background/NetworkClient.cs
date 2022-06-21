@@ -51,7 +51,7 @@ namespace Labyrinth.Background
 
         internal static void Send(Channel channel, Write write)
         {
-            n_client?.Send(channel, write);
+            n_client.Send(channel, write);
         }
 
         private static void OnError(Error error)
