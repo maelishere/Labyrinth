@@ -189,7 +189,7 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        internal static void OnNetworkProcedure(int socket, int connection, object state, ref Reader reader)
+        internal static void OnNetworkProcedure(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Call call = reader.ReadCall();
             if (Network.Internal(Host.Server))
@@ -247,7 +247,7 @@ namespace Labyrinth.Runtime
             }
         }
 
-        internal static void OnNetworkSignature(int socket, int connection, object state, ref Reader reader)
+        internal static void OnNetworkSignature(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Sync sync = reader.ReadSync();
             if (m_instances.ContainsKey(sync.Identity))

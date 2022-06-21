@@ -57,7 +57,7 @@ namespace Labyrinth.Runtime
             Destroy();
         }
 
-        internal static void OnNetworkCreate(int socket, int connection, object state, ref Reader reader)
+        internal static void OnNetworkCreate(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Spawn spawn = reader.ReadSpawn();
             // Debug.Log($"Creating Entity({spawn.Identity})");
@@ -79,7 +79,7 @@ namespace Labyrinth.Runtime
             }
         }
 
-        internal static void OnNetworkDestory(int socket, int connection, object state, ref Reader reader)
+        internal static void OnNetworkDestory(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Cease cease = reader.ReadCease();
             if (Instance.Find(cease.Identity, out Entity entity))

@@ -63,7 +63,7 @@ namespace Labyrinth.Runtime
         }
 
         // this flag always comes from clients to server
-        internal static void OnNetworkLoaded(int socket, int connection, object state, ref Reader reader)
+        internal static void OnNetworkLoaded(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Section section = reader.ReadSection();
             if (Instance.Find(section.Scene, out World world))
@@ -88,7 +88,7 @@ namespace Labyrinth.Runtime
         }
 
         // this flag always comes from clients to server
-        internal static void OnNetworkOffloaded(int socket, int connection, object state, ref Reader reader)
+        internal static void OnNetworkOffloaded(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Section section = reader.ReadSection();
             if (Instance.Find(section.Scene, out World world))

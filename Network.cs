@@ -67,12 +67,12 @@ namespace Labyrinth
             disconnected.Invoke(socket, connection);
         }
 
-        internal static void Receive(int socket, int connection, object state, ref Reader reader)
+        internal static void Receive(int socket, int connection,  uint timestamp, ref Reader reader)
         {
             byte flag = reader.Read();
             if (m_callbacks.ContainsKey(flag))
             {
-                m_callbacks[flag].Callback(socket, connection, state, ref reader);
+                m_callbacks[flag].Callback(socket, connection, timestamp, ref reader);
                 return;
             }
             Debug.LogError($"Network received invalid flag [{flag}]");
@@ -170,13 +170,13 @@ namespace Labyrinth
         }
 
         /// from server [to client] about new connections
-        private static void OnNetworkConnected(int socket, int connection, object state, ref Reader reader)
+        private static void OnNetworkConnected(int socket, int connection, uint timestamp, ref Reader reader)
         {
             connected.Invoke(connection, reader.ReadInt());
         }
 
         /// from server [to client] about diconnections
-        private static void OnNetworkDisconnected(int socket, int connection, object state, ref Reader reader)
+        private static void OnNetworkDisconnected(int socket, int connection, uint timestamp, ref Reader reader)
         {
             disconnected.Invoke(connection, reader.ReadInt());
         }
