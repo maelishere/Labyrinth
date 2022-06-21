@@ -11,7 +11,7 @@ namespace Labyrinth.Runtime
 
         internal Instance n_attached;
 
-        private void Awake()
+        private void Start()
         {
             n_attached = GetComponent<Instance>();
             if (Central.n_observers.ContainsKey(n_attached.authority.Value))

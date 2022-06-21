@@ -94,10 +94,10 @@ namespace Labyrinth.Runtime
             Func<bool> relevant = () =>
             {
                 // relevance is a server operation
-                if (Network.Internal(Host.Server))
+                /* if (Network.Internal(Host.Server))
                 {
                     return Central.Relevant(authority.Value, transform.position, m_signatures[signature].Relevancy);
-                }
+                } */
                 return true;
             };
 

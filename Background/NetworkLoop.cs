@@ -51,7 +51,7 @@ namespace Labyrinth.Background
             }
             return false;
         }
-        
+
         // hook into Unity runtime to actually add our custom functions
         [RuntimeInitializeOnLoadMethod]
         static void RuntimeInitializeOnLoad()
@@ -67,12 +67,20 @@ namespace Labyrinth.Background
 
         static void NetworkEarlyUpdate()
         {
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
+                return;
+#endif
             NetworkServer.Update();
             NetworkClient.Update();
         }
 
         static void NetworkLateUpdate()
         {
+#if UNITY_EDITOR
+            if (!UnityEditor.EditorApplication.isPlaying)
+                return;
+#endif
         }
     }
 }

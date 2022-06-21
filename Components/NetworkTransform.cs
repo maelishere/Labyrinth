@@ -12,12 +12,12 @@ namespace Labyrinth.Components
         [SerializeField] private int m_rate = 10;
         [SerializeField] private float m_smoothing = 3;
 
-        private Instance m_parent;
-        private Vector3 m_position, m_rotation, m_scale;
+        // private Instance m_parent;
+        private Vector3 m_position, m_rotation/* , m_scale */;
 
         private void Awake()
         {
-            Method<int>(1, Procedure.Rule.Any, OnNetworkParent);
+            // Method<int>(1, Procedure.Rule.Any, OnNetworkParent);
 
             Var(2, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
@@ -39,7 +39,7 @@ namespace Labyrinth.Components
                     m_rotation = rotation;
                 });
 
-            Var(4, m_rate, Signature.Rule.Round, Relevance.Authority,
+            /* Var(4, m_rate, Signature.Rule.Round, Relevance.Authority,
                 () =>
                 {
                     return transform.localScale;
@@ -49,10 +49,19 @@ namespace Labyrinth.Components
                     m_scale = scale;
                 });
 
-            StartCoroutine(CheckParent());
+            StartCoroutine(CheckParent()); */
+        }
+        
+        private void Start()
+        {
+            if (!owner)
+            {
+                m_position = transform.position;
+                m_rotation = transform.rotation.eulerAngles;
+            }
         }
 
-        private IEnumerator CheckParent()
+        /* private IEnumerator CheckParent()
         {
             while (Network.Internal(Host.Any))
             {
@@ -71,16 +80,16 @@ namespace Labyrinth.Components
             {
                 m_parent = parent;
             }
-        }
+        } */
 
         private void Update()
         {
             if (!owner)
             {
-                transform.SetParent(m_parent?.transform ?? null);
+                // transform.SetParent(m_parent?.transform ?? null);
                 transform.position = Vector3.Lerp(transform.position, m_position, m_smoothing * Time.deltaTime);
                 transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(m_rotation), m_smoothing * Time.deltaTime);
-                transform.localScale = Vector3.Lerp(transform.localScale, m_scale, m_smoothing * Time.deltaTime);
+                // transform.localScale = Vector3.Lerp(transform.localScale, m_scale, m_smoothing * Time.deltaTime);
             }
         }
     }
