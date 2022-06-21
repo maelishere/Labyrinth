@@ -1,5 +1,7 @@
 # Labyrinth
+
 Network Library For Unity
+
     ***Experimental***
 
 Dependencies: [Bolt](https://github.com/maelishere/Bolt) and [Lattice](https://github.com/maelishere/Lattice)
@@ -10,7 +12,7 @@ Dedicated Server or Clients. However, not at the same time.
 
 Allows for networked level streaming 
 
-### Example
+### Usage
 
 Starting Up
 
