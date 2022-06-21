@@ -10,8 +10,6 @@ namespace Labyrinth.Runtime
         [SerializeField] private float m_radius = 100;
         [SerializeField] private Vector3 m_offset = Vector3.zero;
 
-        public Transform T;
-
         internal Instance n_attached;
 
         private void Start()

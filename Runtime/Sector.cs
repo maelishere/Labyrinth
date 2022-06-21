@@ -11,8 +11,6 @@ namespace Labyrinth.Runtime
         [SerializeField] private Vector3 m_offset = Vector3.zero;
         [SerializeField] private Vector3Int m_bound = Vector3Int.one;
 
-        public Transform A, B;
-
         public Vector3 size => new Vector3(m_cell.x + (m_cell.x * m_bound.x * 2), 
                                            m_cell.y + (m_cell.y * m_bound.y * 2), 
                                            m_cell.z + (m_cell.z * m_bound.z * 2));
