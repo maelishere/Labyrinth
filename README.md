@@ -12,9 +12,9 @@ Dedicated Server or Clients. However, not at the same time.
 
 Allows for networked level streaming 
 
-### Usage
+## Usage
 
-Starting Up
+### Starting Up
 
     using Labyrith.Components;
 
@@ -26,7 +26,7 @@ Starting Up
 
     NetworkServer.Listen(int port); or NetworkClient.Connect(IPEndPoint endpoint);
 
-Shutting Down
+### Shutting Down
 
     using Labyrith.Components;
 
@@ -38,42 +38,37 @@ Shutting Down
 
     NetworkServer.Destroy(); or NetworkClient.Disconnect();
 
-Creating Entities
+### Creating Entities
 
-    Create a prefab with an Entity component, then save it in a resources folder
+Create a prefab with an Entity component, then save it in a resources folder. After, create a registry asset in the root of any resources folder, then add the path to all entities that can be spawn over the network. The registry is intialized in the background on load
 
-    Create a registry asset in the root of any resources folder, then add the path to all entities that can be spawn over the network
+### Instantiating Entities
 
-    The registry is intialized in the background on load
+Use the regular unity Instantiate, the entity script does the rest
 
-Instantiating Entities
+### Network Scenes
 
-    Use the regular unity Instantiate, the entity script does the rest
+Each scene must have a gameobject with the World component attached (also with their build index). The Server must have either have all possible scenes opened or for performance ensure that every scene any client has loaded or is about to load is loaded before all clients. When a scene is loaded on a client it sends a message to the server which in turns sends back all the entities within that scene 
 
-Network Scenes
+### Network Behaviour Scripts
 
-    Each scene must have a gameobject with the World component attached (also with their build index)
-
-    The Server must have either have all possible scenes opened or for performance ensure that every scene any client has loaded or is about to load is loaded before all clients
-
-    When a scene is loaded on a client it sends a message to the server which in turns sends back all the entities within that scene 
-
-Network Behaviour Scripts
+The gameobject must include an Entity or World. 
 
     using Laybrith.Runtime;
 
     Inhert from Appendix
 
-    The gameobject must include an Entity or World
+Variables - use the Appendix.Var<T>() function to synchronize between server and client
+Function calls - use Appendix.Method() to register and Appendix.RPC() to call over network, with a max of three generic parameters. However, only primitives and some built-in unity struts are supported.
 
-    Variables - use the Appendix.Var<T>() function to synchronize between server and client
+### Network Relevance
 
-    Function calls - use Appendix.Method() to register and Appendix.RPC() to call over network, with a max of three generic parameters. However, only primitives and some built-in unity struts are supported.
+Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data. For it to work an observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. 
 
-Network Relevance
+Note: your custom network behaviours on the gameobject with an observer; it's variables and functions will always be sent back to the client with authority.
 
-    Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data
+Note: you can have multiple observers for each client.
 
-    For it to work an Observer Component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. Note: you can have multiple observers for each client.
+Optionally you can add a Sector script to an empty gameobject in any network scene (doesn't require an Entity or World, the process happens on the server). This provides additionally details for relevance calculation.
 
-    Optionally you can add a Sector script to an empty gameobject in any network scene (doesn't require an Entity or World, the process happens on the server). This provides additionally details for relevance calculation. Note: required if you set relevancy to Relevance.Sectors for any variables or functions.
+Note: Sector (on the server) is required if you set relevancy to Relevance.Sectors for any variables or functions.
