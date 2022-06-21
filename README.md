@@ -2,7 +2,7 @@
 
 Network Library For Unity
 
-    ***Experimental***
+***Experimental***
 
 Dependencies: [Bolt](https://github.com/maelishere/Bolt) and [Lattice](https://github.com/maelishere/Lattice)
 
@@ -58,8 +58,9 @@ The gameobject must include an Entity or World.
 
     Inhert from Appendix
 
-Variables - use the Appendix.Var<T>() function to synchronize between server and client
-Function calls - use Appendix.Method() to register and Appendix.RPC() to call over network, with a max of three generic parameters. However, only primitives and some built-in unity struts are supported.
+Variables - use the Appendix.Var<T>() function to synchronize between server and client.
+
+Function calls - use Appendix.Method() to register and Appendix.RPC() to call over network, with a max of three generic parameters. However, only primitives and some built-in unity structs are supported.
 
 ### Network Relevance
 
