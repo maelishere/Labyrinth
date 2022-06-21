@@ -25,6 +25,7 @@ namespace Labyrinth.Components
 
         [SerializeField] private int m_rate = 10;
         [SerializeField] private float m_smoothing = 10.0f;
+        [SerializeField] private Relevance m_relevance = Relevance.Sectors;
 
         private Animator m_animator;
         private Parameter[] m_parameters;
@@ -43,7 +44,7 @@ namespace Labyrinth.Components
                         case AnimatorControllerParameterType.Int:
                             m_parameters[i] = new Parameter(parameters[i].name, parameters[i].type, (int)0);
 
-                            Var(i, m_rate, Signature.Rule.Authority, Relevance.General,
+                            Var(i, m_rate, Signature.Rule.Authority, m_relevance,
                                 () =>
                                 {
                                     return m_animator.GetInteger(m_parameters[i].Name);
@@ -57,7 +58,7 @@ namespace Labyrinth.Components
                         case AnimatorControllerParameterType.Float:
                             m_parameters[i] = new Parameter(parameters[i].name, parameters[i].type, 0.0f);
 
-                            Var(i, m_rate, Signature.Rule.Authority, Relevance.General,
+                            Var(i, m_rate, Signature.Rule.Authority, m_relevance,
                                 () =>
                                 {
                                     return m_animator.GetFloat(m_parameters[i].Name);
@@ -71,7 +72,7 @@ namespace Labyrinth.Components
                         case AnimatorControllerParameterType.Bool:
                             m_parameters[i] = new Parameter(parameters[i].name, parameters[i].type, false);
 
-                            Var(i, m_rate, Signature.Rule.Authority, Relevance.General,
+                            Var(i, m_rate, Signature.Rule.Authority, m_relevance,
                                 () =>
                                 {
                                     return m_animator.GetBool(m_parameters[i].Name);

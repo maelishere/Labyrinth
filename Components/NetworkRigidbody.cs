@@ -11,6 +11,7 @@ namespace Labyrinth.Components
     {
         [SerializeField] private int m_rate = 10;
         [SerializeField] private float m_smoothing = 10.0f;
+        [SerializeField] private Relevance m_relevance = Relevance.General;
 
         private Rigidbody m_rigidbody;
         private Vector3 m_position, m_rotation;
@@ -19,7 +20,7 @@ namespace Labyrinth.Components
         {
             m_rigidbody = GetComponent<Rigidbody>();
 
-            Var(1, m_rate, Signature.Rule.Round, Relevance.Observers,
+            Var(1, m_rate, Signature.Rule.Round, m_relevance,
                 () =>
                 {
                     return m_rigidbody.position;
@@ -29,7 +30,7 @@ namespace Labyrinth.Components
                     m_position = position;
                 });
 
-            Var(2, m_rate, Signature.Rule.Round, Relevance.Observers,
+            Var(2, m_rate, Signature.Rule.Round, m_relevance,
                 () =>
                 {
                     return m_rigidbody.rotation.eulerAngles;

@@ -12,7 +12,7 @@ Dedicated Server or Clients. However, not at the same time.
 
 Allows for networked level streaming 
 
-## Usage
+## Getting Started
 
 ### Starting Up
 

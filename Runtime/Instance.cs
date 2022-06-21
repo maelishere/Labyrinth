@@ -91,28 +91,10 @@ namespace Labyrinth.Runtime
             //              client to server 
             //              server to clients
 
-            Func<bool> relevant = () =>
-            {
-                // relevance is a server operation
-                if (Network.Internal(Host.Server))
-                {
-                    return Central.Relevant(authority.Value, transform.position, m_signatures[signature].Relevancy);
-                }
-                return true;
-            };
-
             Write write = (ref Writer writer) =>
             {
                 writer.WriteSync(identity.Value, signature);
                 m_signatures[signature].Sending(ref writer);
-            };
-
-            Action send = () =>
-            {
-                if (relevant())
-                {
-                    Network.Forward(Network.Fickle, Flags.Signature, write);
-                }
             };
 
             float wait = 1.0f / m_signatures[signature].Rate;
@@ -123,28 +105,36 @@ namespace Labyrinth.Runtime
                     case Signature.Rule.Round:
                         if (Network.Internal(Host.Server))
                         {
-                            send();
+                            // send to all relavant connection including authority
+                            Central.Relavant(transform.position, m_signatures[signature].Relevancy,
+                                (c) => Network.Forward(c, Network.Fickle, Flags.Signature, write));
                         }
                         if (Network.Internal(Host.Client) && authority.Value == Network.Authority())
                         {
-                            send();
+                            // send to server
+                            Network.Forward(Network.Fickle, Flags.Signature, write);
                         }
                         break;
                     case Signature.Rule.Server:
                         if (Network.Internal(Host.Server))
                         {
-                            send();
+                            // send to all relavant connection overriding authority
+                            Central.Relavant(transform.position, m_signatures[signature].Relevancy,
+                                (c) => Network.Forward(c, Network.Fickle, Flags.Signature, write));
                         }
                         break;
                     case Signature.Rule.Authority:
-                        if (authority.Value == Network.Authority())
+                        if (Network.Internal(Host.Server))
                         {
-                            send();
+                            // send to all relavant connection excluding authority
+                            Central.Relavant(transform.position, m_signatures[signature].Relevancy,
+                                (c) => Network.Forward(c, Network.Fickle, Flags.Signature, write),
+                                (int c) => c != authority.Value);
                         }
-                        else if (Network.Internal(Host.Server) && relevant())
+                        if (Network.Internal(Host.Client) && authority.Value == Network.Authority())
                         {
-                            Network.Forward((c) => c != authority.Value,
-                                Network.Fickle, Flags.Signature, write);
+                            //send to server
+                            Network.Forward(Network.Fickle, Flags.Signature, write);
                         }
                         break;
                 }

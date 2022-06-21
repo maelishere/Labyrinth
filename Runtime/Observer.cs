@@ -7,6 +7,8 @@ namespace Labyrinth.Runtime
     [RequireComponent(typeof(Entity)), AddComponentMenu("Labyrinth/Observer")]
     public sealed class Observer : MonoBehaviour
     {
+        internal static readonly Dictionary<int, HashSet<Observer>> n_observers = new Dictionary<int, HashSet<Observer>>();
+
         [SerializeField] private float m_radius = 100;
         [SerializeField] private Vector3 m_offset = Vector3.zero;
 
@@ -15,17 +17,19 @@ namespace Labyrinth.Runtime
         private void Start()
         {
             n_attached = GetComponent<Instance>();
-            if (Central.n_observers.ContainsKey(n_attached.authority.Value))
+            if (!n_observers.ContainsKey(n_attached.authority.Value))
             {
-                Central.n_observers[n_attached.authority.Value].Add(this);
+                n_observers.Add(n_attached.authority.Value, new HashSet<Observer>());
             }
+            n_observers[n_attached.authority.Value].Add(this);
         }
 
         private void OnDestroy()
         {
-            if (Central.n_observers.ContainsKey(n_attached.authority.Value))
+            n_observers[n_attached.authority.Value].Remove(this);
+            if (n_observers[n_attached.authority.Value].Count == 0)
             {
-                Central.n_observers[n_attached.authority.Value].Remove(this);
+                n_observers.Remove(n_attached.authority.Value);
             }
         }
 

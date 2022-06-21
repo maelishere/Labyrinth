@@ -13,8 +13,6 @@ namespace Labyrinth.Runtime
     public sealed class Central : MonoBehaviour
     {
         internal static Central n_instance;
-        internal static readonly HashSet<Sector> n_sectors = new HashSet<Sector>();
-        internal static readonly Dictionary<int, HashSet<Observer>> n_observers = new Dictionary<int, HashSet<Observer>>();
 
         [SerializeField] private int[] m_networkedScenes = new int[0];
 
@@ -54,17 +52,17 @@ namespace Labyrinth.Runtime
                 case Relevance.None:
                     return true;
                 case Relevance.General:
-                    return Relevant(authority, point, Relevance.Sectors) || Relevant(authority, point, Relevance.Observers);
+                    return Relevant(authority, point, Relevance.Observers) || Relevant(authority, point, Relevance.Sectors);
             }
 
-            if (n_observers.ContainsKey(authority))
+            if (Observer.n_observers.ContainsKey(authority))
             {
-                foreach (var observer in n_observers[authority])
+                foreach (var observer in Observer.n_observers[authority])
                 {
                     switch (relevancy)
                     {
                         case Relevance.Sectors:
-                            foreach (var station in n_sectors)
+                            foreach (var station in Sector.n_sectors)
                             {
                                 if (station.Overlap(observer.transform.position, point))
                                 {
@@ -83,13 +81,13 @@ namespace Labyrinth.Runtime
 
         public static void Relavant(Vector3 point, Relevance relevancy, Action<int> callback, Func<int, bool> filter = null)
         {
-            foreach (var connections in n_observers)
+            foreach (var connection in Observer.n_observers)
             {
-                if (filter?.Invoke(connections.Key) ?? true)
+                if (filter?.Invoke(connection.Key) ?? true)
                 {
-                    if (Relevant(connections.Key, point, relevancy))
+                    if (Relevant(connection.Key, point, relevancy))
                     {
-                        callback(connections.Key);
+                        callback(connection.Key);
                     }
                 }
             }
@@ -104,12 +102,12 @@ namespace Labyrinth.Runtime
 
         private static void Connection(int socket, int connection)
         {
-            n_observers.Add(connection, new HashSet<Observer>());
+            Debug.Log($"Host({connection}) connected");
         }
 
         private static void Disconnection(int socket, int connection)
         {
-            n_observers.Remove(connection);
+            Debug.Log($"Host({connection}) disconnected");
         }
     }
 }

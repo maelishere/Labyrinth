@@ -1,5 +1,5 @@
-using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
 {
@@ -7,6 +7,8 @@ namespace Labyrinth.Runtime
     [AddComponentMenu("Labyrinth/Sector")]
     public sealed class Sector : MonoBehaviour
     {
+        internal static readonly HashSet<Sector> n_sectors = new HashSet<Sector>();
+
         [SerializeField] private Vector3 m_cell = Vector3.one;
         [SerializeField] private Vector3 m_offset = Vector3.zero;
         [SerializeField] private Vector3Int m_bound = Vector3Int.one;
@@ -19,12 +21,12 @@ namespace Labyrinth.Runtime
 
         private void Awake()
         {
-            Central.n_sectors.Add(this);
+            n_sectors.Add(this);
         }
 
         private void OnDestroy()
         {
-            Central.n_sectors.Remove(this);
+            n_sectors.Remove(this);
         }
 
         private int GetValue(float value, float size)
