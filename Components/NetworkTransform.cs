@@ -19,7 +19,7 @@ namespace Labyrinth.Components
         {
             // Method<int>(1, Procedure.Rule.Any, OnNetworkParent);
 
-            Var(2, m_rate, Signature.Rule.Round, Relevance.Authority,
+            Var(2, m_rate, Signature.Rule.Round, Relevance.General,
                 () =>
                 {
                     return transform.position;
@@ -29,7 +29,7 @@ namespace Labyrinth.Components
                     m_position = position;
                 });
 
-            Var(3, m_rate, Signature.Rule.Round, Relevance.Authority,
+            Var(3, m_rate, Signature.Rule.Round, Relevance.General,
                 () =>
                 {
                     return transform.rotation.eulerAngles;

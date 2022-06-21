@@ -44,31 +44,32 @@ namespace Labyrinth.Runtime
             return false;
         }
 
+        // *** redo ****
         public static bool Relevant(int authority, Vector3 point, Relevance relevancy)
         {
             if (n_observers.ContainsKey(authority))
             {
                 foreach (var observer in n_observers[authority])
                 {
-                    if (observer.Contains(point))
+                    switch (relevancy)
                     {
-                        // until i re-edit Station class
-                        /* switch (relevancy)
-                        {
-                            case Relevance.General:
-                                foreach (var station in n_stations)
+                        case Relevance.General:
+                            break;
+                        case Relevance.Stations:
+                            foreach (var station in n_stations)
+                            {
+                                if (station.Overlap(observer.transform.position, point))
                                 {
-                                    if (station.Overlap(observer.transform.position, point))
-                                    {
-                                        return true;
-                                    }
+                                    return true;
                                 }
-                                break;
-                            case Relevance.Authority:
+                            }
+                            break;
+                        case Relevance.Observers:
+                            if (observer.Contains(point))
+                            {
                                 return true;
-                        } */
-
-                        return true;
+                            }
+                            break;
                     }
                 }
             }

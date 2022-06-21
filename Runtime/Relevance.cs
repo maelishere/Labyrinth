@@ -4,6 +4,7 @@
     {
         None,
         General,
-        Authority
+        Stations,
+        Observers
     }
 }

@@ -19,7 +19,7 @@ namespace Labyrinth.Components
         {
             m_rigidbody = GetComponent<Rigidbody>();
 
-            Var(1, m_rate, Signature.Rule.Round, Relevance.Authority,
+            Var(1, m_rate, Signature.Rule.Round, Relevance.Observers,
                 () =>
                 {
                     return m_rigidbody.position;
@@ -29,7 +29,7 @@ namespace Labyrinth.Components
                     m_position = position;
                 });
 
-            Var(2, m_rate, Signature.Rule.Round, Relevance.Authority,
+            Var(2, m_rate, Signature.Rule.Round, Relevance.Observers,
                 () =>
                 {
                     return m_rigidbody.rotation.eulerAngles;
