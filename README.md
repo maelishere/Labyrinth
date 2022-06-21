@@ -66,7 +66,7 @@ Function calls - use Appendix.Method() to register and Appendix.RPC() to call ov
 
 Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data. For it to work an observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. 
 
-Note: your custom network behaviours on the gameobject with an observer; it's variables and functions will always be sent back to the client with authority.
+Note: your custom network behaviours on the gameobject with an observer; functions will always be sent back to the client with authority (if that's how your behaviour is defined), but variables only if Signature.Rule is set to Round.
 
 Note: you can have multiple observers for each client.
 
