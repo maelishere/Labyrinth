@@ -4,7 +4,7 @@
     {
         None,
         General,
-        Stations,
+        Sectors,
         Observers
     }
 }

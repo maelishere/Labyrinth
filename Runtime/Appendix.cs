@@ -40,40 +40,40 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Method(byte procedure, Procedure.Rule control, Action method)
+        public bool Method(byte procedure, Procedure.Rule control, Relevance relevancy, Action method)
         {
             return n_network.Register(n_offset, 
-                new Procedure(procedure, control,
+                new Procedure(procedure, control, relevancy,
                 (ref Reader reader) =>
                 {
                     method?.Invoke();
                 }));
         }
 
-        public bool Method<T>(byte procedure, Procedure.Rule control, Action<T> method)
+        public bool Method<T>(byte procedure, Procedure.Rule control, Relevance relevancy, Action<T> method)
         {
             return n_network.Register(n_offset, 
-                new Procedure(procedure, control,
+                new Procedure(procedure, control, relevancy,
                 (ref Reader reader) =>
                 {
                     method?.Invoke(reader.Read<T>());
                 }));
         }
 
-        public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Action<T1, T2> method)
+        public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Relevance relevancy, Action<T1, T2> method)
         {
             return n_network.Register(n_offset, 
-                new Procedure(procedure, control,
+                new Procedure(procedure, control, relevancy,
                 (ref Reader reader) =>
                 {
                     method?.Invoke(reader.Read<T1>(), reader.Read<T2>());
                 }));
         }
 
-        public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Action<T1, T2, T3> method)
+        public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Relevance relevancy, Action<T1, T2, T3> method)
         {
             return n_network.Register(n_offset, 
-                new Procedure(procedure, control,
+                new Procedure(procedure, control, relevancy,
                 (ref Reader reader) =>
                 {
                     method?.Invoke(reader.Read<T1>(), reader.Read<T2>(), reader.Read<T3>());

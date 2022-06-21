@@ -94,10 +94,10 @@ namespace Labyrinth.Runtime
             Func<bool> relevant = () =>
             {
                 // relevance is a server operation
-                /* if (Network.Internal(Host.Server))
+                if (Network.Internal(Host.Server))
                 {
                     return Central.Relevant(authority.Value, transform.position, m_signatures[signature].Relevancy);
-                } */
+                }
                 return true;
             };
 
@@ -192,26 +192,34 @@ namespace Labyrinth.Runtime
         internal static void OnNetworkProcedure(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Call call = reader.ReadCall();
-            if (Network.Internal(Host.Server))
-            {
-                // if the target is any connection, forward to the clients
-                if (call.Target == Identity.Any)
-                {
-                    Network.Forward((int c) => c != connection, Network.Abnormal, Flags.Procedure,
-                        (ref Writer writer) => writer.WriteCall(call));
-                }
-                // if the server isn't the target, forward to the target client
-                else if (call.Target != Network.Authority())
-                {
-                    Network.Forward(call.Target, Network.Abnormal, Flags.Procedure,
-                        (ref Writer writer) => writer.WriteCall(call));
-                }
-            }
             if (m_instances.ContainsKey(call.Identity))
             {
                 Instance instance = m_instances[call.Identity];
                 if (instance.m_procedures.ContainsKey(call.Procedure))
                 {
+                    if (Network.Internal(Host.Server))
+                    {
+                        // if the target is any connection, forward to the clients
+                        if (call.Target == Identity.Any)
+                        {
+                            /// make sure receivers are relevant
+                            Central.Relavant(instance.transform.position, instance.m_procedures[call.Procedure].Relevancy,
+                                (c) => Network.Forward(c, Network.Abnormal, Flags.Procedure, (ref Writer writer) => writer.WriteCall(call)),
+                                (int c) => c != connection);
+                        }
+                        // if the server isn't the target, forward to the target client
+                        else if (call.Target != Network.Authority())
+                        {
+                            /// make sure target is relevant
+                            if (Central.Relevant(call.Target, instance.transform.position, instance.m_procedures[call.Procedure].Relevancy))
+                            {
+                                Network.Forward(call.Target, Network.Abnormal, Flags.Procedure, (ref Writer writer) => writer.WriteCall(call));
+                            }
+                            // exit since server isn't the target
+                            return;
+                        }
+                    }
+
                     /// before i can call the procedure, check:
                     /// if the network is a client or server
                     /// if this prodecure can run on client or server or both

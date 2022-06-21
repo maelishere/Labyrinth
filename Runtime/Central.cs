@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+
+using System;
 using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
@@ -11,7 +13,7 @@ namespace Labyrinth.Runtime
     public sealed class Central : MonoBehaviour
     {
         internal static Central n_instance;
-        internal static readonly HashSet<Station> n_stations = new HashSet<Station>();
+        internal static readonly HashSet<Sector> n_sectors = new HashSet<Sector>();
         internal static readonly Dictionary<int, HashSet<Observer>> n_observers = new Dictionary<int, HashSet<Observer>>();
 
         [SerializeField] private int[] m_networkedScenes = new int[0];
@@ -47,16 +49,22 @@ namespace Labyrinth.Runtime
         // *** redo ****
         public static bool Relevant(int authority, Vector3 point, Relevance relevancy)
         {
+            switch (relevancy)
+            {
+                case Relevance.None:
+                    return true;
+                case Relevance.General:
+                    return Relevant(authority, point, Relevance.Sectors) || Relevant(authority, point, Relevance.Observers);
+            }
+
             if (n_observers.ContainsKey(authority))
             {
                 foreach (var observer in n_observers[authority])
                 {
                     switch (relevancy)
                     {
-                        case Relevance.General:
-                            break;
-                        case Relevance.Stations:
-                            foreach (var station in n_stations)
+                        case Relevance.Sectors:
+                            foreach (var station in n_sectors)
                             {
                                 if (station.Overlap(observer.transform.position, point))
                                 {
@@ -65,15 +73,26 @@ namespace Labyrinth.Runtime
                             }
                             break;
                         case Relevance.Observers:
-                            if (observer.Contains(point))
-                            {
-                                return true;
-                            }
-                            break;
+                            return observer.Contains(point);
                     }
                 }
             }
+
             return false;
+        }
+
+        public static void Relavant(Vector3 point, Relevance relevancy, Action<int> callback, Func<int, bool> filter = null)
+        {
+            foreach (var connections in n_observers)
+            {
+                if (filter?.Invoke(connections.Key) ?? true)
+                {
+                    if (Relevant(connections.Key, point, relevancy))
+                    {
+                        callback(connections.Key);
+                    }
+                }
+            }
         }
 
         [RuntimeInitializeOnLoadMethod]

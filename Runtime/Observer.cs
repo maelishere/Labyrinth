@@ -3,11 +3,14 @@ using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
 {
+    // for relevance (client <-> server)
     [RequireComponent(typeof(Entity)), AddComponentMenu("Labyrinth/Observer")]
     public sealed class Observer : MonoBehaviour
     {
         [SerializeField] private float m_radius = 100;
         [SerializeField] private Vector3 m_offset = Vector3.zero;
+
+        public Transform T;
 
         internal Instance n_attached;
 

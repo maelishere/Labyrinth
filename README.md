@@ -69,3 +69,11 @@ Network Behaviour Scripts
     Variables - use the Appendix.Var<T>() function to synchronize between server and client
 
     Function calls - use Appendix.Method() to register and Appendix.RPC() to call over network, with a max of three generic parameters. However, only primitives and some built-in unity struts are supported.
+
+Network Relevance
+
+    Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data
+
+    For it to work an Observer Component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. Note: you can have multiple observers for each client.
+
+    Optionally you can add a Sector script to an empty gameobject in any network scene (doesn't require an Entity or World, the process happens on the server). This provides additionally details for relevance calculation. Note: required if you set relevancy to Relevance.Sectors for any variables or functions.
