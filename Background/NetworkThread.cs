@@ -17,7 +17,8 @@ namespace Labyrinth.Background
             {
                 throw new InvalidOperationException($"Thread is already ticking, abort frist");
             }
-            
+
+            m_abort = false;
             m_worker = new Thread(Running);
             m_worker.Start();
         }

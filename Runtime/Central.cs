@@ -7,14 +7,16 @@ namespace Labyrinth.Runtime
 {
     using Bolt;
 
-    // processed mainly on the server 
-    // main network manager and for relevance
+    // this is place on the scene that will always stay loaded
+    //      this scene where level streaming is processed
     [RequireComponent(typeof(World)), AddComponentMenu("Labyrinth/Central")]
     public sealed class Central : MonoBehaviour
     {
         internal static Central n_instance;
 
         [SerializeField] private int[] m_networkedScenes = new int[0];
+
+        public static World main => n_instance?.GetComponent<World>() ?? null;
 
         private void Awake()
         {

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 namespace Labyrinth.Runtime
 {
     using Bolt;
+    using Labyrinth.Background;
 
     [DisallowMultipleComponent]
     public class Instance : MonoBehaviour
@@ -21,7 +22,7 @@ namespace Labyrinth.Runtime
         public Identity identity { get; private set; }
         public Identity authority { get; private set; }
 
-        private void Awake()
+        protected virtual void Awake()
         {
             m_appendices = GetComponentsInChildren<Appendix>();
             for (int i = 0; i < m_appendices.Length; i++)
@@ -40,13 +41,7 @@ namespace Labyrinth.Runtime
                 identity = new Identity(identifier);
                 authority = new Identity(connection);
                 m_instances.Add(identifier, this);
-
-                /// after start synchronizing signatures
-                if (Network.Internal(Host.Server) || Network.Authority(authority.Value))
-                {
-                    foreach (var signature in m_signatures)
-                        StartCoroutine(Synchronize(signature.Key));
-                }
+                /*Debug.Log($"Created Instance[{identifier}] authority: Host({authority.Value})");*/
                 return true;
             }
             return false;
@@ -54,8 +49,6 @@ namespace Labyrinth.Runtime
 
         internal bool Destroy()
         {
-            /// before stop synchronizing signatures
-            StopAllCoroutines();
             return m_instances.Remove(identity.Value);
         }
 
@@ -67,6 +60,7 @@ namespace Labyrinth.Runtime
             if (!m_signatures.ContainsKey(key))
             {
                 m_signatures.Add(key, signature);
+                StartCoroutine(Synchronize(key));
                 return true;
             }
             return false;
@@ -87,6 +81,14 @@ namespace Labyrinth.Runtime
 
         internal IEnumerator Synchronize(short signature)
         {
+            /*Debug.Log($"Syncing ({signature}) for Instance({identity.Value})");*/
+
+            // we wait till create is called (incase)
+            while(identity.Value == Identity.Any || authority.Value == Identity.Any)
+            {
+                yield return null;
+            }
+
             // with reference signature rule
             //              client to server 
             //              server to clients
@@ -98,7 +100,7 @@ namespace Labyrinth.Runtime
             };
 
             float wait = 1.0f / m_signatures[signature].Rate;
-            while (Network.Internal(Host.Any))
+            while (Network.Running)
             {
                 switch (m_signatures[signature].Control)
                 {
@@ -107,12 +109,12 @@ namespace Labyrinth.Runtime
                         {
                             // send to all relavant connection including authority
                             Central.Relavant(transform.position, m_signatures[signature].Relevancy,
-                                (c) => Network.Forward(c, Network.Fickle, Flags.Signature, write));
+                                (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
                         }
                         if (Network.Internal(Host.Client) && authority.Value == Network.Authority())
                         {
-                            // send to server
-                            Network.Forward(Network.Fickle, Flags.Signature, write);
+                            // [Client] send to server
+                            Network.Forward(Channels.Direct, Flags.Signature, write);
                         }
                         break;
                     case Signature.Rule.Server:
@@ -120,7 +122,7 @@ namespace Labyrinth.Runtime
                         {
                             // send to all relavant connection overriding authority
                             Central.Relavant(transform.position, m_signatures[signature].Relevancy,
-                                (c) => Network.Forward(c, Network.Fickle, Flags.Signature, write));
+                                (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
                         }
                         break;
                     case Signature.Rule.Authority:
@@ -128,13 +130,13 @@ namespace Labyrinth.Runtime
                         {
                             // send to all relavant connection excluding authority
                             Central.Relavant(transform.position, m_signatures[signature].Relevancy,
-                                (c) => Network.Forward(c, Network.Fickle, Flags.Signature, write),
+                                (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write),
                                 (int c) => c != authority.Value);
                         }
                         if (Network.Internal(Host.Client) && authority.Value == Network.Authority())
                         {
-                            //send to server
-                            Network.Forward(Network.Fickle, Flags.Signature, write);
+                            // [Client] send to server
+                            Network.Forward(Channels.Direct, Flags.Signature, write);
                         }
                         break;
                 }
@@ -142,7 +144,7 @@ namespace Labyrinth.Runtime
             }
         }
 
-        internal void Remote(int target, byte offset, byte procedure, Write write)
+        internal void Remote(int target, byte offset, byte procedure, byte channel, Write write)
         {
             if (target == Network.Authority())
             {
@@ -153,7 +155,7 @@ namespace Labyrinth.Runtime
             if (target == Identity.Any || Network.Internal(Host.Client))
             {
                 Network.Forward(
-                    Network.Abnormal,
+                    channel,
                     Flags.Procedure,
                     (ref Writer writer) =>
                     {
@@ -165,7 +167,7 @@ namespace Labyrinth.Runtime
             {
                 /// make sure receivers are relevant
                 Central.Relavant(transform.position, m_procedures[offset.Combine(procedure)].Relevancy,
-                    (c) => Network.Forward(c, Network.Abnormal, Flags.Procedure,
+                    (c) => Network.Forward(c, channel, Flags.Procedure,
                     (ref Writer writer) =>
                     {
                         writer.WriteCall(target, identity.Value, offset.Combine(procedure));
@@ -187,11 +189,14 @@ namespace Labyrinth.Runtime
         internal static void OnNetworkProcedure(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Call call = reader.ReadCall();
+            /*Debug.Log($"Received Call({call.Procedure}) [Target -> Host({call.Target})] for Instance({call.Identity})");*/
             if (m_instances.ContainsKey(call.Identity))
             {
                 Instance instance = m_instances[call.Identity];
+                /*Debug.Log($"Found Instance({call.Identity})");*/
                 if (instance.m_procedures.ContainsKey(call.Procedure))
                 {
+                    /*Debug.Log($"Found Call({call.Procedure})");*/
                     if (Network.Internal(Host.Server))
                     {
                         Reader reference = reader;
@@ -200,7 +205,7 @@ namespace Labyrinth.Runtime
                         {
                             /// make sure receivers are relevant excluding who sent it
                             Central.Relavant(instance.transform.position, instance.m_procedures[call.Procedure].Relevancy,
-                                (c) => Network.Forward(c, Network.Abnormal, Flags.Procedure,
+                                (c) => Network.Forward(c, Channels.Irregular, Flags.Procedure,
                                 (ref Writer writer) =>
                                 {
                                     writer.WriteCall(call);
@@ -215,7 +220,7 @@ namespace Labyrinth.Runtime
                             /// make sure target is relevant
                             if (Central.Relevant(call.Target, instance.transform.position, instance.m_procedures[call.Procedure].Relevancy))
                             {
-                                Network.Forward(call.Target, Network.Abnormal, Flags.Procedure,
+                                Network.Forward(call.Target, Channels.Irregular, Flags.Procedure,
                                 (ref Writer writer) =>
                                 {
                                     writer.WriteCall(call);

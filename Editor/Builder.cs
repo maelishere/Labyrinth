@@ -16,6 +16,7 @@ namespace Labyrinth.Editor
 
         private int m_disabled;
         private ReorderableList scenes_list;
+        private bool m_build, m_type;
 
         private string server_path => $"Build/{Application.version}/Server/{m_server_context.Target.ToString().Replace("Standalone", "")}/{m_server_context.Name}";
         private string client_path => $"Build/{Application.version}/Client/{m_client_context.Target.ToString().Replace("Standalone", "")}/{m_client_context.Name}";
@@ -50,7 +51,7 @@ namespace Labyrinth.Editor
             scenes_list.drawHeaderCallback = DrawSceneHeader;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             EditorPrefs.SetString("BuilderWindow", JsonUtility.ToJson(this, true));
         }
@@ -116,6 +117,22 @@ namespace Labyrinth.Editor
             return player;
         }
 
+        private void Update()
+        {
+            if (m_build)
+            {
+                if (m_type)
+                {
+                    BuildPipeline.BuildPlayer(Get(server_path, m_server_context));
+                }
+                else
+                {
+                    BuildPipeline.BuildPlayer(Get(client_path, m_client_context));
+                }
+                m_build = false;
+            }
+        }
+
         private void OnGUI()
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -155,7 +172,8 @@ namespace Labyrinth.Editor
             EditorGUILayout.Space();
             if (GUILayout.Button("Build Server"))
             {
-                BuildPipeline.BuildPlayer(Get(server_path, m_server_context));
+                m_build = true;
+                m_type = true;
             }
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();
@@ -188,7 +206,8 @@ namespace Labyrinth.Editor
             EditorGUILayout.Space();
             if (GUILayout.Button("Build Client"))
             {
-                BuildPipeline.BuildPlayer(Get(client_path, m_client_context));
+                m_build = true;
+                m_type = false;
             }
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();

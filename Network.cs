@@ -14,11 +14,6 @@ namespace Labyrinth
 
     public static class Network
     {
-        // so you don't need to use "using Lattice.Delivery" every time you need to send
-        public const Channel Fickle = Channel.Direct;
-        public const Channel Abnormal = Channel.Irregular;
-        public const Channel Reliable = Channel.Ordered;
-
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
 
         public static bool Running => NetworkServer.Active || NetworkClient.Active;
@@ -43,12 +38,12 @@ namespace Labyrinth
             {
                 if (socket == NetworkServer.n_server.Listen)
                 {
-                    Forward((c) => c != connection, Reliable,
+                    Forward((c) => c != connection, Channels.Ordered,
                         Flag.Connected, (ref Writer writer) => writer.Write(connection));
 
-                    NetworkServer.Each((c) => Forward(connection, Reliable,
-                    Flag.Connected, (ref Writer writer) => writer.Write(c)),
-                    (c) => c != connection);
+                    NetworkServer.Each((c) => Forward(connection, Channels.Ordered,
+                        Flag.Connected, (ref Writer writer) => writer.Write(c)),
+                        (c) => c != connection);
                 }
             }
 
@@ -61,7 +56,7 @@ namespace Labyrinth
             {
                 if (socket == NetworkServer.n_server.Listen)
                 {
-                    Forward((c) => c != connection, Reliable,
+                    Forward((c) => c != connection, Channels.Ordered,
                         Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
                 }
             }
@@ -105,32 +100,32 @@ namespace Labyrinth
             throw new ArgumentException($"{host} host not found");
         }
 
-        public static void Forward(Channel channel, byte flag, Write write)
+        public static void Forward(byte channel, byte flag, Write write)
         {
             if (NetworkServer.Active)
             {
-                NetworkServer.Send(channel, Pack(flag, write));
+                NetworkServer.Send((Channel)channel, Pack(flag, write));
                 return;
             }
             if (NetworkClient.Active)
             {
-                NetworkClient.Send(channel, Pack(flag, write));
+                NetworkClient.Send((Channel)channel, Pack(flag, write));
             }
         }
 
-        public static void Forward(int connection, Channel channel, byte flag, Write write)
+        public static void Forward(int connection, byte channel, byte flag, Write write)
         {
             if (NetworkServer.Active)
             {
-                NetworkServer.Send(connection, channel, Pack(flag, write));
+                NetworkServer.Send(connection, (Channel)channel, Pack(flag, write));
             }
         }
 
-        public static void Forward(Func<int, bool> predicate, Channel channel, byte flag, Write write)
+        public static void Forward(Func<int, bool> predicate, byte channel, byte flag, Write write)
         {
             if (NetworkServer.Active)
             {
-                NetworkServer.Send(predicate, channel, Pack(flag, write));
+                NetworkServer.Send(predicate, (Channel)channel, Pack(flag, write));
             }
         }
 
@@ -158,7 +153,7 @@ namespace Labyrinth
             switch (local)
             {
                 default:
-                case Host.Any: return NetworkServer.Active | NetworkClient.Active;
+                case Host.Any: return Running;
                 case Host.Client: return NetworkClient.Active;
                 case Host.Server: return NetworkServer.Active;
             }

@@ -61,9 +61,10 @@ namespace Labyrinth.Runtime
 
         public struct Spawn
         {
-            public Spawn(int asset, int identity, int authority, Vector3 position, Vector3 rotation)
+            public Spawn(int asset, int world, int identity, int authority, Vector3 position, Vector3 rotation)
             {
                 Asset = asset;
+                World = world;
                 Identity = identity;
                 Authority = authority;
                 Position = position;
@@ -71,6 +72,7 @@ namespace Labyrinth.Runtime
             }
 
             public int Asset { get; }
+            public int World { get; }
             public int Identity { get; }
             public int Authority { get; }
             public Vector3 Position { get; }
@@ -79,13 +81,14 @@ namespace Labyrinth.Runtime
 
         public static Spawn ReadSpawn(this Reader reader)
         {
-            return new Spawn(reader.ReadInt(), reader.ReadInt(),
+            return new Spawn(reader.ReadInt(), reader.ReadInt(), reader.ReadInt(),
                 reader.ReadInt(), reader.ReadVector3(), reader.ReadVector3());
         }
 
         public static void WriteSpawn(this Writer writer, Entity entity)
         {
             writer.Write(entity.n_asset);
+            writer.Write(entity.n_world);
             writer.Write(entity.identity.Value);
             writer.Write(entity.authority.Value);
             writer.Write(entity.transform.position);

@@ -41,6 +41,12 @@ namespace Labyrinth.Components
                 });
         }
 
+        private void Start()
+        {
+            m_position = m_rigidbody.position;
+            m_rotation = m_rigidbody.rotation.eulerAngles;
+        }
+
         private void FixedUpdate()
         {
             if (!owner)

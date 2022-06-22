@@ -56,11 +56,8 @@ namespace Labyrinth.Components
 
         private void Start()
         {
-            if (!owner)
-            {
-                m_position = transform.position;
-                m_rotation = transform.rotation.eulerAngles;
-            }
+            m_position = transform.position;
+            m_rotation = transform.rotation.eulerAngles;
         }
 
         /* private IEnumerator CheckParent()
