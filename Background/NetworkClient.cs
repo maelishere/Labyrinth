@@ -12,7 +12,7 @@ namespace Labyrinth.Background
         internal static Client n_client;
         internal static bool n_connected;
 
-        public static bool Running => n_client != null;
+        public static bool Active => n_client != null;
 
         private static void Close()
         {
@@ -25,13 +25,14 @@ namespace Labyrinth.Background
 
         internal static void Connect(IPEndPoint endpoint)
         {
-            if (!NetworkServer.Running)
+            if (!NetworkServer.Active)
             {
-                if (!Running)
+                if (!Active)
                 {
                     n_connected = false;
-                    n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge);
+                    n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge, OnError);
                     Network.initialized.Invoke(n_client.Local);
+                    NetworkThread.Run();
                     return;
                 }
                 throw new InvalidOperationException($"Network Client was already running");
@@ -42,6 +43,11 @@ namespace Labyrinth.Background
         internal static void Disconnect()
         {
             n_client?.Disconnect();
+        }
+
+        internal static void Tick()
+        {
+            n_client?.Tick(OnError);
         }
 
         internal static void Update()
@@ -58,8 +64,10 @@ namespace Labyrinth.Background
         {
             switch (error)
             {
+                case Error.Send:
+                case Error.Recieve:
                 case Error.Timeout:
-                    Close();
+                    NetworkLoop.n_callbacks.Enqueue(() => Close());
                     break;
             }
         }
@@ -73,11 +81,11 @@ namespace Labyrinth.Background
                     if (!n_connected)
                     {
                         n_connected = true;
-                        Network.Incoming(n_client.Local, n_client.Remote);
+                        NetworkLoop.n_callbacks.Enqueue(() => Network.Incoming(n_client.Local, n_client.Remote));
                     }
                     break;
                 case Request.Disconnect:
-                    Close();
+                    NetworkLoop.n_callbacks.Enqueue(() => Close());
                     break;
             }
         }
@@ -92,18 +100,19 @@ namespace Labyrinth.Background
                     if (!n_connected)
                     {
                         n_connected = true;
-                        Network.Incoming(n_client.Local, n_client.Remote);
+                        NetworkLoop.n_callbacks.Enqueue(() => Network.Incoming(n_client.Local, n_client.Remote));
                     }
                     break;
                 case Request.Disconnect:
-                    Close();
+                    NetworkLoop.n_callbacks.Enqueue(() => Close());
                     break;
             }
         }
 
         private static void OnReceive(uint timestamp, ref Reader reader)
         {
-            Network.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);
+            /*Network.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);*/
+            NetworkLoop.n_received.Enqueue(new State(n_client.Local, n_client.Remote, timestamp, reader));
         }
     }
 }

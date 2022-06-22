@@ -12,7 +12,7 @@ namespace Labyrinth.Background
         internal static Server n_server;
         private static readonly HashSet<int> m_connections = new HashSet<int>();
 
-        public static bool Running => n_server != null;
+        public static bool Active => n_server != null;
 
         public static void Each(Action<int> callback, Func<int, bool> fliter = null)
         {
@@ -25,13 +25,14 @@ namespace Labyrinth.Background
 
         internal static void Listen(int port)
         {
-            if (!NetworkClient.Running)
+            if (!NetworkClient.Active)
             {
-                if (!Running)
+                if (!Active)
                 {
                     m_connections.Clear();
                     n_server = new Server(port, Mode.IPV4);
                     Network.initialized.Invoke(n_server.Listen);
+                    NetworkThread.Run();
                     return;
                 }
                 throw new InvalidOperationException($"Network Server was already running");
@@ -39,7 +40,7 @@ namespace Labyrinth.Background
             throw new InvalidOperationException($"Network Client is currently running");
         }
 
-        internal static void Destroy()
+        internal static void Close()
         {
             Network.terminating.Invoke(n_server.Listen);
             m_connections.Clear();
@@ -47,9 +48,14 @@ namespace Labyrinth.Background
             n_server = null;
         }
 
+        internal static void Tick()
+        {
+            n_server?.Tick(OnReceive, OnRequest, OnAcknowledge, OnError);
+        }
+
         internal static void Update()
         {
-            n_server?.Update(OnReceive, OnRequest, OnAcknowledge, OnError);
+            n_server?.Update(OnError);
         }
 
         internal static void Send(Channel channel, Write write)
@@ -94,8 +100,10 @@ namespace Labyrinth.Background
         {
             switch (error)
             {
+                case Error.Send:
+                case Error.Recieve:
                 case Error.Timeout:
-                    Remove(connection);
+                    NetworkLoop.n_callbacks.Enqueue(() => Remove(connection));
                     break;
             }
         }
@@ -106,10 +114,10 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    Add(connection);
+                    NetworkLoop.n_callbacks.Enqueue(() => Add(connection));
                     break;
                 case Request.Disconnect:
-                    Remove(connection);
+                    NetworkLoop.n_callbacks.Enqueue(() => Remove(connection));
                     break;
             }
         }
@@ -120,18 +128,20 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Ping:
+                    break;
                 case Request.Connect:
-                    Add(connection);
+                    NetworkLoop.n_callbacks.Enqueue(() => Add(connection));
                     break;
                 case Request.Disconnect:
-                    Remove(connection);
+                    NetworkLoop.n_callbacks.Enqueue(() => Remove(connection));
                     break;
             }
         }
 
         private static void OnReceive(int connection, uint timestamp, ref Reader reader)
         {
-            Network.Receive(n_server.Listen, connection, timestamp, ref reader);
+            /*Network.Receive(n_server.Listen, connection, timestamp, ref reader);*/
+            NetworkLoop.n_received.Enqueue(new State(n_server.Listen, connection, timestamp, reader));
         }
     }
 }

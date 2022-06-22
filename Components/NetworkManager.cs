@@ -30,12 +30,12 @@ namespace Labyrinth.Components
 
         public void Termintate()
         {
-            if (NetworkServer.Running)
+            if (NetworkServer.Active)
             {
-                NetworkServer.Destroy();
+                NetworkServer.Close();
             }
 
-            if (NetworkClient.Running)
+            if (NetworkClient.Active)
             {
                 NetworkClient.Disconnect();
             }

@@ -21,6 +21,8 @@ namespace Labyrinth
 
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
 
+        public static bool Running => NetworkServer.Active || NetworkClient.Active;
+
         public static UnityEvent<int> initialized { get; } = new UnityEvent<int>();
         public static UnityEvent<int> terminating { get; } = new UnityEvent<int>();
         public static UnityEvent<int, int> connected { get; } = new UnityEvent<int, int>();
@@ -37,7 +39,7 @@ namespace Labyrinth
 
         internal static void Incoming(int socket, int connection)
         {
-            if (NetworkServer.Running)
+            if (NetworkServer.Active)
             {
                 if (socket == NetworkServer.n_server.Listen)
                 {
@@ -55,7 +57,7 @@ namespace Labyrinth
 
         internal static void Outgoing(int socket, int connection)
         {
-            if (NetworkServer.Running)
+            if (NetworkServer.Active)
             {
                 if (socket == NetworkServer.n_server.Listen)
                 {
@@ -67,7 +69,7 @@ namespace Labyrinth
             disconnected.Invoke(socket, connection);
         }
 
-        internal static void Receive(int socket, int connection,  uint timestamp, ref Reader reader)
+        internal static void Receive(int socket, int connection, uint timestamp, ref Reader reader)
         {
             byte flag = reader.Read();
             if (m_callbacks.ContainsKey(flag))
@@ -105,12 +107,12 @@ namespace Labyrinth
 
         public static void Forward(Channel channel, byte flag, Write write)
         {
-            if (NetworkServer.Running)
+            if (NetworkServer.Active)
             {
                 NetworkServer.Send(channel, Pack(flag, write));
                 return;
             }
-            if (NetworkClient.Running)
+            if (NetworkClient.Active)
             {
                 NetworkClient.Send(channel, Pack(flag, write));
             }
@@ -118,7 +120,7 @@ namespace Labyrinth
 
         public static void Forward(int connection, Channel channel, byte flag, Write write)
         {
-            if (NetworkServer.Running)
+            if (NetworkServer.Active)
             {
                 NetworkServer.Send(connection, channel, Pack(flag, write));
             }
@@ -126,7 +128,7 @@ namespace Labyrinth
 
         public static void Forward(Func<int, bool> predicate, Channel channel, byte flag, Write write)
         {
-            if (NetworkServer.Running)
+            if (NetworkServer.Active)
             {
                 NetworkServer.Send(predicate, channel, Pack(flag, write));
             }
@@ -134,9 +136,9 @@ namespace Labyrinth
 
         public static int Authority(bool remote = false)
         {
-            if (NetworkServer.Running)
+            if (NetworkServer.Active)
                 return NetworkServer.n_server.Listen;
-            if (NetworkClient.Running)
+            if (NetworkClient.Active)
             {
                 if (remote)
                     return NetworkClient.n_client.Remote;
@@ -156,9 +158,9 @@ namespace Labyrinth
             switch (local)
             {
                 default:
-                case Host.Any: return NetworkServer.Running | NetworkClient.Running;
-                case Host.Client: return NetworkClient.Running;
-                case Host.Server: return NetworkServer.Running;
+                case Host.Any: return NetworkServer.Active | NetworkClient.Active;
+                case Host.Client: return NetworkClient.Active;
+                case Host.Server: return NetworkServer.Active;
             }
         }
 
