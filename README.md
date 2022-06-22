@@ -42,9 +42,9 @@ Allows for networked level streaming
 
 ### Network Flags
 
-These are usualy static function callbacks sent through the network. Use Network.Register, but id 0 is not allowed and 1 - 11 is taken. You can use this for messages that need to be called without the need of an instance within the networked game world. There are server channels available to send a messgae through:
+These are usualy static function callbacks sent through the network. Use Network.Register, but id 0 is not allowed and 1 - 8 is taken. You can use this for messages that need to be called without the need of an instance within the networked game world. There are several channels available to send a message through:
 
-    Channels.Direct - not guaranted
+    Channels.Direct - not guaranteed
     
     Channels.Irregular - not guaranteed but not in order
     
@@ -52,15 +52,15 @@ These are usualy static function callbacks sent through the network. Use Network
 
 ### Network Scenes
 
-Each scene must have a gameobject with the World component attached (also with their build index). The Server must have either have all possible scenes opened or for performance ensure that every scene any client has loaded or is about to load is loaded before all clients. When a scene is loaded on a client it sends a message to the server which in turns sends back all the entities within that scene 
+Each scene must have a gameobject with the World component attached (also with their build index). The Server must have either have all possible scenes opened or for performance ensure that every scene any client has loaded or is about to load is always loaded before all clients. When a scene is loaded on a client it sends a message to the server which in turns sends back all the entities within that scene 
 
 The usually process in level streaming is to have one main scene which will remain loaded for the duration of the game; in your this main scene you would include a gameobject with a World and Central component. Central script indicates the scene that will not be unloaded until you disconnect.
 
 ### Creating Entities
 
-Create a prefab with an Entity component, then save it in a resources folder. After, create a registry asset in the root of any resources folder, then add the path to all entities that can be spawn over the network. The registry is intialized in the background on load
+Create a prefab with an Entity component, then save it in a resources folder. After, create a registry asset in the root of any resources folder, then add the paths to all entities that can be spawn over the network. The registry is intialized in the background on load
 
-To Instantiate, frist you need to find a World component of the scene you want the entity to be in. After you call World.Anchor(), this ensures new enitites belong to this scene. Then use the regular unity Instantiate, the entity script does the rest. Alternatively you can call World.Instantiate() 
+To Instantiate, frist you need to find a World component of the scene you want the entity to be in. After you call World.Anchor(), this ensures all newly locally instantiated enitites belong to this scene. Then use the regular unity Instantiate, the entity script does the rest. Alternatively you can call World.Instantiate() 
 
 ### Network Behaviour Scripts
 
@@ -88,8 +88,6 @@ Function calls - use Appendix.Method() to register and Appendix.RPC() to call ov
     
     Procedure.Rule.Server - if received on any host it will  only run if the host in question is a server
     
-    
-
 ### Network Relevance
 
 Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data. For it to work an observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. 
