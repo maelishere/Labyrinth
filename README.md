@@ -46,9 +46,9 @@ These are usualy static function callbacks sent through the network. Use Network
 
     Channels.Direct - not guaranteed
     
-    Channels.Irregular - not guaranteed but not in order
+    Channels.Irregular - guaranteed but not in order
     
-    Channels.Ordered - not guaranteed in order
+    Channels.Ordered - guaranteed in order
 
 ### Network Scenes
 
