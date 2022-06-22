@@ -38,7 +38,7 @@ Allows for networked level streaming
 
     using Labyrith.Background;
 
-    NetworkServer.Destroy(); or NetworkClient.Disconnect();
+    NetworkServer.Close(); or NetworkClient.Disconnect();
 
 ### Network Flags
 
