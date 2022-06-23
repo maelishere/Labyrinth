@@ -36,15 +36,14 @@ namespace Labyrinth
         {
             if (NetworkServer.Active)
             {
-                if (socket == NetworkServer.n_server.Listen)
-                {
-                    Forward((c) => c != connection, Channels.Ordered,
-                        Flag.Connected, (ref Writer writer) => writer.Write(connection));
+                /// tell every client a new client connected
+                Forward((c) => c != connection, Channels.Ordered,
+                    Flag.Connected, (ref Writer writer) => writer.Write(connection));
 
-                    NetworkServer.Each((c) => Forward(connection, Channels.Ordered,
-                        Flag.Connected, (ref Writer writer) => writer.Write(c)),
-                        (c) => c != connection);
-                }
+                /// tell the new client about every current connection
+                NetworkServer.Each((a) => a != connection,
+                    (c) => Forward(connection, Channels.Ordered,
+                    Flag.Connected, (ref Writer writer) => writer.Write(c)));
             }
 
             connected.Invoke(socket, connection);
@@ -54,11 +53,9 @@ namespace Labyrinth
         {
             if (NetworkServer.Active)
             {
-                if (socket == NetworkServer.n_server.Listen)
-                {
-                    Forward((c) => c != connection, Channels.Ordered,
-                        Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
-                }
+                /// tell ever client someone disconnected
+                Forward((c) => c != connection, Channels.Ordered,
+                    Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
             }
 
             disconnected.Invoke(socket, connection);

@@ -22,7 +22,7 @@ namespace Labyrinth.Runtime
         {
             if (n_instance)
             {
-                Debug.LogError("There should only be 1 Central inbetween all loaded scenes");
+                Debug.LogError("There should only be 1 Central in between all loaded scenes");
                 Destroy(gameObject);
                 return;
             }
@@ -81,11 +81,11 @@ namespace Labyrinth.Runtime
             return false;
         }
 
-        public static void Relavant(Vector3 point, Relevance relevancy, Action<int> callback, Func<int, bool> filter = null)
+        public static void Relavant(Vector3 point, Relevance relevancy, Func<int, bool> filter, Action<int> callback)
         {
             foreach (var connection in Observer.n_observers)
             {
-                if (filter?.Invoke(connection.Key) ?? true)
+                if (filter(connection.Key))
                 {
                     if (Relevant(connection.Key, point, relevancy))
                     {

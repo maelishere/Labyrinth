@@ -16,6 +16,7 @@ namespace Labyrinth.Runtime
 
         private Appendix[] m_appendices;
 
+        private readonly Dictionary<short, uint> m_synced = new Dictionary<short, uint>();
         private readonly Dictionary<short, Signature> m_signatures = new Dictionary<short, Signature>();
         private readonly Dictionary<short, Procedure> m_procedures = new Dictionary<short, Procedure>();
 
@@ -89,15 +90,15 @@ namespace Labyrinth.Runtime
                 yield return null;
             }
 
-            // with reference signature rule
-            //              client to server 
-            //              server to clients
-
             Write write = (ref Writer writer) =>
             {
                 writer.WriteSync(identity.Value, signature);
                 m_signatures[signature].Sending(ref writer);
             };
+
+            // with reference signature rule
+            //              client to server 
+            //              server to clients
 
             float wait = 1.0f / m_signatures[signature].Rate;
             while (Network.Running)
@@ -109,7 +110,7 @@ namespace Labyrinth.Runtime
                         {
                             // send to all relavant connection including authority
                             Central.Relavant(transform.position, m_signatures[signature].Relevancy,
-                                (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
+                                (a) => true, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
                         }
                         if (Network.Internal(Host.Client) && Network.Authority(authority.Value))
                         {
@@ -122,7 +123,7 @@ namespace Labyrinth.Runtime
                         {
                             // send to all relavant connection overriding authority
                             Central.Relavant(transform.position, m_signatures[signature].Relevancy,
-                                (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
+                                (a) => true, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
                         }
                         break;
                     case Signature.Rule.Authority:
@@ -130,8 +131,7 @@ namespace Labyrinth.Runtime
                         {
                             // send to all relavant connection excluding authority
                             Central.Relavant(transform.position, m_signatures[signature].Relevancy,
-                                (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write),
-                                (int c) => c != authority.Value);
+                                (a) => a != authority.Value, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
                         }
                         if (Network.Internal(Host.Client) && Network.Authority(authority.Value))
                         {
@@ -167,13 +167,12 @@ namespace Labyrinth.Runtime
             {
                 /// make sure receivers are relevant
                 Central.Relavant(transform.position, m_procedures[offset.Combine(procedure)].Relevancy,
-                    (c) => Network.Forward(c, channel, Flags.Procedure,
+                    (a) => true, (c) => Network.Forward(c, channel, Flags.Procedure,
                     (ref Writer writer) =>
                     {
                         writer.WriteCall(target, identity.Value, offset.Combine(procedure));
                         write(ref writer);
                     }));
-
             }
         }
 
@@ -205,14 +204,13 @@ namespace Labyrinth.Runtime
                         {
                             /// make sure receivers are relevant excluding who sent it
                             Central.Relavant(instance.transform.position, instance.m_procedures[call.Procedure].Relevancy,
-                                (c) => Network.Forward(c, Channels.Irregular, Flags.Procedure,
+                                (a) => a != connection, (c) => Network.Forward(c, Channels.Irregular, Flags.Procedure,
                                 (ref Writer writer) =>
                                 {
                                     writer.WriteCall(call);
                                     // write the parameters without reading the buffer
                                     writer.Write(reference.Peek(reference.Length - reference.Current));
-                                }),
-                                (c) => c != connection);
+                                }));
                         }
                         // if the server isn't the target, forward to the target client
                         else if (call.Target != Network.Authority())
@@ -271,12 +269,27 @@ namespace Labyrinth.Runtime
         internal static void OnNetworkSignature(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Sync sync = reader.ReadSync();
+            /*Debug.Log($"Receiving Sync({sync.Signature}) from Host({connection})");*/
             if (m_instances.ContainsKey(sync.Identity))
             {
                 Instance instance = m_instances[sync.Identity];
+                /*Debug.Log($"Found Instance({sync.Identity})");*/
                 if (instance.m_signatures.ContainsKey(sync.Signature))
                 {
-                    instance.m_signatures[sync.Signature].Recieving(ref reader);
+                    /*Debug.Log($"Found Sync({sync.Signature})");*/
+
+                    if (!instance.m_synced.ContainsKey(sync.Signature))
+                    {
+                        instance.m_synced.Add(sync.Signature, timestamp);
+                    }
+
+                    // fliter out duplicate or older packets
+                    if (timestamp >= instance.m_synced[sync.Signature])
+                    {
+                        instance.m_signatures[sync.Signature].Recieving(ref reader);
+                    }
+
+                    instance.m_synced[sync.Signature] = timestamp;
                 }
             }
         }

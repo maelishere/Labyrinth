@@ -8,14 +8,15 @@ namespace Labyrinth.Background
         private static bool m_abort;
         private static Thread m_worker;
 
-        public static int Tick { get; set; } = 24;
+        // how many times a second it checks for new packets
+        public static int Tick { get; set; } = 64;
         public static bool Ticking { get; private set; }
 
         internal static void Run()
         {
             if (Ticking)
             {
-                throw new InvalidOperationException($"Thread is already ticking, abort frist");
+                throw new InvalidOperationException($"Network thread is already ticking, abort frist");
             }
 
             m_abort = false;
@@ -33,6 +34,7 @@ namespace Labyrinth.Background
             Ticking = true;
             while (Network.Running && !m_abort)
             {
+                // receive from sockets 
                 NetworkServer.Tick();
                 NetworkClient.Tick();
                 Thread.Sleep(1000 / Tick);

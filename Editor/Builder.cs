@@ -137,16 +137,34 @@ namespace Labyrinth.Editor
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
+            EditorGUILayout.Space();
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Build Settings");
             EditorGUILayout.Space();
             EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.Space();
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("You can only add scenes in the Build Settings window");
+            EditorGUILayout.LabelField("Each scene should have the same index on both server and client");
+            EditorGUILayout.Space();
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space();
+
             m_disabled = 0;
             scenes_list?.DoLayoutList();
 
+            EditorGUILayout.Space();
+
             EditorGUILayout.EndVertical();
+
+
+            EditorGUILayout.Space();
 
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -181,6 +199,9 @@ namespace Labyrinth.Editor
             EditorGUILayout.Space();
 
             EditorGUILayout.EndVertical();
+
+
+            EditorGUILayout.Space();
 
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);

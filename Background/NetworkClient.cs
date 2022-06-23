@@ -14,16 +14,15 @@ namespace Labyrinth.Background
 
         public static bool Active => n_client != null;
 
-        private static void Close()
+        internal static void Close()
         {
             Network.Outgoing(n_client.Local, n_client.Remote);
             Network.terminating.Invoke(n_client.Local);
             n_connected = false;
-            n_client.Close();
             n_client = null;
         }
 
-        internal static void Connect(IPEndPoint endpoint)
+        public static void Connect(IPEndPoint endpoint)
         {
             if (!NetworkServer.Active)
             {
@@ -40,7 +39,7 @@ namespace Labyrinth.Background
             throw new InvalidOperationException($"Network Server is currently running");
         }
 
-        internal static void Disconnect()
+        public static void Disconnect()
         {
             n_client?.Disconnect();
         }

@@ -14,16 +14,18 @@ namespace Labyrinth.Background
 
         public static bool Active => n_server != null;
 
-        public static void Each(Action<int> callback, Func<int, bool> fliter = null)
+        public static void Each(Func<int, bool> fliter, Action<int> callback)
         {
             foreach (var connection in m_connections)
             {
-                if (fliter?.Invoke(connection) ?? true)
+                if (fliter(connection))
+                {
                     callback(connection);
+                }
             }
         }
 
-        internal static void Listen(int port)
+        public static void Listen(int port)
         {
             if (!NetworkClient.Active)
             {
@@ -40,11 +42,10 @@ namespace Labyrinth.Background
             throw new InvalidOperationException($"Network Client is currently running");
         }
 
-        internal static void Close()
+        public static void Close()
         {
             Network.terminating.Invoke(n_server.Listen);
             m_connections.Clear();
-            n_server.Close();
             n_server = null;
         }
 
