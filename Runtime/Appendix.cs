@@ -80,23 +80,23 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public void RPC(byte procedure, byte channel)
+        public void RPC(byte channel, byte procedure)
         {
-            n_network.Remote(Identity.Any, n_offset, procedure, channel, null);
+            n_network.Remote(Identity.Any, channel, n_offset, procedure, null);
         }
 
-        public void RPC<T>(byte procedure, byte channel, T arg)
+        public void RPC<T>(byte channel, byte procedure, T arg)
         {
-            n_network.Remote(Identity.Any, n_offset, procedure, channel,
+            n_network.Remote(Identity.Any, channel, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg);
                 });
         }
 
-        public void RPC<T1, T2>(byte procedure, byte channel, T1 arg1, T2 arg2)
+        public void RPC<T1, T2>(byte channel, byte procedure, T1 arg1, T2 arg2)
         {
-            n_network.Remote(Identity.Any, n_offset, procedure, channel,
+            n_network.Remote(Identity.Any, channel, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -104,9 +104,9 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC<T1, T2, T3>(byte procedure, byte channel, T1 arg1, T2 arg2, T3 arg3)
+        public void RPC<T1, T2, T3>(byte channel, byte procedure, T1 arg1, T2 arg2, T3 arg3)
         {
-            n_network.Remote(Identity.Any, n_offset, procedure, channel,
+            n_network.Remote(Identity.Any, channel, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -115,23 +115,23 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC(int connection, byte procedure, byte channel)
+        public void RPC(int connection, byte channel, byte procedure)
         {
-            n_network.Remote(connection, n_offset, procedure, channel, null);
+            n_network.Remote(connection, channel, n_offset, procedure,null);
         }
 
-        public void RPC<T>(int connection, byte procedure, byte channel, T arg)
+        public void RPC<T>(int connection, byte channel, byte procedure, T arg)
         {
-            n_network.Remote(connection, n_offset, procedure, channel,
+            n_network.Remote(connection, channel, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg);
                 });
         }
 
-        public void RPC<T1, T2>(int connection, byte procedure, byte channel, T1 arg1, T2 arg2)
+        public void RPC<T1, T2>(int connection, byte channel, byte procedure, T1 arg1, T2 arg2)
         {
-            n_network.Remote(connection, n_offset, procedure, channel,
+            n_network.Remote(connection, channel, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -139,9 +139,9 @@ namespace Labyrinth.Runtime
                 });
         }
 
-        public void RPC<T1, T2, T3>(int connection, byte procedure, byte channel, T1 arg1, T2 arg2, T3 arg3)
+        public void RPC<T1, T2, T3>(int connection, byte channel, byte procedure, T1 arg1, T2 arg2, T3 arg3)
         {
-            n_network.Remote(connection, n_offset, procedure, channel,
+            n_network.Remote(connection, channel, n_offset, procedure,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);

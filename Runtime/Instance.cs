@@ -144,7 +144,7 @@ namespace Labyrinth.Runtime
             }
         }
 
-        internal void Remote(int target, byte offset, byte procedure, byte channel, Write write)
+        internal void Remote(int target, byte channel, byte offset, byte procedure, Write write)
         {
             if (target == Network.Authority())
             {
