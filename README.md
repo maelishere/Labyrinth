@@ -18,23 +18,11 @@ Allows for networked level streaming
 
 ### Starting Up
 
-    using Labyrith.Components;
-
-    NetworkManager.Listen(); or NetworkManager.Connect();
-
-    or
-
     using Labyrith.Background;
 
     NetworkServer.Listen(int port); or NetworkClient.Connect(IPEndPoint endpoint);
 
 ### Shutting Down
-
-    using Labyrith.Components;
-
-    NetworkManager.Terminate();
-
-    or
 
     using Labyrith.Background;
 
