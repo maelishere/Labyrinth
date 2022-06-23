@@ -111,7 +111,7 @@ namespace Labyrinth.Runtime
                             Central.Relavant(transform.position, m_signatures[signature].Relevancy,
                                 (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write));
                         }
-                        if (Network.Internal(Host.Client) && authority.Value == Network.Authority())
+                        if (Network.Internal(Host.Client) && Network.Authority(authority.Value))
                         {
                             // [Client] send to server
                             Network.Forward(Channels.Direct, Flags.Signature, write);
@@ -133,7 +133,7 @@ namespace Labyrinth.Runtime
                                 (c) => Network.Forward(c, Channels.Direct, Flags.Signature, write),
                                 (int c) => c != authority.Value);
                         }
-                        if (Network.Internal(Host.Client) && authority.Value == Network.Authority())
+                        if (Network.Internal(Host.Client) && Network.Authority(authority.Value))
                         {
                             // [Client] send to server
                             Network.Forward(Channels.Direct, Flags.Signature, write);
