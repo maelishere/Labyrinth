@@ -84,7 +84,7 @@ namespace Labyrinth.Background
                     }
                     break;
                 case Request.Disconnect:
-                    NetworkLoop.n_callbacks.Enqueue(() => Close());
+                    Disconnect();
                     break;
             }
         }
