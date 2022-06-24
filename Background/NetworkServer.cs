@@ -44,9 +44,12 @@ namespace Labyrinth.Background
 
         public static void Close()
         {
-            Network.terminating.Invoke(n_server.Listen);
-            m_connections.Clear();
-            n_server = null;
+            if (n_server != null)
+            {
+                Network.terminating.Invoke(n_server.Listen);
+                m_connections.Clear();
+                n_server = null;
+            }
         }
 
         internal static void Tick()

@@ -64,6 +64,7 @@ namespace Labyrinth
         internal static void Receive(int socket, int connection, uint timestamp, ref Reader reader)
         {
             byte flag = reader.Read();
+            /*Debug.Log($"Received {flag}");*/
             if (m_callbacks.ContainsKey(flag))
             {
                 m_callbacks[flag].Callback(socket, connection, timestamp, ref reader);

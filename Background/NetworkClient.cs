@@ -16,10 +16,13 @@ namespace Labyrinth.Background
 
         internal static void Close()
         {
-            Network.Outgoing(n_client.Local, n_client.Remote);
-            Network.terminating.Invoke(n_client.Local);
-            n_connected = false;
-            n_client = null;
+            if (n_client != null)
+            {
+                Network.Outgoing(n_client.Local, n_client.Remote);
+                Network.terminating.Invoke(n_client.Local);
+                n_connected = false;
+                n_client = null;
+            }
         }
 
         public static void Connect(IPEndPoint endpoint)
