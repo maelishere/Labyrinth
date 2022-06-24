@@ -287,9 +287,8 @@ namespace Labyrinth.Runtime
                     if (timestamp >= instance.m_synced[sync.Signature])
                     {
                         instance.m_signatures[sync.Signature].Recieving(ref reader);
+                        instance.m_synced[sync.Signature] = timestamp;
                     }
-
-                    instance.m_synced[sync.Signature] = timestamp;
                 }
             }
         }

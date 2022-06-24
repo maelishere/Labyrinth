@@ -12,7 +12,7 @@ namespace Labyrinth.Runtime
         public struct Variable<T> where T : struct
         {
             public int Rate;
-            public bool Relevance;
+            public Relevance Relevancy;
             [HideInInspector] public T State;
         }
 
