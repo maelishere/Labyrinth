@@ -177,7 +177,7 @@ namespace Labyrinth.Editor
 
             m_server_context.Name = EditorGUILayout.TextField("Name", m_server_context.Name);
             m_server_context.Target = (BuildTarget)EditorGUILayout.EnumPopup("Target", m_server_context.Target);
-            m_server_context.Options = (BuildOptions)EditorGUILayout.EnumPopup("Options", m_server_context.Options);
+            m_server_context.Options = (BuildOptions)EditorGUILayout.EnumFlagsField("Options", m_server_context.Options);
             // m_server_context.Definitions = EditorGUILayout.TextField("Defintions", m_server_definition + m_server_context.Definitions?.Replace(m_server_definition, "") ?? "");
 
             EditorGUILayout.Space();
@@ -214,7 +214,7 @@ namespace Labyrinth.Editor
 
             m_client_context.Name = EditorGUILayout.TextField("Name", m_client_context.Name);
             m_client_context.Target = (BuildTarget)EditorGUILayout.EnumPopup("Target", m_client_context.Target);
-            m_client_context.Options = (BuildOptions)EditorGUILayout.EnumPopup("Options", m_client_context.Options);
+            m_client_context.Options = (BuildOptions)EditorGUILayout.EnumFlagsField("Options", m_client_context.Options);
             // m_client_context.Definitions = EditorGUILayout.TextField("Defintions", m_client_definition + m_client_context.Definitions?.Replace(m_client_definition, "") ?? "");
 
             EditorGUILayout.Space();
