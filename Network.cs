@@ -160,6 +160,7 @@ namespace Labyrinth
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
+            Lattice.Log.Out = Debug.Log;
             Register(Flag.Connected, OnNetworkConnected);
             Register(Flag.Disconnected, OnNetworkDisconnected);
         }
