@@ -7,7 +7,6 @@ using System.Collections.Generic;
 namespace Labyrinth.Runtime
 {
     using Bolt;
-    using Labyrinth.Background;
 
     [DisallowMultipleComponent]
     public class Instance : MonoBehaviour
@@ -152,6 +151,7 @@ namespace Labyrinth.Runtime
                 return;
             }
 
+            short call = offset.Combine(procedure);
             if (target == Identity.Any || Network.Internal(Host.Client))
             {
                 Network.Forward(
@@ -159,18 +159,18 @@ namespace Labyrinth.Runtime
                     Flags.Procedure,
                     (ref Writer writer) =>
                     {
-                        writer.WriteCall(target, identity.Value, offset.Combine(procedure));
+                        writer.WriteCall(target, identity.Value, call);
                         write(ref writer);
                     });
             }
             else if (Network.Internal(Host.Server))
             {
                 /// make sure receivers are relevant
-                Central.Relavant(transform.position, m_procedures[offset.Combine(procedure)].Relevancy,
+                Central.Relavant(transform.position, m_procedures[call].Relevancy,
                     (a) => true, (c) => Network.Forward(c, channel, Flags.Procedure,
                     (ref Writer writer) =>
                     {
-                        writer.WriteCall(target, identity.Value, offset.Combine(procedure));
+                        writer.WriteCall(target, identity.Value, call);
                         write(ref writer);
                     }));
             }
@@ -198,7 +198,7 @@ namespace Labyrinth.Runtime
                     /*Debug.Log($"Found Call({call.Procedure})");*/
                     if (Network.Internal(Host.Server))
                     {
-                        Reader reference = reader;
+                        byte[] parameters = reader.Peek(reader.Length - reader.Current);
                         // if the target is any connection, forward to the other clients
                         if (call.Target == Identity.Any)
                         {
@@ -209,7 +209,7 @@ namespace Labyrinth.Runtime
                                 {
                                     writer.WriteCall(call);
                                     // write the parameters without reading the buffer
-                                    writer.Write(reference.Peek(reference.Length - reference.Current));
+                                    writer.Write(parameters);
                                 }));
                         }
                         // if the server isn't the target, forward to the target client
@@ -223,7 +223,7 @@ namespace Labyrinth.Runtime
                                 {
                                     writer.WriteCall(call);
                                     // write the parameters without reading the buffer
-                                    writer.Write(reference.Peek(reference.Length - reference.Current));
+                                    writer.Write(parameters);
                                 });
                             }
                             // exit since server isn't the target
