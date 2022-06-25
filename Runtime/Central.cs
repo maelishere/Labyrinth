@@ -73,7 +73,11 @@ namespace Labyrinth.Runtime
                             }
                             break;
                         case Relevance.Observers:
-                            return observer.Contains(point);
+                            if (observer.Contains(point))
+                            {
+                                return true;
+                            }
+                            break;
                     }
                 }
             }
