@@ -11,8 +11,8 @@ namespace Labyrinth.Background
     public static class NetworkLoop
     {
         // need to ensure it gets called on unity's main thread
-        internal readonly static ConcurrentQueue<State> n_received = new ConcurrentQueue<State>();
-        internal readonly static ConcurrentQueue<Action> n_callbacks = new ConcurrentQueue<Action>();
+        /*internal readonly static ConcurrentQueue<State> n_received = new ConcurrentQueue<State>();
+        internal readonly static ConcurrentQueue<Action> n_callbacks = new ConcurrentQueue<Action>();*/
 
         static bool AddToPlayerLoop(PlayerLoopSystem.UpdateFunction function, Type ownerType, ref PlayerLoopSystem playerLoop, Type playerLoopSystemType, bool beginning)
         {
@@ -84,7 +84,7 @@ namespace Labyrinth.Background
                 return;
             }
 #endif
-            while (n_callbacks.Count > 0)
+            /*while (n_callbacks.Count > 0)
             {
                 if (n_callbacks.TryDequeue(out Action action))
                 {
@@ -98,7 +98,10 @@ namespace Labyrinth.Background
                 {
                     Network.Receive(state.Socket, state.Connection, state.Timestamp, ref state.Reader);
                 }
-            }
+            }*/
+
+            NetworkServer.Tick();
+            NetworkClient.Tick();
         }
 
         static void NetworkLateUpdate()

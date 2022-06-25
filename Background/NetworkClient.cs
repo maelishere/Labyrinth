@@ -70,7 +70,8 @@ namespace Labyrinth.Background
                 case Error.Send:
                 case Error.Recieve:
                 case Error.Timeout:
-                    NetworkLoop.n_callbacks.Enqueue(() => Close());
+                    /*NetworkLoop.n_callbacks.Enqueue(() => );*/
+                    Close();
                     break;
             }
         }
@@ -84,7 +85,8 @@ namespace Labyrinth.Background
                     if (!n_connected)
                     {
                         n_connected = true;
-                        NetworkLoop.n_callbacks.Enqueue(() => Network.Incoming(n_client.Local, n_client.Remote));
+                       /* NetworkLoop.n_callbacks.Enqueue(() => );*/
+                        Network.Incoming(n_client.Local, n_client.Remote);
                     }
                     break;
                 case Request.Disconnect:
@@ -103,19 +105,21 @@ namespace Labyrinth.Background
                     if (!n_connected)
                     {
                         n_connected = true;
-                        NetworkLoop.n_callbacks.Enqueue(() => Network.Incoming(n_client.Local, n_client.Remote));
+                        /* NetworkLoop.n_callbacks.Enqueue(() => );*/
+                        Network.Incoming(n_client.Local, n_client.Remote);
                     }
                     break;
                 case Request.Disconnect:
-                    NetworkLoop.n_callbacks.Enqueue(() => Close());
+                    /*NetworkLoop.n_callbacks.Enqueue(() => Close());*/
+                    Close();
                     break;
             }
         }
 
         private static void OnReceive(uint timestamp, ref Reader reader)
         {
-            /*Network.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);*/
-            NetworkLoop.n_received.Enqueue(new State(n_client.Local, n_client.Remote, timestamp, reader));
+            Network.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);
+            /*NetworkLoop.n_received.Enqueue(new State(n_client.Local, n_client.Remote, timestamp, reader));*/
         }
     }
 }
