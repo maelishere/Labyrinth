@@ -108,7 +108,6 @@ namespace Labyrinth.Background
                 case Error.Send:
                 case Error.Recieve:
                 case Error.Timeout:
-                    /*NetworkLoop.n_callbacks.Enqueue(() => );*/
                     Remove(connection);
                     break;
             }
@@ -120,10 +119,10 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    /*NetworkLoop.n_callbacks.Enqueue(() => Add(connection));*/
+                    /*Add(connection);*/
                     break;
                 case Request.Disconnect:
-                    /*NetworkLoop.n_callbacks.Enqueue(() => Remove(connection));*/
+                    /*Remove(connection);*/
                     break;
             }
         }
@@ -136,11 +135,9 @@ namespace Labyrinth.Background
                 case Request.Ping:
                     break;
                 case Request.Connect:
-                    /*NetworkLoop.n_callbacks.Enqueue(() => Add(connection));*/
                     Add(connection);
                     break;
                 case Request.Disconnect:
-                    /*NetworkLoop.n_callbacks.Enqueue(() => Remove(connection));*/
                     Remove(connection);
                     break;
             }
@@ -149,7 +146,6 @@ namespace Labyrinth.Background
         private static void OnReceive(int connection, uint timestamp, ref Reader reader)
         {
             Network.Receive(n_server.Listen, connection, timestamp, ref reader);
-            /*NetworkLoop.n_received.Enqueue(new State(n_server.Listen, connection, timestamp, reader));*/
         }
     }
 }

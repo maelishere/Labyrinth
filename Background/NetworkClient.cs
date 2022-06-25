@@ -10,7 +10,7 @@ namespace Labyrinth.Background
     public static class NetworkClient
     {
         internal static Client n_client;
-        internal static bool n_connected;
+        private static bool m_connected, m_disconnecting;
 
         public static bool Active => n_client != null;
 
@@ -21,7 +21,8 @@ namespace Labyrinth.Background
                 Network.Outgoing(n_client.Local, n_client.Remote);
                 Network.terminating.Invoke(n_client.Local);
                 n_client.Close();
-                n_connected = false;
+                m_connected = false;
+                m_disconnecting = false;
                 n_client = null;
             }
         }
@@ -32,7 +33,8 @@ namespace Labyrinth.Background
             {
                 if (!Active)
                 {
-                    n_connected = false;
+                    m_connected = false;
+                    m_disconnecting = false;
                     n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge, OnError);
                     Network.initialized.Invoke(n_client.Local);
                     NetworkThread.Run();
@@ -45,7 +47,12 @@ namespace Labyrinth.Background
 
         public static void Disconnect()
         {
-            n_client?.Disconnect();
+            if (!m_disconnecting)
+            {
+                // inside the client(Host): it will stop pinging so if it times out we'll know
+                n_client?.Disconnect();
+                m_disconnecting = true;
+            }
         }
 
         internal static void Tick()
@@ -70,7 +77,6 @@ namespace Labyrinth.Background
                 case Error.Send:
                 case Error.Recieve:
                 case Error.Timeout:
-                    /*NetworkLoop.n_callbacks.Enqueue(() => );*/
                     Close();
                     break;
             }
@@ -82,12 +88,11 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    if (!n_connected)
+                    /*if (!m_connected)
                     {
-                        n_connected = true;
-                       /* NetworkLoop.n_callbacks.Enqueue(() => );*/
+                        m_connected = true;
                         Network.Incoming(n_client.Local, n_client.Remote);
-                    }
+                    }*/
                     break;
                 case Request.Disconnect:
                     Disconnect();
@@ -102,15 +107,13 @@ namespace Labyrinth.Background
             {
                 case Request.Ping:
                 case Request.Connect:
-                    if (!n_connected)
+                    if (!m_connected)
                     {
-                        n_connected = true;
-                        /* NetworkLoop.n_callbacks.Enqueue(() => );*/
+                        m_connected = true;
                         Network.Incoming(n_client.Local, n_client.Remote);
                     }
                     break;
                 case Request.Disconnect:
-                    /*NetworkLoop.n_callbacks.Enqueue(() => Close());*/
                     Close();
                     break;
             }
@@ -119,7 +122,6 @@ namespace Labyrinth.Background
         private static void OnReceive(uint timestamp, ref Reader reader)
         {
             Network.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);
-            /*NetworkLoop.n_received.Enqueue(new State(n_client.Local, n_client.Remote, timestamp, reader));*/
         }
     }
 }

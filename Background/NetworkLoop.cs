@@ -10,10 +10,6 @@ namespace Labyrinth.Background
     // mixed with url: https://github.com/vis2k/Mirror/blob/master/Assets/Mirror/Runtime/NetworkLoop.cs
     public static class NetworkLoop
     {
-        // need to ensure it gets called on unity's main thread
-        /*internal readonly static ConcurrentQueue<State> n_received = new ConcurrentQueue<State>();
-        internal readonly static ConcurrentQueue<Action> n_callbacks = new ConcurrentQueue<Action>();*/
-
         static bool AddToPlayerLoop(PlayerLoopSystem.UpdateFunction function, Type ownerType, ref PlayerLoopSystem playerLoop, Type playerLoopSystemType, bool beginning)
         {
             // did we find the type? e.g. EarlyUpdate/PreLateUpdate/etc.
@@ -84,24 +80,11 @@ namespace Labyrinth.Background
                 return;
             }
 #endif
-            /*while (n_callbacks.Count > 0)
+            if (NetworkThread.Ticked())
             {
-                if (n_callbacks.TryDequeue(out Action action))
-                {
-                    action();
-                }
+                NetworkServer.Tick();
+                NetworkClient.Tick();
             }
-
-            while (n_received.Count > 0)
-            {
-                if (n_received.TryDequeue(out State state))
-                {
-                    Network.Receive(state.Socket, state.Connection, state.Timestamp, ref state.Reader);
-                }
-            }*/
-
-            NetworkServer.Tick();
-            NetworkClient.Tick();
         }
 
         static void NetworkLateUpdate()
