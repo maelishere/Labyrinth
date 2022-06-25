@@ -20,6 +20,7 @@ namespace Labyrinth.Background
             {
                 Network.Outgoing(n_client.Local, n_client.Remote);
                 Network.terminating.Invoke(n_client.Local);
+                n_client.Close();
                 n_connected = false;
                 n_client = null;
             }
