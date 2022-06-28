@@ -8,7 +8,7 @@ Dependencies: [Bolt](https://github.com/maelishere/Bolt) and [Lattice](https://g
 
 ## Description
 
-This is my attempt at writing a unity networking library without Mono.Cecil (magic) behind Mirror and Unet.
+This is my attempt at writing a unity networking library without Mono.Cecil (magic) behind [Mirror](https://github.com/vis2k/Mirror) and UNet.
 
 Dedicated Server or Clients. However, not at the same time.
 
