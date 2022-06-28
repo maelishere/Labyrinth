@@ -55,9 +55,9 @@ namespace Labyrinth.Background
             }
         }
 
-        internal static void Tick()
+        internal static void Receive()
         {
-            n_client?.Tick(OnError);
+            n_client?.Receive(OnError);
         }
 
         internal static void Update()

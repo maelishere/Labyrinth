@@ -80,10 +80,14 @@ namespace Labyrinth.Background
                 return;
             }
 #endif
+            /// i must admit i've this way feels wrong
+            ///     i could use the Time class to calculate the next update time or someway else
+            ///     but i might still end up move the function call below back to NetworkThread.Running();
+            ///     for now, deal with it
             if (NetworkThread.Ticked())
             {
-                NetworkServer.Tick();
-                NetworkClient.Tick();
+                NetworkServer.Receive();
+                NetworkClient.Receive();
             }
         }
 

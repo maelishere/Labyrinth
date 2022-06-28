@@ -53,9 +53,9 @@ namespace Labyrinth.Background
             }
         }
 
-        internal static void Tick()
+        internal static void Receive()
         {
-            n_server?.Tick(OnReceive, OnRequest, OnAcknowledge, OnError);
+            n_server?.Receive(OnReceive, OnRequest, OnAcknowledge, OnError);
         }
 
         internal static void Update()

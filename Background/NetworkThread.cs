@@ -9,7 +9,7 @@ namespace Labyrinth.Background
         private static bool m_abort, m_ticked;
 
         // how many times a second it checks for new packets
-        public static int Tick { get; set; } = 64;
+        public static int Tick { get; set; } = 30;
         public static bool Ticking { get; private set; }
 
         internal static void Run()
