@@ -76,7 +76,7 @@ namespace Labyrinth
         // add a custom callback for a network flag
         public static bool Register(byte flag, Flag.Recieved callback)
         {
-            if (!m_callbacks.ContainsKey(flag))
+            if (flag != Identity.Any & !m_callbacks.ContainsKey(flag))
             {
                 m_callbacks.Add(flag, new Flag(flag, callback));
                 return true;
