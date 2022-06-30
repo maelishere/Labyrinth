@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Bolt\Bolt.csproj" />
-    <ProjectReference Include="..\..\..\Workspace (C#)\Networking\Lattice\Lattice.csproj" />
+    <ProjectReference Include="..\Bolt\Bolt.csproj" />
+    <ProjectReference Include="..\Lattice\Lattice.csproj" />
   </ItemGroup>
 
   <ItemGroup>
