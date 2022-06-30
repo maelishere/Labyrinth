@@ -53,7 +53,7 @@ namespace Labyrinth.Runtime
             {
                 world.n_entities.Remove(identity.Value);
             }
-            if (authority == Network.Authority())
+            if (authority == Network.Authority() || Network.Internal(Host.Server))
             {
                 Network.Forward(Channels.Ordered, Flags.Destroy,
                     (ref Writer writer) =>
