@@ -80,15 +80,8 @@ namespace Labyrinth.Background
                 return;
             }
 #endif
-            /// i must admit, this way feels wrong
-            ///     i could use the Time class to calculate the next update time or some other way
-            ///     but i might still end up moving the function calls below back to NetworkThread.Running();
-            ///     for now, deal with it
-            if (NetworkThread.Ticked())
-            {
-                NetworkServer.Receive();
-                NetworkClient.Receive();
-            }
+            NetworkServer.Receive();
+            NetworkClient.Receive();
         }
 
         static void NetworkLateUpdate()

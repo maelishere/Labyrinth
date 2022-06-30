@@ -37,7 +37,7 @@ namespace Labyrinth.Background
                     m_disconnecting = false;
                     n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge, OnError);
                     Network.initialized.Invoke(n_client.Local);
-                    NetworkThread.Run();
+                    /*NetworkThread.Run();*/
                     return;
                 }
                 throw new InvalidOperationException($"Network Client was already running");

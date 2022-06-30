@@ -32,9 +32,9 @@ namespace Labyrinth.Background
                 if (!Active)
                 {
                     m_connections.Clear();
-                    n_server = new Server(port, Mode.IPV4);
+                    n_server = new Server(Mode.IPV4, port);
                     Network.initialized.Invoke(n_server.Listen);
-                    NetworkThread.Run();
+                    /*NetworkThread.Run();*/
                     return;
                 }
                 throw new InvalidOperationException($"Network Server was already running");
