@@ -57,12 +57,12 @@ namespace Labyrinth.Background
 
         internal static void Receive()
         {
-            n_client?.Receive(OnError);
+            n_client?.Receive();
         }
 
         internal static void Update()
         {
-            n_client?.Update(OnError);
+            n_client?.Update();
         }
 
         internal static void Send(Channel channel, Write write)

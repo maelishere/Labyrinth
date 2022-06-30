@@ -32,7 +32,7 @@ namespace Labyrinth.Background
                 if (!Active)
                 {
                     m_connections.Clear();
-                    n_server = new Server(Mode.IPV4, port);
+                    n_server = new Server(Mode.IPV4, port, OnReceive, OnRequest, OnAcknowledge, OnError);
                     Network.initialized.Invoke(n_server.Listen);
                     /*NetworkThread.Run();*/
                     return;
@@ -55,12 +55,12 @@ namespace Labyrinth.Background
 
         internal static void Receive()
         {
-            n_server?.Receive(OnReceive, OnRequest, OnAcknowledge, OnError);
+            n_server?.Receive();
         }
 
         internal static void Update()
         {
-            n_server?.Update(OnError);
+            n_server?.Update();
         }
 
         internal static void Send(Channel channel, Write write)
