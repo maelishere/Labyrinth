@@ -23,7 +23,7 @@ namespace Labyrinth.Runtime
         {
             base.Awake();
             // check if it was instantiated (just now) locally the identitifer would be 0
-            // and make sure it wasn't network isn't creating it
+            // and make sure it wasn't the network isn't creating it
             if (identity.Value == Identity.Any && !m_networkSpawning)
             {
                 Identity id = Unique();
