@@ -9,6 +9,7 @@ namespace Labyrinth.Runtime
     public sealed class Entity : Instance
     {
         private static bool m_networkSpawning = false;
+        private bool m_networkCeasing = false;
 
         /// the path to find the entity in the resources folder
         // [SerializeField] private string m_path;
@@ -53,7 +54,7 @@ namespace Labyrinth.Runtime
             {
                 world.n_entities.Remove(identity.Value);
             }
-            if (authority == Network.Authority() || Network.Internal(Host.Server))
+            if (!m_networkCeasing && (authority == Network.Authority() || Network.Internal(Host.Server)))
             {
                 Network.Forward(Channels.Ordered, Flags.Destroy,
                     (ref Writer writer) =>
@@ -108,6 +109,8 @@ namespace Labyrinth.Runtime
                         Channels.Ordered, Flags.Create, (ref Writer writer) => writer.WriteSpawn(entity));
                 }
 
+                /// ensures it doesn't send a network message when OnDestroy is called
+                entity.m_networkCeasing = true;
                 Destroy(entity.gameObject);
             }
         }
