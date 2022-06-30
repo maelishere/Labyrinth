@@ -1,4 +1,4 @@
-using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
 
 namespace Labyrinth.Editor
@@ -20,3 +20,4 @@ namespace Labyrinth.Editor
         }
     }
 }
+#endif
