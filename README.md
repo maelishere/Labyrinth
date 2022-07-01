@@ -76,9 +76,9 @@ Function calls - use Appendix.Method() to register and Appendix.RPC() to call ov
     
     Procedure.Rule.Server - if received on any host it will  only run if the host in question is a server
     
-### Network Relevance
+### Network Relevancy
 
-Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data. For it to work an observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. 
+Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data. For it to work an Observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. 
 
 Note: you can have multiple observers for each client.
 
@@ -87,7 +87,7 @@ Note: your custom network behaviours on the gameobject(s) with an observer; vari
 Optionally you can add a Sector script to an empty gameobject in any network scene (doesn't require an Entity or World, the process happens on the server). This provides additionally details for relevance calculation.
 
 Note: A Sector requires an observer to be functional.
-    
+
 Relevance Options
     
     Relevance.None - always sends 
@@ -99,3 +99,23 @@ Relevance Options
     Relevance.General - either satisfies Relevance.Observers or Relevance.Sectors
     
 Note: A Sector (on the server) is required if you set relevancy to Relevance.Sectors for any variables or functions.
+
+Relevancy also comes with custom layers (not attached to unity's layers) to allow for more complexity in synchronizing the overall gameworld.
+
+## Roadmap
+
+At the current moment i am just testing and retuning it.
+
+### Bugs
+
+Unexpected disconnections breaks server's connection to every client in some cases; this is because of connection reset exception being recieved every time the server sends any message (ping mostly) to the client that goes down unexpectedly.
+
+Currently this is the only bug i am aware of, if any living soul out there decides to use this library please let me know of any unexpected behaivour; i can point out if it expected behaivour or just a bug.
+
+### Unity Asset Store 
+
+I am working towards the review of this library from unity's team; at the moment i am in the queue. When i publish it on the asset store i will put a link here. The asset will come will a sample project.
+
+### Open World Game (No name)
+
+I plan on making a simple networked open world game to fully test it's production readiness. Then make more changes to bring it out of the experimental phase.
