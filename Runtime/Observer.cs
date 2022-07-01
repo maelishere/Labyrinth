@@ -11,6 +11,7 @@ namespace Labyrinth.Runtime
 
         [SerializeField] private float m_radius = 100;
         [SerializeField] private Vector3 m_offset = Vector3.zero;
+        [SerializeField] private Layers m_layers = new Layers(0);
 
         internal Instance n_attached;
 
@@ -33,9 +34,12 @@ namespace Labyrinth.Runtime
             }
         }
 
-        public bool Contains(Vector3 point)
+        public bool Contains(Layers layers, Vector3 point)
         {
-            return Contains(transform.position + m_offset, m_radius, point);
+            if (m_layers == layers)
+                return Contains(transform.position + m_offset, m_radius, point);
+            else
+                return false;
         }
 
         private void OnDrawGizmosSelected()

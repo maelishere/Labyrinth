@@ -11,7 +11,7 @@
             Client
         }
 
-        public Procedure(byte value, Rule control, Relevance relevancy, Read callback)
+        public Procedure(byte value, Rule control, Relevancy relevancy, Read callback)
         {
             Value = value;
             Control = control;
@@ -20,7 +20,7 @@
         }
         public byte Value { get; }
         public Rule Control { get; }
-        public Relevance Relevancy { get; }
+        public Relevancy Relevancy { get; }
         public Read Callback { get; }
     }
 }

@@ -6,47 +6,17 @@ namespace Labyrinth
 
     public static class Extensions
     {
-        /// <summary>
-        /// inserts a into the last 8 bits of a short and b into the frist 8
-        /// </summary>
-        /// <param name="a">the last 8 bits</param>
-        /// <param name="b">the frist 8 bits</param>
-        /// <returns>the two bytes right next to each other in a short</returns>
+        /// inserts a into the frist 8 bits of a short and b into the last 8
         public static short Combine(this byte a, byte b)
         {
             return (short)((a << 8) | (b));
         }
 
-        /// <summary>
-        /// inserts a into the last 16 bits of an int and b into the frist 16
-        /// </summary>
-        /// <param name="a">the last 16 bits</param>
-        /// <param name="b">the frist 16 bits</param>
-        /// <returns>the two ushorts right next to each other in an int</returns>
+        /// inserts a into the frist 16 bits of an int and b into the last 16
         public static int Combine(this ushort a, ushort b)
         {
             return ((a << 16) | (b));
         }
-
-        public static int Hash(this string s)
-        {
-            int hash = 0;
-            foreach(var c in s)
-            {
-                hash = c + (hash << 6) + (hash << 16) - hash;
-            }
-            return hash;
-        }
-
-        /* public static int Hash(this string s, int prime)
-        {
-            int hash = 0;
-            foreach(var c in s)
-            {
-                hash = hash * prime + c;
-            }
-            return hash;
-        } */
 
         public static Vector2 ReadVector2(this Reader reader)
         {

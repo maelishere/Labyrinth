@@ -30,11 +30,11 @@ namespace Labyrinth.Editor
             wnd.titleContent = new GUIContent("Builder");
         }
 
-        public void Awake()
+        private void Awake()
         {
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             m_server_context = new Context($"{Application.productName}_Server.x86_64",
             BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64, BuildOptions.EnableHeadlessMode,
@@ -84,7 +84,6 @@ namespace Labyrinth.Editor
             EditorGUI.LabelField(label, $"{index - m_disabled}");
         }
 
-        //Draws the header
         private void DrawSceneHeader(Rect rect)
         {
             EditorGUI.LabelField(rect, "Scenes");

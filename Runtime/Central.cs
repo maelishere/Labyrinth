@@ -47,33 +47,33 @@ namespace Labyrinth.Runtime
         }
 
         // *** redo ****
-        public static bool Relevant(int authority, Vector3 point, Relevance relevancy)
+        public static bool Relevant(int authority, Vector3 point, Relevance relevance, Layers layers)
         {
-            switch (relevancy)
+            switch (relevance)
             {
                 case Relevance.None:
                     return true;
                 case Relevance.General:
-                    return Relevant(authority, point, Relevance.Observers) || Relevant(authority, point, Relevance.Sectors);
+                    return Relevant(authority, point, Relevance.Observers, layers) || Relevant(authority, point, Relevance.Sectors, layers);
             }
 
             if (Observer.n_observers.ContainsKey(authority))
             {
                 foreach (var observer in Observer.n_observers[authority])
                 {
-                    switch (relevancy)
+                    switch (relevance)
                     {
                         case Relevance.Sectors:
                             foreach (var station in Sector.n_sectors)
                             {
-                                if (station.Overlap(observer.transform.position, point))
+                                if (station.Overlap(layers, observer.transform.position, point))
                                 {
                                     return true;
                                 }
                             }
                             break;
                         case Relevance.Observers:
-                            if (observer.Contains(point))
+                            if (observer.Contains(layers, point))
                             {
                                 return true;
                             }
@@ -85,11 +85,16 @@ namespace Labyrinth.Runtime
             return false;
         }
 
-        public static void Relavant(Vector3 point, Relevance relevancy, Func<int, bool> filter, Action<int> callback)
+        public static bool Relevant(int authority, Vector3 point, Relevancy relevancy)
+        {
+            return Relevant(authority, point, relevancy.Relevance, relevancy.Layers);
+        }
+
+        public static void Relavant(Vector3 point, Relevancy relevancy, Func<int, bool> predicate, Action<int> callback)
         {
             foreach (var connection in Observer.n_observers)
             {
-                if (filter(connection.Key))
+                if (predicate(connection.Key))
                 {
                     if (Relevant(connection.Key, point, relevancy))
                     {

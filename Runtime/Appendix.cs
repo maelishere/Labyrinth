@@ -9,11 +9,18 @@ namespace Labyrinth.Runtime
     public class Appendix : MonoBehaviour
     {
         [Serializable]
-        public struct Variable<T> where T : struct
+        public struct Variable
         {
             public int Rate;
-            public Relevance Relevancy;
-            [HideInInspector] public T State;
+            public Signature.Rule Control;
+            public Relevancy Relevancy;
+        }
+
+        [Serializable]
+        public struct Function
+        {
+            public Procedure.Rule Control;
+            public Relevancy Relevancy;
         }
 
         internal byte n_offset;
@@ -23,7 +30,7 @@ namespace Labyrinth.Runtime
         public int authority => n_network.authority.Value;
         public bool owner => Network.Authority(authority);
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevancy, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevancy relevancy, Func<T> get, Action<T> set)
         {
             return n_network.Register(n_offset,
                 new Signature(signature, rate, control, relevancy,
@@ -40,9 +47,24 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Method(byte procedure, Procedure.Rule control, Relevance relevancy, Action method)
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Layers layers, Func<T> get, Action<T> set)
         {
-            return n_network.Register(n_offset, 
+            return Var(signature, rate, control, new Relevancy(relevance, layers), get, set);
+        }
+
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Func<T> get, Action<T> set)
+        {
+            return Var(signature, rate, control, new Relevancy(relevance), get, set);
+        }
+
+        public bool Var<T>(byte signature, Variable variable, Func<T> get, Action<T> set)
+        {
+            return Var<T>(signature, variable.Rate, variable.Control, variable.Relevancy, get, set);
+        }
+
+        public bool Method(byte procedure, Procedure.Rule control, Relevancy relevancy, Action method)
+        {
+            return n_network.Register(n_offset,
                 new Procedure(procedure, control, relevancy,
                 (ref Reader reader) =>
                 {
@@ -50,7 +72,22 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Method<T>(byte procedure, Procedure.Rule control, Relevance relevancy, Action<T> method)
+        public bool Method(byte procedure, Procedure.Rule control, Relevance relevance, Layers layers, Action method)
+        {
+            return Method(procedure, control, new Relevancy(relevance, layers), method);
+        }
+
+        public bool Method(byte procedure, Procedure.Rule control, Relevance relevance, Action method)
+        {
+            return Method(procedure, control, new Relevancy(relevance), method);
+        }
+
+        public bool Method(byte procedure, Function function, Action method)
+        {
+            return Method(procedure, function.Control, function.Relevancy, method);
+        }
+
+        public bool Method<T>(byte procedure, Procedure.Rule control, Relevancy relevancy, Action<T> method)
         {
             return n_network.Register(n_offset, 
                 new Procedure(procedure, control, relevancy,
@@ -60,7 +97,22 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Relevance relevancy, Action<T1, T2> method)
+        public bool Method<T>(byte procedure, Procedure.Rule control, Relevance relevance, Layers layers, Action<T> method)
+        {
+            return Method(procedure, control, new Relevancy(relevance, layers), method);
+        }
+
+        public bool Method<T>(byte procedure, Procedure.Rule control, Relevance relevance, Action<T> method)
+        {
+            return Method(procedure, control, new Relevancy(relevance), method);
+        }
+
+        public bool Method<T>(byte procedure, Function function, Action<T> method)
+        {
+            return Method(procedure, function.Control, function.Relevancy, method);
+        }
+
+        public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Relevancy relevancy, Action<T1, T2> method)
         {
             return n_network.Register(n_offset, 
                 new Procedure(procedure, control, relevancy,
@@ -70,7 +122,22 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Relevance relevancy, Action<T1, T2, T3> method)
+        public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Relevance relevance, Layers layers, Action<T1, T2> method)
+        {
+            return Method(procedure, control, new Relevancy(relevance, layers), method);
+        }
+
+        public bool Method<T1, T2>(byte procedure, Procedure.Rule control, Relevance relevance, Action<T1, T2> method)
+        {
+            return Method(procedure, control, new Relevancy(relevance), method);
+        }
+
+        public bool Method<T1, T2>(byte procedure, Function function, Action<T1, T2> method)
+        {
+            return Method(procedure, function.Control, function.Relevancy, method);
+        }
+
+        public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Relevancy relevancy, Action<T1, T2, T3> method)
         {
             return n_network.Register(n_offset, 
                 new Procedure(procedure, control, relevancy,
@@ -78,6 +145,21 @@ namespace Labyrinth.Runtime
                 {
                     method?.Invoke(reader.Read<T1>(), reader.Read<T2>(), reader.Read<T3>());
                 }));
+        }
+
+        public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Relevance relevance, Layers layers, Action<T1, T2, T3> method)
+        {
+            return Method(procedure, control, new Relevancy(relevance, layers), method);
+        }
+
+        public bool Method<T1, T2, T3>(byte procedure, Procedure.Rule control, Relevance relevance, Action<T1, T2, T3> method)
+        {
+            return Method(procedure, control, new Relevancy(relevance), method);
+        }
+
+        public bool Method<T1, T2, T3>(byte procedure, Function function, Action<T1, T2, T3> method)
+        {
+            return Method(procedure, function.Control, function.Relevancy, method);
         }
 
         public void RPC(byte channel, byte procedure)

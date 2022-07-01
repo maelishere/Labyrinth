@@ -12,6 +12,7 @@ namespace Labyrinth.Runtime
         [SerializeField] private Vector3 m_cell = Vector3.one;
         [SerializeField] private Vector3 m_offset = Vector3.zero;
         [SerializeField] private Vector3Int m_bound = Vector3Int.one;
+        [SerializeField] private Layers m_layers = new Layers(0);
 
         public Vector3 size => new Vector3(m_cell.x + (m_cell.x * m_bound.x * 2), 
                                            m_cell.y + (m_cell.y * m_bound.y * 2), 
@@ -54,12 +55,15 @@ namespace Labyrinth.Runtime
             return bounds.Contains(position);
         }
 
-        public bool Overlap(Vector3 a, Vector3 b)
+        public bool Overlap(Layers layers, Vector3 a, Vector3 b)
         {
-            if (Contains(a) && Contains(b))
+            if (m_layers == layers)
             {
-                // a and b should be on the same cell within the station
-                return GetCell(a) == GetCell(b);
+                if (Contains(a) && Contains(b))
+                {
+                    // a and b should be on the same cell within the station
+                    return GetCell(a) == GetCell(b);
+                }
             }
             return false;
         }
