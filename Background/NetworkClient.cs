@@ -91,7 +91,7 @@ namespace Labyrinth.Background
                     {
                         m_connected = true;
                         // server is reconnecting
-                        /*Network.Incoming(n_client.Local, n_client.Remote);*/
+                        Network.Incoming(n_client.Local, n_client.Remote);
                     }
                     break;
                 case Request.Disconnect:
