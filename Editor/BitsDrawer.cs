@@ -19,7 +19,7 @@ namespace Labyrinth.Editor
         Mega = 1 << 5,
         Giga = 1 << 6,
         Tera = 1 << 7,
-        All = 255,
+        All = ~0,
     }
 
     [CustomPropertyDrawer(typeof(Bits))]
