@@ -108,7 +108,7 @@ At the current moment i am just testing and retuning it.
 
 ### Bugs
 
-Unexpected disconnections breaks server's connection to every client in some cases; this is because of connection reset exception being recieved every time the server sends any message (ping mostly) to the client that goes down unexpectedly.
+Unexpected disconnections breaks the server's connection to every client in some cases; this is because of connection reset exception being recieved every time the server sends any message (ping mostly) to the client that goes down unexpectedly.
 
 Currently this is the only bug i am aware of, if any living soul out there decides to use this library please let me know of any unexpected behaivour; i can point out if it expected behaivour or just a bug.
 

@@ -51,7 +51,7 @@ namespace Labyrinth.Runtime
         {
             if (Values != null && other.Values != null)
             {
-                if (Values.Length < 1 || other.Values.Length < 1)
+                if (Values.Length < 1 && other.Values.Length < 1)
                 {
                     for (int i = 0; i < Values.Length && i < other.Values.Length; i++)
                     {
