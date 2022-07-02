@@ -47,7 +47,7 @@ namespace Labyrinth.Background
             {
                 Network.terminating.Invoke(n_server.Listen);
                 m_connections.Clear();
-                n_server.Close();
+                /*n_server.Close();*/
                 n_server = null;
             }
         }

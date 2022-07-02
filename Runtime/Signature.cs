@@ -27,5 +27,21 @@
         public Relevancy Relevancy { get; }
         public Write Sending { get; }
         public Read Recieving { get; }
+
+        public static bool Valid(int authority, Rule rule)
+        {
+            if (Network.Internal(Host.Server))
+                return true;
+
+            switch (rule)
+            {
+                case Rule.Round:
+                case Rule.Authority:
+                    return authority == Network.Authority(false);
+            }
+
+            // it would only down here if network isn't running
+            return false;
+        }
     }
 }
