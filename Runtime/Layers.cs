@@ -53,10 +53,13 @@ namespace Labyrinth.Runtime
             {
                 if (Values.Length != 0 && other.Values.Length != 0)
                 {
-                    for (int i = 0; i < Values.Length && i < other.Values.Length; i++)
+                    for (int i = 0; i < Values.Length; i++)
                     {
-                        if (Values[i].Equals(other.Values[i]))
-                            return true;
+                        for (int x = 0; x < other.Values.Length; x++)
+                        {
+                            if (Values[i].Equals(other.Values[x]))
+                                return true;
+                        }
                     }
                     return false;
                 }
