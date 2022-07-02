@@ -108,17 +108,11 @@ At the current moment i am just testing and retuning it.
 
 ### Bugs
 
-Unexpected disconnections breaks the server's connection to every client in some cases; this is because of connection reset exception being recieved every time the server sends any message (ping mostly) to the client that goes down unexpectedly.
-
-Currently this is the only bug i am aware of, if any living soul out there decides to use this library please let me know of any unexpected behaivour; i can point out if it expected behaivour or just a bug.
+Currently i am not aware of any bugs, if any living soul out there decides to use this library please let me know of any unexpected behaivour; i can point out if it expected behaivour or just a bug.
 
 ### Unity Asset Store 
 
 I am working towards the review of this library from unity's team; at the moment i am in the queue. When i publish it on the asset store i will put a link here. The asset will come will a sample project.
-
-### Peer to peer
-
-I plan on adding a peer to peer layer later on for chat (voice and text).
 
 ### Open World Game (No name)
 
