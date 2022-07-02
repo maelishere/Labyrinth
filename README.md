@@ -116,6 +116,10 @@ Currently this is the only bug i am aware of, if any living soul out there decid
 
 I am working towards the review of this library from unity's team; at the moment i am in the queue. When i publish it on the asset store i will put a link here. The asset will come will a sample project.
 
+### Peer to peer
+
+I plan on adding a peer to peer layer later on for chat (voice and text).
+
 ### Open World Game (No name)
 
 I plan on making a simple networked open world game to fully test it's production readiness. Then make more changes to bring it out of the experimental phase.
