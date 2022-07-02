@@ -1,4 +1,4 @@
-﻿/*#if UNITY_EDITOR*/
+﻿#if UNITY_EDITOR
 using System;
 using UnityEngine;
 using UnityEditor;
@@ -19,7 +19,7 @@ namespace Labyrinth.Editor
         Mega = 1 << 5,
         Giga = 1 << 6,
         Tera = 1 << 7,
-        All = ~0,
+        All = 255,
     }
 
     [CustomPropertyDrawer(typeof(Bits))]
@@ -40,4 +40,4 @@ namespace Labyrinth.Editor
         }
     }
 }
-/*#endif*/
+#endif
