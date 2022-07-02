@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
-
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
@@ -72,13 +70,7 @@ namespace Labyrinth.Background
         {
 #if UNITY_EDITOR
             if (!UnityEditor.EditorApplication.isPlaying)
-            {
-                if (NetworkThread.Ticking)
-                {
-                    NetworkThread.Abort();
-                }
                 return;
-            }
 #endif
             NetworkServer.Receive();
             NetworkClient.Receive();
@@ -92,6 +84,8 @@ namespace Labyrinth.Background
 #endif
             NetworkServer.Update();
             NetworkClient.Update();
+
+            NetworkDebug.Reset();
         }
     }
 }

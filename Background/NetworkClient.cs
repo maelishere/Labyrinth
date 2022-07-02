@@ -37,7 +37,6 @@ namespace Labyrinth.Background
                     m_disconnecting = false;
                     n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge, OnError);
                     Network.initialized.Invoke(n_client.Local);
-                    /*NetworkThread.Run();*/
                     return;
                 }
                 throw new InvalidOperationException($"Network Client was already running");
@@ -49,7 +48,7 @@ namespace Labyrinth.Background
         {
             if (!m_disconnecting)
             {
-                // inside the client(Host): it will stop pinging so if it times out we'll know
+                // inside the client(Host): it will stop pinging; if it times out, would still count as disconnected
                 n_client?.Disconnect();
                 m_disconnecting = true;
             }
@@ -88,14 +87,15 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    /*if (!m_connected)
+                    if (!m_connected)
                     {
                         m_connected = true;
-                        Network.Incoming(n_client.Local, n_client.Remote);
-                    }*/
+                        // server is reconnecting
+                        /*Network.Incoming(n_client.Local, n_client.Remote);*/
+                    }
                     break;
                 case Request.Disconnect:
-                    Disconnect();
+                    Close();
                     break;
             }
         }
@@ -106,10 +106,13 @@ namespace Labyrinth.Background
             switch(request)
             {
                 case Request.Ping:
+                    Network.pinged.Invoke(n_client.Local, n_client.Remote, rtt);
+                    break;
                 case Request.Connect:
                     if (!m_connected)
                     {
                         m_connected = true;
+                        // the connect request from here was acknowledged
                         Network.Incoming(n_client.Local, n_client.Remote);
                     }
                     break;

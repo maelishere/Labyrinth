@@ -34,7 +34,6 @@ namespace Labyrinth.Background
                     m_connections.Clear();
                     n_server = new Server(Mode.IPV4, port, OnReceive, OnRequest, OnAcknowledge, OnError);
                     Network.initialized.Invoke(n_server.Listen);
-                    /*NetworkThread.Run();*/
                     return;
                 }
                 throw new InvalidOperationException($"Network Server was already running");
@@ -119,10 +118,10 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    /*Add(connection);*/
+                    Add(connection);
                     break;
                 case Request.Disconnect:
-                    /*Remove(connection);*/
+                    Remove(connection);
                     break;
             }
         }
@@ -133,8 +132,10 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Ping:
+                    Network.pinged.Invoke(n_server.Listen, connection, rtt);
                     break;
                 case Request.Connect:
+                    // reconnection
                     Add(connection);
                     break;
                 case Request.Disconnect:

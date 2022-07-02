@@ -22,6 +22,7 @@ namespace Labyrinth
         public static UnityEvent<int> terminating { get; } = new UnityEvent<int>();
         public static UnityEvent<int, int> connected { get; } = new UnityEvent<int, int>();
         public static UnityEvent<int, int> disconnected { get; } = new UnityEvent<int, int>();
+        public static UnityEvent<int, int, uint> pinged { get; } = new UnityEvent<int, int, uint>();
 
         private static Write Pack(byte flag, Write write)
         {
@@ -160,10 +161,6 @@ namespace Labyrinth
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            Lattice.Log.POut = Debug.Log;
-            Lattice.Log.WOut = Debug.LogWarning;
-            Lattice.Log.EOut = Debug.LogError;
-
             Register(Flag.Connected, OnNetworkConnected);
             Register(Flag.Disconnected, OnNetworkDisconnected);
         }
