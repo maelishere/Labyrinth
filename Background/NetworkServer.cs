@@ -52,17 +52,6 @@ namespace Labyrinth.Background
             }
         }
 
-        public static void Reconnect(int connection)
-        {
-            if (n_server != null)
-            {
-                if (n_server.Find(connection, out System.Net.IPEndPoint point))
-                {
-                    n_server.Connect(point);
-                }
-            }
-        }
-
         internal static void Receive()
         {
             n_server?.Receive();
