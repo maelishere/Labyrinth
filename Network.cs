@@ -22,7 +22,7 @@ namespace Labyrinth
             [Flag.Connected] = new Flag(Flag.Connected, OnNetworkConnected),
             [Flag.Disconnected] = new Flag(Flag.Disconnected, OnNetworkDisconnected),
 
-            [Lobby.Update] = new Flag(Objects.Link, Lobby.OnNetworkUpdate),
+            [Sessions.Update] = new Flag(Objects.Link, Sessions.OnNetworkUpdate),
 
             [Objects.Link] = new Flag(Objects.Link, Objects.OnNetworkLink),
             [Objects.Reset] = new Flag(Objects.Link, Objects.OnNetworkReset),
@@ -79,7 +79,7 @@ namespace Labyrinth
 
             if (NetworkClient.Active)
             {
-                Lobby.Entered(connection);
+                Sessions.Entered(connection);
             }
 
             connected.Invoke(socket, connection);
@@ -96,7 +96,7 @@ namespace Labyrinth
 
             if (NetworkClient.Active)
             {
-                Lobby.Exited(connection);
+                Sessions.Exited(connection);
             }
 
             disconnected.Invoke(socket, connection);
@@ -222,7 +222,7 @@ namespace Labyrinth
         {
             int client = reader.ReadInt();
 
-            Lobby.Entered(client);
+            Sessions.Entered(client);
             connected.Invoke(connection, client);
         }
 
@@ -231,7 +231,7 @@ namespace Labyrinth
         {
             int client = reader.ReadInt();
 
-            Lobby.Exited(client);
+            Sessions.Exited(client);
             disconnected.Invoke(connection, client);
         }
     }
