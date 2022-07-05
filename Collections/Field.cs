@@ -6,14 +6,13 @@ namespace Labyrinth.Collections
     using Bolt;
 
     // any variable that needs to be synced only when it's changed
-    //          mostly for static classes
-    public class Var<T> : Unit<T>
+    public class Field<T> : Unit<T>
     {
         private T m_reference;
 
-        public Var() : this(EqualityComparer<T>.Default, default(T)) { }
-        public Var(T value) : this(EqualityComparer<T>.Default, value) { }
-        public Var(IEqualityComparer<T> comparer, T value) : base(comparer)
+        public Field() : this(EqualityComparer<T>.Default, default(T)) { }
+        public Field(T value) : this(EqualityComparer<T>.Default, value) { }
+        public Field(IEqualityComparer<T> comparer, T value) : base(comparer)
         {
             m_reference = value;
         }
@@ -60,7 +59,7 @@ namespace Labyrinth.Collections
             }
         }
 
-        public static implicit operator T(Var<T> var)
+        public static implicit operator T(Field<T> var)
         {
             return var.m_reference;
         }

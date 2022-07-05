@@ -150,6 +150,8 @@ namespace Labyrinth
 
         public static void Forward(byte channel, byte flag, Write write)
         {
+            /// change to NetworkStream.Queue later
+            /// remove all:
             if (NetworkServer.Active)
             {
                 NetworkServer.Send((Channel)channel, Pack(flag, write));
@@ -163,6 +165,8 @@ namespace Labyrinth
 
         public static void Forward(int connection, byte channel, byte flag, Write write)
         {
+            /// change to NetworkStream.Queue later
+            /// remove:
             if (NetworkServer.Active)
             {
                 NetworkServer.Send(connection, (Channel)channel, Pack(flag, write));
@@ -171,6 +175,8 @@ namespace Labyrinth
 
         public static void Forward(Func<int, bool> predicate, byte channel, byte flag, Write write)
         {
+            /// change to NetworkStream.Queue later
+            /// remove:
             if (NetworkServer.Active)
             {
                 NetworkServer.Send(predicate, (Channel)channel, Pack(flag, write));
@@ -207,11 +213,13 @@ namespace Labyrinth
             }
         }
 
+        // always usage of custom struct or classes being send over the network
         public static void CustomWriter<T>(Extension.Generic<T>.Writing writing)
         {
             Extension.Generic<T>.SetWrite(writing);
         }
 
+        // always usage of custom struct or classes being recieved over the network
         public static void CustomReader<T>(Extension.Generic<T>.Reading reading)
         {
             Extension.Generic<T>.SetRead(reading);
