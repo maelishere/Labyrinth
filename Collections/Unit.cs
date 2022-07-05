@@ -10,20 +10,18 @@ namespace Labyrinth.Collections
     //      uses irrgeular channel
     //      mostly for static classes
     //      using network instance, can't use instance identity (mutiple appendices would collide)
-    //      (Extension.Combine + Identity.Unique) not sure how that would work yet
-    public abstract class Unit<T>
+    //      (Extensions.Combine + Identity.Unique) not sure how that would work yet
+    public abstract class Unit
     {
-        protected readonly IEqualityComparer<T> _comparer;
-
         private uint m_counter = 0;
         private readonly Queue<Change> m_changes = new Queue<Change>();
         private readonly SortedDictionary<uint, Reader> m_pending = new SortedDictionary<uint, Reader>();
 
         internal System.Action destructor { get; set; }
 
-        protected Unit(IEqualityComparer<T> comparer)
+        protected Unit()
         {
-            _comparer = comparer ?? EqualityComparer<T>.Default;
+
         }
 
         ~Unit()
@@ -40,44 +38,41 @@ namespace Labyrinth.Collections
             if (!additive)
                 m_changes.Clear();
 
-            m_changes.Enqueue(new Change(m_counter++, action, null));
+            m_changes.Enqueue(new Change(m_counter, action, null));
+
+            if (additive)
+                m_counter++;
         }
 
-        protected void Change(bool additive, Action action, T item)
+        protected void Change<I>(bool additive, Action action, I arg)
         {
             if (!additive)
                 m_changes.Clear();
 
-            m_changes.Enqueue(new Change(m_counter++, action,
+            m_changes.Enqueue(new Change(m_counter, action,
                 (ref Writer writer) =>
                 {
-                    writer.Write(item);
+                    writer.Write(arg);
                 }));
+
+            if (additive)
+                m_counter++;
         }
 
-        protected void Change<I>(bool additive, Action action, I index)
+        protected void Change<I, T>(bool additive, Action action, I arg1, T arg2)
         {
             if (!additive)
                 m_changes.Clear();
 
-            m_changes.Enqueue(new Change(m_counter++, action,
+            m_changes.Enqueue(new Change(m_counter, action,
                 (ref Writer writer) =>
                 {
-                    writer.Write(index);
+                    writer.Write(arg1);
+                    writer.Write(arg2);
                 }));
-        }
 
-        protected void Change<I>(bool additive, Action action, I index, T item)
-        {
-            if (!additive)
-                m_changes.Clear();
-
-            m_changes.Enqueue(new Change(m_counter++, action,
-                (ref Writer writer) =>
-                {
-                    writer.Write(index);
-                    writer.Write(item);
-                }));
+            if (additive)
+                m_counter++;
         }
 
         // for new clients connections

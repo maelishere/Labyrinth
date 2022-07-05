@@ -6,15 +6,17 @@ namespace Labyrinth.Collections
     using Bolt;
 
     // any variable that needs to be synced only when it's changed
-    public class Field<T> : Unit<T>
+    public class Field<T> : Unit
     {
         private T m_reference;
+        private readonly IEqualityComparer<T> _comparer;
 
         public Field() : this(EqualityComparer<T>.Default, default(T)) { }
         public Field(T value) : this(EqualityComparer<T>.Default, value) { }
-        public Field(IEqualityComparer<T> comparer, T value) : base(comparer)
+        public Field(IEqualityComparer<T> comparer, T value)
         {
             m_reference = value;
+            _comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
         public T value

@@ -7,15 +7,17 @@ namespace Labyrinth.Collections
     using Bolt;
 
     // Network List Equivalent
-    public class Vector<T> : Unit<T>, IList<T>, IReadOnlyList<T>
+    public class Vector<T> : Unit, IList<T>, IReadOnlyList<T>
     {
         private readonly IList<T> m_reference;
+        private readonly IEqualityComparer<T> m_comparer;
 
         public Vector() : this(EqualityComparer<T>.Default) { }
         public Vector(IEqualityComparer<T> comparer) : this(comparer, new List<T>()) { }
-        public Vector(IEqualityComparer<T> comparer, IList <T> list) : base(comparer) 
+        public Vector(IEqualityComparer<T> comparer, IList <T> list)
         {
             m_reference = list;
+            m_comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
         public T this[int index]
@@ -28,7 +30,7 @@ namespace Labyrinth.Collections
                     throw new InvalidOperationException("Network collection can only be modified by the server");
                 }
 
-                if (!_comparer.Equals(value, m_reference[index]))
+                if (!m_comparer.Equals(value, m_reference[index]))
                 {
                     m_reference[index] = value;
                     Change(true, Action.Set, index, value);

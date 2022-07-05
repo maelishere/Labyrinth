@@ -7,14 +7,13 @@ namespace Labyrinth.Collections
     using Bolt;
 
     // Network Dictionary Set Equivalent
-    public class Glossary<TKey, TValue> : Unit<TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
+    public class Glossary<TKey, TValue> : Unit, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     {
-        /*private readonly IEqualityComparer<TKey> m_comparer;*/
         private readonly IDictionary<TKey, TValue> m_reference;
 
         public Glossary() : this(new Dictionary<TKey, TValue>()) { }
         public Glossary(IEqualityComparer<TKey> comparer) : this(new Dictionary<TKey, TValue>(comparer)) { }
-        public Glossary(IDictionary<TKey, TValue> dictionary) : base(EqualityComparer<TValue>.Default)
+        public Glossary(IDictionary<TKey, TValue> dictionary)
         {
             m_reference = dictionary;
         }
@@ -76,7 +75,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Clear();
-            Change<TKey>(true, Action.Clear, default, default);
+            Change(true, Action.Clear);
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)

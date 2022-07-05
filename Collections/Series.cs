@@ -7,13 +7,13 @@ namespace Labyrinth.Collections
     using Bolt;
 
     // Network Hash Set Equivalent
-    public class Series<T> : Unit<T>, ISet<T>
+    public class Series<T> : Unit, ISet<T>
     {
         private readonly ISet<T> m_reference;
 
         public Series() : this(EqualityComparer<T>.Default) { }
-        public Series(IEqualityComparer<T> comparer) : this(comparer, new HashSet<T>(comparer ?? EqualityComparer<T>.Default)) { }
-        public Series(IEqualityComparer<T> comparer, ISet<T> reference) : base(comparer)
+        public Series(IEqualityComparer<T> comparer) : this(new HashSet<T>(comparer ?? EqualityComparer<T>.Default)) { }
+        public Series(ISet<T> reference)
         {
             m_reference = reference;
         }

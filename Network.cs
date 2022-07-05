@@ -213,13 +213,13 @@ namespace Labyrinth
             }
         }
 
-        // always usage of custom struct or classes being send over the network
+        // allows usage of custom struct or classes being send over the network
         public static void CustomWriter<T>(Extension.Generic<T>.Writing writing)
         {
             Extension.Generic<T>.SetWrite(writing);
         }
 
-        // always usage of custom struct or classes being recieved over the network
+        // allows usage of custom struct or classes being recieved over the network
         public static void CustomReader<T>(Extension.Generic<T>.Reading reading)
         {
             Extension.Generic<T>.SetRead(reading);

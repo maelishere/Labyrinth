@@ -35,7 +35,7 @@ namespace Labyrinth.Collections
             
         }
 
-        public static bool Register<T>(int idenitifier, Unit<T> unit)
+        public static bool Register<T>(int idenitifier, T unit) where T : Unit
         {
             if (!m_callbacks.ContainsKey(idenitifier))
             {
