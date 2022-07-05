@@ -14,19 +14,6 @@ namespace Labyrinth.Background
 
         public static bool Active => n_client != null;
 
-        internal static void Close()
-        {
-            if (n_client != null)
-            {
-                Network.Outgoing(n_client.Local, n_client.Remote);
-                Network.terminating.Invoke(n_client.Local);
-                /*n_client.Close();*/
-                m_connected = false;
-                m_disconnecting = false;
-                n_client = null;
-            }
-        }
-
         public static void Connect(IPEndPoint endpoint)
         {
             if (!NetworkServer.Active)
@@ -54,6 +41,19 @@ namespace Labyrinth.Background
             }
         }
 
+        internal static void Close()
+        {
+            if (n_client != null)
+            {
+                Outgoing();
+                m_disconnecting = false;
+                Network.terminating.Invoke(n_client.Local);
+
+                /*n_client.Close();*/
+                n_client = null;
+            }
+        }
+
         internal static void Receive()
         {
             n_client?.Receive();
@@ -66,7 +66,30 @@ namespace Labyrinth.Background
 
         internal static void Send(Channel channel, Write write)
         {
-            n_client.Send(channel, write);
+            if (!m_disconnecting)
+            {
+                n_client.Send(channel, write);
+            }
+        }
+
+        private static void Outgoing()
+        {
+            if (m_connected)
+            {
+                m_connected = false;
+                NetworkStream.Outgoing(n_client.Remote);
+                Network.Outgoing(n_client.Local, n_client.Remote);
+            }
+        }
+
+        private static void Incoming()
+        {
+            if (!m_connected)
+            {
+                m_connected = true;
+                NetworkStream.Incoming(n_client.Remote);
+                Network.Incoming(n_client.Local, n_client.Remote);
+            }
         }
 
         private static void OnError(Error error)
@@ -87,12 +110,8 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    if (!m_connected)
-                    {
-                        m_connected = true;
-                        // server is reconnecting
-                        Network.Incoming(n_client.Local, n_client.Remote);
-                    }
+                    // server is reconnecting
+                    Incoming();
                     break;
                 case Request.Disconnect:
                     Close();
@@ -109,12 +128,8 @@ namespace Labyrinth.Background
                     Network.pinged.Invoke(n_client.Local, n_client.Remote, rtt);
                     break;
                 case Request.Connect:
-                    if (!m_connected)
-                    {
-                        m_connected = true;
-                        // the connect request from here was acknowledged
-                        Network.Incoming(n_client.Local, n_client.Remote);
-                    }
+                    // handshake was successful
+                    Incoming();
                     break;
                 case Request.Disconnect:
                     Close();

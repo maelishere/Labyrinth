@@ -3,6 +3,8 @@
 namespace Labyrinth
 {
     using Bolt;
+    using Labyrinth.Runtime;
+    using Labyrinth.Collections;
 
     public static class Extensions
     {
@@ -114,6 +116,28 @@ namespace Labyrinth
             writer.Write(value.w);
         }
 
+        public static Instance ReadInstance(this Reader reader)
+        {
+            Instance.Find(reader.ReadInt(), out Instance instance);
+            return instance;
+        }
+
+        public static void WriteInstance(this Writer writer, Instance instance)
+        {
+            writer.Write(instance?.identity ?? Identity.Any);
+        }
+
+        internal static Operation ReadOperation(this Reader reader)
+        {
+            return new Operation(reader.ReadUInt(), (Action)reader.Read());
+        }
+
+        internal static void Write(this Writer writer, Operation operation)
+        {
+            writer.Write(operation.Step);
+            writer.Write((byte)operation.Action);
+        }
+
         static Extensions()
         {
             Extension.Generic<Vector2>.SetRead((ref Reader reader) =>
@@ -140,6 +164,10 @@ namespace Labyrinth
             {
                 return reader.ReadVector3Int();
             });
+            Extension.Generic<Instance>.SetRead((ref Reader reader) =>
+            {
+                return reader.ReadInstance();
+            });
 
             Extension.Generic<Vector2>.SetWrite((ref Writer writer, Vector2 value) =>
             {
@@ -164,6 +192,14 @@ namespace Labyrinth
             Extension.Generic<Vector3Int>.SetWrite((ref Writer writer, Vector3Int value) =>
             {
                 writer.Write(value);
+            });
+            Extension.Generic<Vector3Int>.SetWrite((ref Writer writer, Vector3Int value) =>
+            {
+                writer.Write(value);
+            });
+            Extension.Generic<Instance>.SetWrite((ref Writer writer, Instance instance) =>
+            {
+                writer.WriteInstance(instance);
             });
         }
     }

@@ -9,12 +9,32 @@ using UnityEngine.Events;
 namespace Labyrinth
 {
     using Bolt;
-    using Background;
     using Lattice.Delivery;
+    using Labyrinth.Runtime;
+    using Labyrinth.Stations;
+    using Labyrinth.Collections;
+    using Labyrinth.Background;
 
     public static class Network
     {
-        private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>();
+        private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>()
+        {
+            [Flag.Connected] = new Flag(Flag.Connected, OnNetworkConnected),
+            [Flag.Disconnected] = new Flag(Flag.Disconnected, OnNetworkDisconnected),
+
+            [Lobby.Update] = new Flag(Objects.Link, Lobby.OnNetworkUpdate),
+
+            [Objects.Link] = new Flag(Objects.Link, Objects.OnNetworkLink),
+            [Objects.Reset] = new Flag(Objects.Link, Objects.OnNetworkReset),
+            [Objects.Modify] = new Flag(Objects.Modify, Objects.OnNetworkModify),
+
+            [Flags.Procedure] = new Flag(Flags.Procedure, Instance.OnNetworkProcedure),
+            [Flags.Signature] = new Flag(Flags.Signature, Instance.OnNetworkSignature),
+            [Flags.Loaded] = new Flag(Flags.Loaded, World.OnNetworkLoaded),
+            [Flags.Offloaded] = new Flag(Flags.Offloaded, World.OnNetworkOffloaded),
+            [Flags.Create] = new Flag(Flags.Create, Entity.OnNetworkCreate),
+            [Flags.Destroy] = new Flag(Flags.Destroy, Entity.OnNetworkDestory),
+        };
 
         public static bool Running => NetworkServer.Active || NetworkClient.Active;
 
@@ -29,7 +49,17 @@ namespace Labyrinth
             return (ref Writer writer) =>
             {
                 writer.Write(flag);
-                write?.Invoke(ref writer);
+
+                try
+                {
+                    write?.Invoke(ref writer);
+                }
+                catch(Exception e)
+                {
+                    /// if there was an exception thrown when writing or reading, 
+                    ///             it could affect the connection (the custom protcols)
+                    Debug.LogWarning(e);
+                }
             };
         }
 
@@ -47,6 +77,11 @@ namespace Labyrinth
                     Flag.Connected, (ref Writer writer) => writer.Write(c)));
             }
 
+            if (NetworkClient.Active)
+            {
+                Lobby.Entered(connection);
+            }
+
             connected.Invoke(socket, connection);
         }
 
@@ -59,19 +94,33 @@ namespace Labyrinth
                     Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
             }
 
+            if (NetworkClient.Active)
+            {
+                Lobby.Exited(connection);
+            }
+
             disconnected.Invoke(socket, connection);
         }
 
         internal static void Receive(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            byte flag = reader.Read();
-            /*Debug.Log($"Received {flag}");*/
-            if (m_callbacks.ContainsKey(flag))
+            try
             {
-                m_callbacks[flag].Callback(socket, connection, timestamp, ref reader);
-                return;
+                byte flag = reader.Read();
+                /*Debug.Log($"Received {flag}");*/
+                if (m_callbacks.ContainsKey(flag))
+                {
+                    m_callbacks[flag].Callback(socket, connection, timestamp, ref reader);
+                    return;
+                }
+                Debug.LogError($"Network received invalid flag [{flag}]");
             }
-            Debug.LogError($"Network received invalid flag [{flag}]");
+            catch (Exception e)
+            {
+                /// if there was an exception thrown when writing or reading, 
+                ///             it could affect the connection (the custom protcols)
+                Debug.LogWarning(e);
+            }
         }
 
         // add a custom callback for a network flag
@@ -158,23 +207,32 @@ namespace Labyrinth
             }
         }
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        public static void CustomWriter<T>(Extension.Generic<T>.Writing writing)
         {
-            Register(Flag.Connected, OnNetworkConnected);
-            Register(Flag.Disconnected, OnNetworkDisconnected);
+            Extension.Generic<T>.SetWrite(writing);
+        }
+
+        public static void CustomReader<T>(Extension.Generic<T>.Reading reading)
+        {
+            Extension.Generic<T>.SetRead(reading);
         }
 
         /// from server [to client] about new connections
         private static void OnNetworkConnected(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            connected.Invoke(connection, reader.ReadInt());
+            int client = reader.ReadInt();
+
+            Lobby.Entered(client);
+            connected.Invoke(connection, client);
         }
 
         /// from server [to client] about diconnections
         private static void OnNetworkDisconnected(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            disconnected.Invoke(connection, reader.ReadInt());
+            int client = reader.ReadInt();
+
+            Lobby.Exited(client);
+            disconnected.Invoke(connection, client);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Labyrinth.Runtime
     using Bolt;
 
     [DisallowMultipleComponent]
-    public class Instance : MonoBehaviour
+    public abstract class Instance : MonoBehaviour
     {
         private class Container
         {

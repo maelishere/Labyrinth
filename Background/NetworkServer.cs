@@ -47,6 +47,7 @@ namespace Labyrinth.Background
             {
                 Network.terminating.Invoke(n_server.Listen);
                 m_connections.Clear();
+
                 /*n_server.Close();*/
                 n_server = null;
             }
@@ -83,19 +84,21 @@ namespace Labyrinth.Background
             }
         }
 
-        private static void Remove(int connection)
+        private static void Outgoing(int connection)
         {
             if (m_connections.Remove(connection))
             {
+                NetworkStream.Outgoing(connection);
                 Network.Outgoing(n_server.Listen, connection);
             }
         }
 
-        private static void Add(int connection)
+        private static void Incoming(int connection)
         {
             if (m_connections.Add(connection))
             {
                 // new connection
+                NetworkStream.Incoming(connection);
                 Network.Incoming(n_server.Listen, connection);
             }
         }
@@ -107,7 +110,7 @@ namespace Labyrinth.Background
                 case Error.Send:
                 case Error.Recieve:
                 case Error.Timeout:
-                    Remove(connection);
+                    Outgoing(connection);
                     break;
             }
         }
@@ -118,10 +121,10 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    Add(connection);
+                    Incoming(connection);
                     break;
                 case Request.Disconnect:
-                    Remove(connection);
+                    Outgoing(connection);
                     break;
             }
         }
@@ -136,10 +139,10 @@ namespace Labyrinth.Background
                     break;
                 case Request.Connect:
                     // reconnection
-                    Add(connection);
+                    Incoming(connection);
                     break;
                 case Request.Disconnect:
-                    Remove(connection);
+                    Outgoing(connection);
                     break;
             }
         }

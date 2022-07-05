@@ -78,5 +78,15 @@ namespace Labyrinth
         {
             return instance.Value != value;
         }
+
+        public static implicit operator int(Identity identity)
+        {
+            return identity.Value;
+        }
+
+        public static implicit operator Identity(int value)
+        {
+            return new Identity(value);
+        }
     }
 }

@@ -82,6 +82,8 @@ namespace Labyrinth.Background
             if (!UnityEditor.EditorApplication.isPlaying)
                 return;
 #endif
+            NetworkStream.Process();
+
             NetworkServer.Update();
             NetworkClient.Update();
 
