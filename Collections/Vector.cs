@@ -25,7 +25,7 @@ namespace Labyrinth.Collections
             {
                 if (IsReadOnly)
                 {
-                    throw new InvalidOperationException("Network collection can only be modified at the server");
+                    throw new InvalidOperationException("Network collection can only be modified by the server");
                 }
 
                 if (!_comparer.Equals(value, m_reference[index]))
