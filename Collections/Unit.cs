@@ -109,34 +109,43 @@ namespace Labyrinth.Collections
         internal void Copy(ref Writer writer)
         {
             m_count = 0;
-            while (m_changes.Count > 0)
+            if (m_changes.Count > 0)
             {
-                Change state = m_changes.Dequeue();
-                writer.Write(state.Operation);
-                state.Callback?.Invoke(ref writer);
+                writer.Write(m_changes.Count);
+                do
+                {
+                    Change state = m_changes.Dequeue();
+                    writer.Write(state.Operation);
+                    state.Callback?.Invoke(ref writer);
+                } while (m_changes.Count > 0);
             }
         }
 
         internal void Paste(ref Reader reader)
         {
-            Operation operation = reader.ReadOperation();
-            if (operation.Step > m_steps)
+            int count = reader.ReadInt();
+            while(count > 0)
             {
-                // add to pending
-                // i need to know how big the state of the operation is
-            }
-            else if (operation.Step == m_steps)
-            {
-                Replicate(operation.Action, ref reader);
-                if (m_pending.Count > 0)
+                Operation operation = reader.ReadOperation();
+                if (operation.Step > m_steps)
                 {
-                    while (m_pending.ContainsKey(m_steps))
+                    // add to pending
+                    // i need to know how big the state of the operation is
+                }
+                else if (operation.Step == m_steps)
+                {
+                    Replicate(operation.Action, ref reader);
+                    if (m_pending.Count > 0)
                     {
-                        // 
-                        /*Replicate();*/
-                        m_steps++;
+                        while (m_pending.ContainsKey(m_steps))
+                        {
+                            // 
+                            /*Replicate();*/
+                            m_steps++;
+                        }
                     }
                 }
+                count--;
             }
         }
 

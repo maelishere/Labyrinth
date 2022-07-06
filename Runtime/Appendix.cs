@@ -30,7 +30,7 @@ namespace Labyrinth.Runtime
         public int authority => n_network.authority.Value;
         public bool owner => Network.Authority(authority);
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevancy relevancy, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevancy relevancy, Func<T> get, Action<T> set) where T : struct
         {
             return n_network.Register(n_offset,
                 new Signature(signature, rate, control, relevancy,
@@ -47,19 +47,19 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Layers layers, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Layers layers, Func<T> get, Action<T> set) where T : struct
         {
             return Var(signature, rate, control, new Relevancy(relevance, layers), get, set);
         }
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Func<T> get, Action<T> set) where T : struct
         {
             return Var(signature, rate, control, new Relevancy(relevance), get, set);
         }
 
-        public bool Var<T>(byte signature, Variable variable, Func<T> get, Action<T> set)
+        public bool Var<T>(byte signature, Variable variable, Func<T> get, Action<T> set) where T : struct
         {
-            return Var<T>(signature, variable.Rate, variable.Control, variable.Relevancy, get, set);
+            return Var(signature, variable.Rate, variable.Control, variable.Relevancy, get, set);
         }
 
         public bool Method(byte procedure, Procedure.Rule control, Relevancy relevancy, Action method)

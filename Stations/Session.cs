@@ -23,6 +23,11 @@ namespace Labyrinth.Stations
 
         }
 
+        public static int Create<T>() where T : IMachine
+        {
+            throw new NotImplementedException();
+        }
+
         internal static void OnNetworkUpdate(int socket, int connection, uint timestamp, ref Reader reader)
         {
             throw new NotImplementedException();

@@ -8,7 +8,7 @@ namespace Labyrinth.Collections
 
     // Objects that need to be synced over the netork
     //      uses irrgeular channel
-    //      only classes (static or non-static instances)
+    //      only use for class memebers (static or non-static instances)
     //      doesn't require using network instance
     public static class Objects
     {
@@ -96,7 +96,10 @@ namespace Labyrinth.Collections
                 foreach (var callback in m_callbacks)
                 {
                     /*callback.Value.Copy*/
-                    // send changes to clients (Modifiy)
+                    foreach (var connection in m_listeners[callback.Key])
+                    {
+                        // send changes to clients (Modifiy)
+                    }
                 }
             }
         }
