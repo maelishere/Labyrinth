@@ -33,7 +33,8 @@ namespace Labyrinth.Collections
         }
 
         private static readonly Dictionary<long, Callbacks> m_callbacks = new Dictionary<long, Callbacks>();
-        private static readonly Dictionary<int, HashSet<long>> m_query = new Dictionary<int, HashSet<long>>(); /*the objects each client is looking for*/
+        private static readonly Dictionary<int, HashSet<long>> m_queries = new Dictionary<int, HashSet<long>>(); /*the objects each client is looking for*/
+        private static readonly Dictionary<long, HashSet<int>> m_listeners = new Dictionary<long, HashSet<int>>(); /*the clients that have created each object*/
 
         // index id for an instance (clone) of a class (for static classes 0)
         // offset differentiates between each unit within an instance
@@ -42,9 +43,11 @@ namespace Labyrinth.Collections
             long idenitifier = Generate(typeof(T).FullName.Hash(), index, offset);
             if (!m_callbacks.ContainsKey(idenitifier))
             {
+                m_listeners.Add(idenitifier, new HashSet<int>());
                 m_callbacks.Add(idenitifier, new Callbacks(unit.Clone, unit.Apply, unit.Copy, unit.Paste));
                 unit.destructor = () =>
                 {
+                    m_listeners.Remove(idenitifier);
                     m_callbacks.Remove(idenitifier);
                 };
                 if (NetworkClient.Active)
@@ -56,14 +59,47 @@ namespace Labyrinth.Collections
             return false;
         }
 
+        internal static void Connected(int connection)
+        {
+            m_queries.Add(connection, new HashSet<long>());
+        }
+
+        internal static void Disconnected(int connection)
+        {
+            m_queries.Remove(connection);
+        }
+
         internal static void Update()
         {
             if (NetworkServer.Active)
             {
+                HashSet<long> found = new HashSet<long>();
+                foreach(var query in m_queries)
+                {
+                    foreach (var identifier in query.Value)
+                    {
+                        if (m_callbacks.ContainsKey(identifier))
+                        {
+                            found.Add(identifier);
+                            m_listeners[identifier].Add(query.Key);
+                            /*callback.Value.Clone*/
+                            // send duplicate to client (Link)
+                        }
+                    }
+
+                    foreach (var identifier in found)
+                    {
+                        if (m_callbacks.ContainsKey(identifier))
+                        {
+                            query.Value.Remove(identifier);
+                        }
+                    }
+                }
+
                 foreach (var callback in m_callbacks)
                 {
                     /*callback.Value.Copy*/
-                    // send to changes to clients
+                    // send changes to clients (Modifiy)
                 }
             }
         }

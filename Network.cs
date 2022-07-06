@@ -75,11 +75,15 @@ namespace Labyrinth
                 NetworkServer.Each((a) => a != connection,
                     (c) => Forward(connection, Channels.Ordered,
                     Flag.Connected, (ref Writer writer) => writer.Write(c)));
+
+                Session.Entered(connection);
+                Objects.Connected(connection);
             }
 
             if (NetworkClient.Active)
             {
-                Session.Entered(connection);
+                // we joined the server
+                Session.Entered(socket);
             }
 
             connected.Invoke(socket, connection);
@@ -92,11 +96,14 @@ namespace Labyrinth
                 /// tell ever client someone disconnected
                 Forward((c) => c != connection, Channels.Ordered,
                     Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
+
+                Session.Exited(connection);
+                Objects.Disconnected(connection);
             }
 
             if (NetworkClient.Active)
             {
-                Session.Exited(connection);
+                Session.Exited(socket);
             }
 
             disconnected.Invoke(socket, connection);

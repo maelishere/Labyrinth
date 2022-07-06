@@ -21,7 +21,6 @@ namespace Labyrinth
             return ((a << 16) | (b));
         }
 
-
         // FNV Hash (gcc optimization: 32 bit FNV-1a)
         // url: http://www.isthe.com/chongo/tech/comp/fnv/index.html
         internal static uint Hash(this string value)

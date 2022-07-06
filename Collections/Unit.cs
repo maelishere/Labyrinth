@@ -9,7 +9,7 @@ namespace Labyrinth.Collections
     // Base class for all collections types
     public abstract class Unit
     {
-        private uint m_steps = 0/*total number of changes*/, m_count = 0/*number of changes seen last network copy*/;
+        private uint m_steps = 0/*total number of changes*/, m_count = 0/*number of changes since last network copy*/;
         private readonly Queue<Change> m_changes = new Queue<Change>();
         private readonly Dictionary<uint, Reader> m_pending = new Dictionary<uint, Reader>();
 
