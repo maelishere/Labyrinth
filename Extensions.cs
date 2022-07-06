@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Security.Cryptography;
 
 namespace Labyrinth
 {
@@ -9,15 +10,33 @@ namespace Labyrinth
     public static class Extensions
     {
         /// inserts a into the frist 8 bits of a short and b into the last 8
-        public static short Combine(this byte a, byte b)
+        internal static short Combine(this byte a, byte b)
         {
             return (short)((a << 8) | (b));
         }
 
         /// inserts a into the frist 16 bits of an int and b into the last 16
-        public static int Combine(this ushort a, ushort b)
+        internal static int Combine(this ushort a, ushort b)
         {
             return ((a << 16) | (b));
+        }
+
+
+        // FNV Hash (gcc optimization: 32 bit FNV-1a)
+        // url: http://www.isthe.com/chongo/tech/comp/fnv/index.html
+        internal static uint Hash(this string value)
+        {
+            uint hash = 0x01000193; //16777619
+            foreach (char c in value)
+            {
+                /* xor the bottom with the current octet */
+                hash ^= c;
+
+                /* multiply by the 64 bit FNV magic prime mod 2^32 */
+                /*hash *= 0x01000193; same as:*/
+                hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+            }
+            return hash;
         }
 
         public static Vector2 ReadVector2(this Reader reader)

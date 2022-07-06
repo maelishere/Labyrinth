@@ -22,10 +22,8 @@ namespace Labyrinth
             [Flag.Connected] = new Flag(Flag.Connected, OnNetworkConnected),
             [Flag.Disconnected] = new Flag(Flag.Disconnected, OnNetworkDisconnected),
 
-            [Sessions.Update] = new Flag(Objects.Link, Sessions.OnNetworkUpdate),
-
+            [Objects.Find] = new Flag(Objects.Link, Objects.OnNetworkFind),
             [Objects.Link] = new Flag(Objects.Link, Objects.OnNetworkLink),
-            [Objects.Reset] = new Flag(Objects.Link, Objects.OnNetworkReset),
             [Objects.Modify] = new Flag(Objects.Modify, Objects.OnNetworkModify),
 
             [Flags.Procedure] = new Flag(Flags.Procedure, Instance.OnNetworkProcedure),
@@ -34,6 +32,8 @@ namespace Labyrinth
             [Flags.Offloaded] = new Flag(Flags.Offloaded, World.OnNetworkOffloaded),
             [Flags.Create] = new Flag(Flags.Create, Entity.OnNetworkCreate),
             [Flags.Destroy] = new Flag(Flags.Destroy, Entity.OnNetworkDestory),
+
+            [Session.Update] = new Flag(Objects.Link, Session.OnNetworkUpdate),
         };
 
         public static bool Running => NetworkServer.Active || NetworkClient.Active;
@@ -79,7 +79,7 @@ namespace Labyrinth
 
             if (NetworkClient.Active)
             {
-                Sessions.Entered(connection);
+                Session.Entered(connection);
             }
 
             connected.Invoke(socket, connection);
@@ -96,7 +96,7 @@ namespace Labyrinth
 
             if (NetworkClient.Active)
             {
-                Sessions.Exited(connection);
+                Session.Exited(connection);
             }
 
             disconnected.Invoke(socket, connection);
@@ -230,7 +230,7 @@ namespace Labyrinth
         {
             int client = reader.ReadInt();
 
-            Sessions.Entered(client);
+            Session.Entered(client);
             connected.Invoke(connection, client);
         }
 
@@ -239,7 +239,7 @@ namespace Labyrinth
         {
             int client = reader.ReadInt();
 
-            Sessions.Exited(client);
+            Session.Exited(client);
             disconnected.Invoke(connection, client);
         }
     }

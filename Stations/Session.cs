@@ -7,9 +7,9 @@ namespace Labyrinth.Stations
 
     // state machine mamanger of current session
     //      [important] the current aivities/states in game/evironment
-    public static class Sessions
+    public static class Session
     {
-        public const byte Update = 13;
+        public const byte Update = 12;
 
         private static readonly Dictionary<int, IMachine> m_statemachines = new Dictionary<int, IMachine>();
 

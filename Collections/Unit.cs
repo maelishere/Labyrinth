@@ -7,15 +7,11 @@ namespace Labyrinth.Collections
     using Labyrinth.Background;
 
     // Base class for all collections types
-    //      uses irrgeular channel
-    //      mostly for static classes
-    //      using network instance, can't use instance identity (mutiple appendices would collide)
-    //      (Extensions.Combine + Identity.Unique) not sure how that would work yet
     public abstract class Unit
     {
-        private uint m_counter = 0;
+        private uint m_steps = 0/*total number of changes*/, m_count = 0/*number of changes seen last network copy*/;
         private readonly Queue<Change> m_changes = new Queue<Change>();
-        private readonly SortedDictionary<uint, Reader> m_pending = new SortedDictionary<uint, Reader>();
+        private readonly Dictionary<uint, Reader> m_pending = new Dictionary<uint, Reader>();
 
         internal System.Action destructor { get; set; }
 
@@ -36,35 +32,53 @@ namespace Labyrinth.Collections
         protected void Change(bool additive, Action action)
         {
             if (!additive)
+            {
                 m_changes.Clear();
+                m_steps -= m_count;
+                m_count = 0;
+            }
 
-            m_changes.Enqueue(new Change(m_counter, action, null));
+            m_changes.Enqueue(new Change(m_steps, action, null));
 
             if (additive)
-                m_counter++;
+            {
+                m_steps++;
+                m_count++;
+            }
         }
 
         protected void Change<I>(bool additive, Action action, I arg)
         {
             if (!additive)
+            {
                 m_changes.Clear();
+                m_steps -= m_count;
+                m_count = 0;
+            }
 
-            m_changes.Enqueue(new Change(m_counter, action,
+            m_changes.Enqueue(new Change(m_steps, action,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg);
                 }));
 
             if (additive)
-                m_counter++;
+            {
+                m_steps++;
+                m_count++;
+            }
         }
 
         protected void Change<I, T>(bool additive, Action action, I arg1, T arg2)
         {
             if (!additive)
+            {
                 m_changes.Clear();
+                m_steps -= m_count;
+                m_count = 0;
+            }
 
-            m_changes.Enqueue(new Change(m_counter, action,
+            m_changes.Enqueue(new Change(m_steps, action,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -72,25 +86,29 @@ namespace Labyrinth.Collections
                 }));
 
             if (additive)
-                m_counter++;
+            {
+                m_steps++;
+                m_count++;
+            }
         }
 
         // for new clients connections
         internal void Clone(ref Writer writer)
         {
-            writer.Write(m_counter);
+            writer.Write(m_steps);
             Serialize(ref writer);
         }
 
         internal void Apply(ref Reader reader)
         {
-            m_counter = reader.ReadUInt();
+            m_steps = reader.ReadUInt();
             Deserialize(ref reader);
         }
 
         // for clients already connected
         internal void Copy(ref Writer writer)
         {
+            m_count = 0;
             while (m_changes.Count > 0)
             {
                 Change state = m_changes.Dequeue();
@@ -102,21 +120,21 @@ namespace Labyrinth.Collections
         internal void Paste(ref Reader reader)
         {
             Operation operation = reader.ReadOperation();
-            if (operation.Step > m_counter)
+            if (operation.Step > m_steps)
             {
                 // add to pending
                 // i need to know how big the state of the operation is
             }
-            else if (operation.Step == m_counter)
+            else if (operation.Step == m_steps)
             {
                 Replicate(operation.Action, ref reader);
                 if (m_pending.Count > 0)
                 {
-                    while (m_pending.ContainsKey(m_counter))
+                    while (m_pending.ContainsKey(m_steps))
                     {
                         // 
                         /*Replicate();*/
-                        m_counter++;
+                        m_steps++;
                     }
                 }
             }
@@ -125,7 +143,7 @@ namespace Labyrinth.Collections
         private void Replicate(Action action, ref Reader reader)
         {
             Deserialize(action, ref reader);
-            m_counter++;
+            m_steps++;
         }
 
         protected abstract void Serialize(ref Writer writer);

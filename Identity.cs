@@ -38,7 +38,7 @@ namespace Labyrinth
 
         public override int GetHashCode()
         {
-            return Value.GetHashCode();
+            return base.GetHashCode();
         }
 
         public override string ToString()

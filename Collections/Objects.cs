@@ -4,13 +4,17 @@ using System.Collections.Generic;
 namespace Labyrinth.Collections
 {
     using Bolt;
+    using Labyrinth.Background;
 
+    // Objects that need to be synced over the netork
+    //      uses irrgeular channel
+    //      only classes (static or non-static instances)
+    //      doesn't require using network instance
     public static class Objects
     {
         public const byte Find = 9;
         public const byte Link = 10;
-        public const byte Reset = 11;
-        public const byte Modify = 12;
+        public const byte Modify = 11;
 
         public struct Callbacks
         {
@@ -28,15 +32,14 @@ namespace Labyrinth.Collections
             public Read Paste { get; }
         }
 
-        private static readonly Dictionary<int, Callbacks> m_callbacks = new Dictionary<int, Callbacks>();
+        private static readonly Dictionary<long, Callbacks> m_callbacks = new Dictionary<long, Callbacks>();
+        private static readonly Dictionary<int, HashSet<long>> m_query = new Dictionary<int, HashSet<long>>(); /*the objects each client is looking for*/
 
-        public static void Duplicate(int idenitifier)
+        // index id for an instance (clone) of a class (for static classes 0)
+        // offset differentiates between each unit within an instance
+        public static bool Register<T>(ushort index, ushort offset, Unit unit) where T : class
         {
-            
-        }
-
-        public static bool Register<T>(int idenitifier, T unit) where T : Unit
-        {
+            long idenitifier = Generate(typeof(T).FullName.Hash(), index, offset);
             if (!m_callbacks.ContainsKey(idenitifier))
             {
                 m_callbacks.Add(idenitifier, new Callbacks(unit.Clone, unit.Apply, unit.Copy, unit.Paste));
@@ -44,6 +47,10 @@ namespace Labyrinth.Collections
                 {
                     m_callbacks.Remove(idenitifier);
                 };
+                if (NetworkClient.Active)
+                {
+                    // send find to server
+                }
                 return true;
             }
             return false;
@@ -51,22 +58,52 @@ namespace Labyrinth.Collections
 
         internal static void Update()
         {
-
+            if (NetworkServer.Active)
+            {
+                foreach (var callback in m_callbacks)
+                {
+                    /*callback.Value.Copy*/
+                    // send to changes to clients
+                }
+            }
         }
 
+        // from client to server
+        internal static void OnNetworkFind(int socket, int connection, uint timestamp, ref Reader reader)
+        {
+            throw new NotImplementedException();
+        }
+
+        // from server to clients
         internal static void OnNetworkLink(int socket, int connection, uint timestamp, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        internal static void OnNetworkReset(int socket, int connection, uint timestamp, ref Reader reader)
+        // from server to clients
+        internal static void OnNetworkModify(int socket, int connection, uint timestamp, ref Reader reader)
         {
             throw new NotImplementedException();
         }
 
-        internal static void OnNetworkModify(int socket, int connection, uint timestamp, ref Reader reader)
+        private static long Generate(uint instance, ushort index, ushort offset)
         {
-            throw new NotImplementedException();
+            return Combine(instance, Combine(index, offset));
+        }
+
+        /// inserts a into the frist 16 bits of a uint and b into the last 32
+        private static uint Combine(ushort a, ushort b)
+        {
+            uint value = a;
+            value <<= 16;
+            value |= b;
+            return value;
+        }
+
+        /// inserts a into the frist 32 bits of a long and b into the last 32
+        private static long Combine(uint a, uint b)
+        {
+            return (((long)a << 32) | (b));
         }
     }
 }

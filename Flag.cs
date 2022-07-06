@@ -2,6 +2,8 @@
 {
     using Bolt;
 
+    /// please don't mistake this for a bit mask flags
+    /// sometimes you should point out the obvious
     public struct Flag : IIdentifier<byte>
     {
         public const byte Connected = 1;
