@@ -89,10 +89,7 @@ namespace Labyrinth.Collections
 
                     foreach (var identifier in found)
                     {
-                        if (m_callbacks.ContainsKey(identifier))
-                        {
-                            query.Value.Remove(identifier);
-                        }
+                        query.Value.Remove(identifier);
                     }
                 }
 
