@@ -39,8 +39,9 @@ namespace Labyrinth.Runtime
             }
         }
 
-        private void Start()
+        protected override void  Start()
         {
+            base.Start();
             if (Find(n_world, out World world))
             {
                 world.n_entities.Add(identity.Value);

@@ -76,6 +76,9 @@ namespace Labyrinth.Background
             if (!UnityEditor.EditorApplication.isPlaying)
                 return;
 #endif
+            if (!Network.Running)
+                return;
+
             NetworkServer.Receive();
             NetworkClient.Receive();
 
@@ -88,6 +91,9 @@ namespace Labyrinth.Background
             if (!UnityEditor.EditorApplication.isPlaying)
                 return;
 #endif
+            if (!Network.Running)
+                return;
+
             LateUpdate?.Invoke();
 
             NetworkStream.Process();

@@ -36,8 +36,9 @@ namespace Labyrinth.Runtime
             }
         }
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
             if (Central.n_instance)
             {
                 if (!Central.n_instance.NetworkScene(n_active))

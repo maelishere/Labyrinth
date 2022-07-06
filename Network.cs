@@ -94,21 +94,14 @@ namespace Labyrinth
 
         internal static void Receive(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            try
+            byte flag = reader.Read();
+            /*Debug.Log($"Received {flag}");*/
+            if (m_callbacks.ContainsKey(flag))
             {
-                byte flag = reader.Read();
-                /*Debug.Log($"Received {flag}");*/
-                if (m_callbacks.ContainsKey(flag))
-                {
-                    m_callbacks[flag].Callback(socket, connection, timestamp, ref reader);
-                    return;
-                }
-                Debug.LogError($"Network received invalid flag [{flag}]");
+                m_callbacks[flag].Callback(socket, connection, timestamp, ref reader);
+                return;
             }
-            catch (Exception e)
-            {
-                Debug.LogWarning(e);
-            }
+            Debug.LogError($"Network received invalid flag [{flag}]");
         }
 
         // add a custom callback for a network flag

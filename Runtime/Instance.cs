@@ -2,12 +2,12 @@
 
 using System;
 using System.Diagnostics;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
 {
     using Bolt;
+    using Labyrinth.Background;
 
     [DisallowMultipleComponent]
     public abstract class Instance : MonoBehaviour
@@ -15,10 +15,25 @@ namespace Labyrinth.Runtime
         private class Container
         {
             public int Next = 0;
-            public int Wait = 0;
             public uint Last = 0;
-            public bool Sync = false;
-            public Write Write = null;
+
+            public Container()
+            {
+                Sync = false;
+                Send = null;
+                Wait = 0;
+            }
+
+            public Container(Action send, int wait)
+            {
+                Send = send;
+                Wait = wait;
+                Sync = true;
+            }
+
+            public Action Send { get; }
+            public int Wait { get; }
+            public bool Sync { get; }
 
             public void Post(int time)
             {
@@ -26,23 +41,21 @@ namespace Labyrinth.Runtime
             }
         }
 
-        private static Dictionary<int, Instance> m_instances = new Dictionary<int, Instance>();
+        private static readonly Stopwatch m_stopwatch = new Stopwatch();
+        private static readonly Dictionary<int, Instance> m_instances = new Dictionary<int, Instance>();
 
         private Appendix[] m_appendices;
 
-        private Dictionary<ushort, Container> m_synchronous = new Dictionary<ushort, Container>();
+        private readonly Dictionary<ushort, Container> m_synchronous = new Dictionary<ushort, Container>();
         private readonly Dictionary<ushort, Signature> m_signatures = new Dictionary<ushort, Signature>();
         private readonly Dictionary<ushort, Procedure> m_procedures = new Dictionary<ushort, Procedure>();
 
-        private readonly Stopwatch m_stopwatch = new Stopwatch();
 
         public Identity identity { get; private set; }
         public Identity authority { get; private set; }
 
         protected virtual void Awake()
         {
-            m_stopwatch.Start();
-
             m_appendices = GetComponentsInChildren<Appendix>();
             for (int i = 0; i < m_appendices.Length; i++)
             {
@@ -53,59 +66,9 @@ namespace Labyrinth.Runtime
             }
         }
 
-        private void Update()
+        protected virtual void Start()
         {
-            int time = (int)m_stopwatch.ElapsedMilliseconds;
-            if (Network.Running)
-            {
-                foreach (var signature in m_signatures)
-                {
-                    if (Signature.Valid(authority.Value, signature.Value.Control))
-                    {
-                        if (time >= m_synchronous[signature.Key].Next)
-                        {
-                            switch (signature.Value.Control)
-                            {
-                                case Signature.Rule.Round:
-                                    if (Network.Internal(Host.Server))
-                                    {
-                                        // send to all relavant connection including authority
-                                        Central.Relavant(transform.position, signature.Value.Relevancy,
-                                            (a) => true, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, m_synchronous[signature.Key].Write));
-                                    }
-                                    if (Network.Internal(Host.Client))
-                                    {
-                                        // [Client] send to server
-                                        Network.Forward(Channels.Direct, Flags.Signature, m_synchronous[signature.Key].Write);
-                                    }
-                                    break;
-                                case Signature.Rule.Server:
-                                    if (Network.Internal(Host.Server))
-                                    {
-                                        // send to all relavant connection overriding authority
-                                        Central.Relavant(transform.position, signature.Value.Relevancy,
-                                            (a) => true, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, m_synchronous[signature.Key].Write));
-                                    }
-                                    break;
-                                case Signature.Rule.Authority:
-                                    if (Network.Internal(Host.Server))
-                                    {
-                                        // send to all relavant connection excluding authority
-                                        Central.Relavant(transform.position, signature.Value.Relevancy,
-                                            (a) => a != authority.Value, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, m_synchronous[signature.Key].Write));
-                                    }
-                                    if (Network.Internal(Host.Client))
-                                    {
-                                        // [Client] send to server
-                                        Network.Forward(Channels.Direct, Flags.Signature, m_synchronous[signature.Key].Write);
-                                    }
-                                    break;
-                            }
-                            m_synchronous[signature.Key].Post(time);
-                        }
-                    }
-                }
-            }
+            Synchronous(authority.Value);
         }
 
         internal bool Create(int identifier, int connection)
@@ -115,10 +78,85 @@ namespace Labyrinth.Runtime
                 identity = new Identity(identifier);
                 authority = new Identity(connection);
                 m_instances.Add(identifier, this);
+
                 /*Debug.Log($"Created Instance[{identifier}] authority: Host({authority.Value})");*/
                 return true;
             }
             return false;
+        }
+
+        private void Synchronous(int connection)
+        {
+            foreach (var signature in m_signatures)
+            {
+                Container container = null;
+                if (Signature.Valid(connection, signature.Value.Control))
+                {
+                    Write message = (ref Writer writer) =>
+                    {
+                        writer.WriteSync(identity.Value, signature.Key);
+                        signature.Value.Sending(ref writer);
+                    };
+
+                    // if callback is still null before add, something is wrong
+                    Action callback = null;
+
+                    switch (signature.Value.Control)
+                    {
+                        case Signature.Rule.Round:
+                            if (Network.Internal(Host.Server))
+                            {
+                                // send to all relavant connection including authority
+                                callback = () =>
+                                {
+                                    Central.Relavant(transform.position, signature.Value.Relevancy,
+                                        (a) => true, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, message));
+                                };
+                            }
+                            if (Network.Internal(Host.Client))
+                            {
+                                // [Client] send to server
+                                callback = () =>
+                                {
+                                    Network.Forward(Channels.Direct, Flags.Signature, message);
+                                };
+                            }
+                            break;
+                        case Signature.Rule.Server:
+                            if (Network.Internal(Host.Server))
+                            {
+                                // send to all relavant connection overriding authority
+                                callback = () =>
+                                {
+                                    Central.Relavant(transform.position, signature.Value.Relevancy,
+                                        (a) => true, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, message));
+                                };
+                            }
+                            break;
+                        case Signature.Rule.Authority:
+                            if (Network.Internal(Host.Server))
+                            {
+                                // send to all relavant connection excluding authority
+                                callback = () =>
+                                {
+                                    Central.Relavant(transform.position, signature.Value.Relevancy,
+                                        (a) => a != authority.Value, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, message));
+                                };
+                            }
+                            if (Network.Internal(Host.Client))
+                            {
+                                // [Client] send to server
+                                callback = () =>
+                                {
+                                    Network.Forward(Channels.Direct, Flags.Signature, message);
+                                };
+                            }
+                            break;
+                    }
+                    container = new Container(callback, (1000 / signature.Value.Rate));
+                }
+                m_synchronous.Add(signature.Key, container ?? new Container());
+            }
         }
 
         internal bool Destroy()
@@ -135,14 +173,6 @@ namespace Labyrinth.Runtime
             if (!m_signatures.ContainsKey(key))
             {
                 m_signatures.Add(key, signature);
-                Container container = new Container();
-                container.Wait = 1000 / signature.Rate;
-                container.Write = (ref Writer writer) =>
-                {
-                    writer.WriteSync(identity.Value, key);
-                    signature.Sending(ref writer);
-                };
-                m_synchronous.Add(key, container);
                 return true;
             }
             return false;
@@ -194,13 +224,36 @@ namespace Labyrinth.Runtime
             }
         }
 
-        public static Identity Unique()
+        private static void NetworkStartup(int socket)
         {
-            return Identity.Generate(
-                (int value) =>
+            m_stopwatch.Reset();
+            m_stopwatch.Start();
+        }
+
+        private static void NetworkReset(int socket)
+        {
+            m_stopwatch.Stop();
+            m_instances.Clear();
+        }
+
+        private static void NetworkUpdate()
+        {
+            int time = (int)m_stopwatch.ElapsedMilliseconds;
+            foreach (var instance in m_instances)
+            {
+                foreach (var signature in instance.Value.m_synchronous)
                 {
-                    return m_instances.ContainsKey(value) && (Central.n_instance?.NetworkScene(value) ?? true);
-                });
+                    if (signature.Value.Sync)
+                    {
+                        if (time >= signature.Value.Next)
+                        {
+                            // if send is null, something is wrong
+                            signature.Value.Send();
+                            signature.Value.Post(time);
+                        }
+                    }
+                }
+            }
         }
 
         internal static void OnNetworkProcedure(int socket, int connection, uint timestamp, ref Reader reader)
@@ -265,7 +318,7 @@ namespace Labyrinth.Runtime
             {
                 Instance instance = m_instances[sync.Identity];
                 /*Debug.Log($"Found Instance({sync.Identity})");*/
-                if (instance.m_signatures.ContainsKey(sync.Signature))
+                if (instance.m_signatures.ContainsKey(sync.Signature) && instance.m_synchronous.ContainsKey(sync.Signature))
                 {
                     /*Debug.Log($"Found Sync({sync.Signature})");*/
 
@@ -315,6 +368,22 @@ namespace Labyrinth.Runtime
                 }
             }
             return instances.ToArray();
+        }
+
+        public static Identity Unique()
+        {
+            return Identity.Generate(
+                (int value) =>
+                {
+                    return m_instances.ContainsKey(value) && (Central.n_instance?.NetworkScene(value) ?? true);
+                });
+        }
+
+        static Instance()
+        {
+            NetworkLoop.LateUpdate += NetworkUpdate;
+            Network.initialized.AddListener(NetworkStartup);
+            Network.terminating.AddListener(NetworkReset);
         }
     }
 }
