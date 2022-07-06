@@ -12,7 +12,7 @@ namespace Labyrinth.Background
 
         public Batch()
         {
-            m_current = new Writer();
+            m_current = new Writer(1024);
         }
 
         public void Queue()
@@ -20,7 +20,7 @@ namespace Labyrinth.Background
             if (m_current.Current > 0)
             {
                 Enqueue(m_current);
-                m_current = new Writer();
+                m_current = new Writer(1024);
             }
         }
 

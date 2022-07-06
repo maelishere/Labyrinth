@@ -11,7 +11,6 @@ namespace Labyrinth
     using Bolt;
     using Lattice.Delivery;
     using Labyrinth.Runtime;
-    using Labyrinth.Stations;
     using Labyrinth.Collections;
     using Labyrinth.Background;
 
@@ -31,9 +30,7 @@ namespace Labyrinth
             [Flags.Loaded] = new Flag(Flags.Loaded, World.OnNetworkLoaded),
             [Flags.Offloaded] = new Flag(Flags.Offloaded, World.OnNetworkOffloaded),
             [Flags.Create] = new Flag(Flags.Create, Entity.OnNetworkCreate),
-            [Flags.Destroy] = new Flag(Flags.Destroy, Entity.OnNetworkDestory),
-
-            [Session.Update] = new Flag(Objects.Link, Session.OnNetworkUpdate),
+            [Flags.Destroy] = new Flag(Flags.Destroy, Entity.OnNetworkDestory)
         };
 
         public static bool Running => NetworkServer.Active || NetworkClient.Active;
@@ -49,17 +46,7 @@ namespace Labyrinth
             return (ref Writer writer) =>
             {
                 writer.Write(flag);
-
-                try
-                {
-                    write?.Invoke(ref writer);
-                }
-                catch(Exception e)
-                {
-                    /// if there was an exception thrown when writing or reading, 
-                    ///             it could affect the connection (the custom protcols)
-                    Debug.LogWarning(e);
-                }
+                write?.Invoke(ref writer);
             };
         }
 
@@ -76,14 +63,12 @@ namespace Labyrinth
                     (c) => Forward(connection, Channels.Ordered,
                     Flag.Connected, (ref Writer writer) => writer.Write(c)));
 
-                Session.Entered(connection);
                 Objects.Connected(connection);
             }
 
             if (NetworkClient.Active)
             {
                 // we joined the server
-                Session.Entered(socket);
             }
 
             connected.Invoke(socket, connection);
@@ -97,13 +82,11 @@ namespace Labyrinth
                 Forward((c) => c != connection, Channels.Ordered,
                     Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
 
-                Session.Exited(connection);
                 Objects.Disconnected(connection);
             }
 
             if (NetworkClient.Active)
             {
-                Session.Exited(socket);
             }
 
             disconnected.Invoke(socket, connection);
@@ -124,8 +107,6 @@ namespace Labyrinth
             }
             catch (Exception e)
             {
-                /// if there was an exception thrown when writing or reading, 
-                ///             it could affect the connection (the custom protcols)
                 Debug.LogWarning(e);
             }
         }
@@ -236,8 +217,6 @@ namespace Labyrinth
         private static void OnNetworkConnected(int socket, int connection, uint timestamp, ref Reader reader)
         {
             int client = reader.ReadInt();
-
-            Session.Entered(client);
             connected.Invoke(connection, client);
         }
 
@@ -245,8 +224,6 @@ namespace Labyrinth
         private static void OnNetworkDisconnected(int socket, int connection, uint timestamp, ref Reader reader)
         {
             int client = reader.ReadInt();
-
-            Session.Exited(client);
             disconnected.Invoke(connection, client);
         }
     }
