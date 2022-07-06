@@ -13,7 +13,7 @@ namespace Labyrinth.Collections
 
         public Series() : this(EqualityComparer<T>.Default) { }
         public Series(IEqualityComparer<T> comparer) : this(new HashSet<T>(comparer ?? EqualityComparer<T>.Default)) { }
-        public Series(ISet<T> reference)
+        protected Series(ISet<T> reference)
         {
             m_reference = reference;
         }

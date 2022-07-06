@@ -8,7 +8,7 @@ namespace Labyrinth.Collections
 
     // Objects that need to be synced over the netork
     //      uses irrgeular channel
-    //      only use for class memebers (static or non-static instances)
+    //      only use for class members (static or non-static instances)
     //      doesn't require using network instance
     public static class Objects
     {
@@ -32,15 +32,16 @@ namespace Labyrinth.Collections
             public Read Paste { get; }
         }
 
-        private static readonly Dictionary<long, Callbacks> m_callbacks = new Dictionary<long, Callbacks>();
-        private static readonly Dictionary<int, HashSet<long>> m_queries = new Dictionary<int, HashSet<long>>(); /*the objects each client is looking for*/
-        private static readonly Dictionary<long, HashSet<int>> m_listeners = new Dictionary<long, HashSet<int>>(); /*the clients that have created each object*/
+        private static readonly Dictionary<ulong, Callbacks> m_callbacks = new Dictionary<ulong, Callbacks>();
+        private static readonly Dictionary<int, HashSet<ulong>> m_queries = new Dictionary<int, HashSet<ulong>>(); /*the objects each client is looking for*/
+        private static readonly Dictionary<ulong, HashSet<int>> m_listeners = new Dictionary<ulong, HashSet<int>>(); /*the clients that have created each object*/
 
+        // only call this when the network is running
         // index id for an instance (clone) of a class (for static classes 0)
         // offset differentiates between each unit within an instance
         public static bool Register<T>(ushort index, ushort offset, Unit unit) where T : class
         {
-            long idenitifier = Generate(typeof(T).FullName.Hash(), index, offset);
+            ulong idenitifier = Generate(typeof(T).FullName.Hash(), index, offset);
             if (!m_callbacks.ContainsKey(idenitifier))
             {
                 m_listeners.Add(idenitifier, new HashSet<int>());
@@ -61,7 +62,7 @@ namespace Labyrinth.Collections
 
         internal static void Connected(int connection)
         {
-            m_queries.Add(connection, new HashSet<long>());
+            m_queries.Add(connection, new HashSet<ulong>());
         }
 
         internal static void Disconnected(int connection)
@@ -73,7 +74,7 @@ namespace Labyrinth.Collections
         {
             if (NetworkServer.Active)
             {
-                HashSet<long> found = new HashSet<long>();
+                HashSet<ulong> found = new HashSet<ulong>();
                 foreach(var query in m_queries)
                 {
                     foreach (var identifier in query.Value)
@@ -122,12 +123,12 @@ namespace Labyrinth.Collections
             throw new NotImplementedException();
         }
 
-        private static long Generate(uint instance, ushort index, ushort offset)
+        private static ulong Generate(uint instance, ushort index, ushort offset)
         {
             return Combine(instance, Combine(index, offset));
         }
 
-        /// inserts a into the frist 16 bits of a uint and b into the last 32
+        /// inserts a into the frist 16 bits of a uint and b into the last 16
         private static uint Combine(ushort a, ushort b)
         {
             uint value = a;
@@ -136,10 +137,18 @@ namespace Labyrinth.Collections
             return value;
         }
 
-        /// inserts a into the frist 32 bits of a long and b into the last 32
-        private static long Combine(uint a, uint b)
+        /// inserts a into the frist 32 bits of a ulong and b into the last 32
+        private static ulong Combine(uint a, uint b)
         {
-            return (((long)a << 32) | (b));
+            ulong value = a;
+            value <<= 32;
+            value |= b;
+            return value;
+        }
+
+        static Objects()
+        {
+            NetworkLoop.LateUpdate += Update;
         }
     }
 }

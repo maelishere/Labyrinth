@@ -5,9 +5,13 @@ using UnityEngine.PlayerLoop;
 
 namespace Labyrinth.Background
 {
+
     // mixed with url: https://github.com/vis2k/Mirror/blob/master/Assets/Mirror/Runtime/NetworkLoop.cs
     public static class NetworkLoop
     {
+        public static Action EarlyUpdate { get; set; }
+        public static Action LateUpdate { get; set; }
+
         static bool AddToPlayerLoop(PlayerLoopSystem.UpdateFunction function, Type ownerType, ref PlayerLoopSystem playerLoop, Type playerLoopSystemType, bool beginning)
         {
             // did we find the type? e.g. EarlyUpdate/PreLateUpdate/etc.
@@ -74,6 +78,8 @@ namespace Labyrinth.Background
 #endif
             NetworkServer.Receive();
             NetworkClient.Receive();
+
+            EarlyUpdate?.Invoke();
         }
 
         static void NetworkLateUpdate()
@@ -82,6 +88,8 @@ namespace Labyrinth.Background
             if (!UnityEditor.EditorApplication.isPlaying)
                 return;
 #endif
+            LateUpdate?.Invoke();
+
             NetworkStream.Process();
 
             NetworkServer.Update();

@@ -6,12 +6,12 @@ namespace Labyrinth.Runtime
     [CreateAssetMenuAttribute(fileName = "Registry", menuName = "Labyrith/Registry", order = 100)]
     public class Registry : ScriptableObject
     {
-        private static readonly Dictionary<int, Entity> m_resources = new Dictionary<int, Entity>();
+        private static readonly Dictionary<uint, Entity> m_resources = new Dictionary<uint, Entity>();
 
         // where your prefabs are located inside the resources folder
         // unique idenitifer for a prefab
         // e.g. characters/player
-        [SerializeField] private string[] m_prefabs;
+        [SerializeField] private string[] m_prefabs = new string[0];
 
         // this should only be called once because the network can always be restarted
         [RuntimeInitializeOnLoadMethod]
@@ -40,6 +40,6 @@ namespace Labyrinth.Runtime
             }
         }
 
-        internal static bool Find(int asset, out Entity prefab) => m_resources.TryGetValue(asset, out prefab);
+        internal static bool Find(uint asset, out Entity prefab) => m_resources.TryGetValue(asset, out prefab);
     }
 }

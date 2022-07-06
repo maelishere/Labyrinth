@@ -9,15 +9,21 @@ namespace Labyrinth.Collections
     // Base class for all collections types
     public abstract class Unit
     {
-        private uint m_steps = 0/*total number of changes*/, m_count = 0/*number of changes since last network copy*/;
+        private uint m_steps = 0/*total number of changes*/;
+        private uint m_marker = 0/*frist step of changes that was sent*/;
+        private uint m_count = 0/*number of changes since last network copy*/;
         private readonly Queue<Change> m_changes = new Queue<Change>();
         private readonly Dictionary<uint, Reader> m_pending = new Dictionary<uint, Reader>();
 
         internal System.Action destructor { get; set; }
+        internal bool Pending => m_pending.Count > 0;
+
+        // for testing (will remove later)
+        public bool Valid { get; private set; }
 
         protected Unit()
         {
-
+            Valid = true;
         }
 
         ~Unit()
@@ -38,7 +44,11 @@ namespace Labyrinth.Collections
                 m_count = 0;
             }
 
-            m_changes.Enqueue(new Change(m_steps, action, null));
+            m_changes.Enqueue(new Change(action, 
+                (ref Writer writer) =>
+                {
+                    writer.Write(0);
+                }));
 
             if (additive)
             {
@@ -56,7 +66,7 @@ namespace Labyrinth.Collections
                 m_count = 0;
             }
 
-            m_changes.Enqueue(new Change(m_steps, action,
+            m_changes.Enqueue(new Change(action,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg);
@@ -78,7 +88,7 @@ namespace Labyrinth.Collections
                 m_count = 0;
             }
 
-            m_changes.Enqueue(new Change(m_steps, action,
+            m_changes.Enqueue(new Change(action,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
@@ -111,48 +121,60 @@ namespace Labyrinth.Collections
             m_count = 0;
             if (m_changes.Count > 0)
             {
+                writer.Write(m_marker);
                 writer.Write(m_changes.Count);
                 do
                 {
                     Change state = m_changes.Dequeue();
-                    writer.Write(state.Operation);
+                    writer.Write((byte)state.Operation);
                     state.Callback?.Invoke(ref writer);
                 } while (m_changes.Count > 0);
+                m_marker = m_steps;
             }
         }
 
         internal void Paste(ref Reader reader)
         {
-            int count = reader.ReadInt();
-            while(count > 0)
+            uint marker = reader.ReadUInt();
+
+            // i need to know the size of the state
+            //      (Network Stream batches could pack different types of messages)
+            if (marker > m_steps)
             {
-                Operation operation = reader.ReadOperation();
-                if (operation.Step > m_steps)
+                // add to pending
+
+            }
+            else if (marker == m_steps)
+            {
+                /*Replicate(ref reader);*/
+
+                if (m_pending.Count > 0)
                 {
-                    // add to pending
-                    // i need to know how big the state of the operation is
-                }
-                else if (operation.Step == m_steps)
-                {
-                    Replicate(operation.Action, ref reader);
-                    if (m_pending.Count > 0)
+                    while (m_pending.ContainsKey(m_steps))
                     {
-                        while (m_pending.ContainsKey(m_steps))
-                        {
-                            // 
-                            /*Replicate();*/
-                            m_steps++;
-                        }
+                        // 
+                        /*Replicate();*/
                     }
                 }
-                count--;
+            }
+            else /*if it recieved a step before it's current step*/
+            {
+                /// then this unit is invalid
+                /// this shouldn't be a posibility (for testing)
+                Valid = false;
             }
         }
 
-        private void Replicate(Action action, ref Reader reader)
+        private void Replicate(ref Reader reader)
         {
-            Deserialize(action, ref reader);
-            m_steps++;
+            int count = reader.ReadInt();
+            while (count > 0)
+            {
+                Action operation = (Action)reader.Read();
+                Deserialize(operation, ref reader);
+                m_steps++;
+                count--;
+            }
         }
 
         protected abstract void Serialize(ref Writer writer);

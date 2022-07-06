@@ -8,22 +8,22 @@ namespace Labyrinth.Runtime
     {
         public struct Sync
         {
-            public Sync(int identity, short signature)
+            public Sync(int identity, ushort signature)
             {
                 Identity = identity;
                 Signature = signature;
             }
 
             public int Identity { get; }
-            public short Signature { get; }
+            public ushort Signature { get; }
         }
 
         public static Sync ReadSync(this Reader reader)
         {
-            return new Sync(reader.ReadInt(), reader.ReadShort());
+            return new Sync(reader.ReadInt(), reader.ReadUShort());
         }
 
-        public static void WriteSync(this Writer writer, int identity, short signature)
+        public static void WriteSync(this Writer writer, int identity, ushort signature)
         {
             writer.Write(identity);
             writer.Write(signature);
@@ -31,7 +31,7 @@ namespace Labyrinth.Runtime
 
         public struct Call
         {
-            public Call(int target, int identity, short procedure)
+            public Call(int target, int identity, ushort procedure)
             {
                 Target = target;
                 Identity = identity;
@@ -40,19 +40,19 @@ namespace Labyrinth.Runtime
 
             public int Target { get; }
             public int Identity { get; }
-            public short Procedure { get; }
+            public ushort Procedure { get; }
         }
 
         public static Call ReadCall(this Reader reader)
         {
-            return new Call(reader.ReadInt(), reader.ReadInt(), reader.ReadShort());
+            return new Call(reader.ReadInt(), reader.ReadInt(), reader.ReadUShort());
         }
         public static void WriteCall(this Writer writer, Call call)
         {
             writer.WriteCall(call.Target, call.Identity, call.Procedure);
         }
 
-        public static void WriteCall(this Writer writer, int target, int identity, short procedure)
+        public static void WriteCall(this Writer writer, int target, int identity, ushort procedure)
         {
             writer.Write(target);
             writer.Write(identity);
@@ -61,7 +61,7 @@ namespace Labyrinth.Runtime
 
         public struct Spawn
         {
-            public Spawn(int asset, int world, int identity, int authority, Vector3 position, Vector3 rotation)
+            public Spawn(uint asset, int world, int identity, int authority, Vector3 position, Vector3 rotation)
             {
                 Asset = asset;
                 World = world;
@@ -71,7 +71,7 @@ namespace Labyrinth.Runtime
                 Rotation = rotation;
             }
 
-            public int Asset { get; }
+            public uint Asset { get; }
             public int World { get; }
             public int Identity { get; }
             public int Authority { get; }
@@ -81,7 +81,7 @@ namespace Labyrinth.Runtime
 
         public static Spawn ReadSpawn(this Reader reader)
         {
-            return new Spawn(reader.ReadInt(), reader.ReadInt(), reader.ReadInt(),
+            return new Spawn(reader.ReadUInt(), reader.ReadInt(), reader.ReadInt(),
                 reader.ReadInt(), reader.ReadVector3(), reader.ReadVector3());
         }
 

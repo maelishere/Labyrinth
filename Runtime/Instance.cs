@@ -30,9 +30,9 @@ namespace Labyrinth.Runtime
 
         private Appendix[] m_appendices;
 
-        private Dictionary<short, Container> m_synchronous = new Dictionary<short, Container>();
-        private readonly Dictionary<short, Signature> m_signatures = new Dictionary<short, Signature>();
-        private readonly Dictionary<short, Procedure> m_procedures = new Dictionary<short, Procedure>();
+        private Dictionary<ushort, Container> m_synchronous = new Dictionary<ushort, Container>();
+        private readonly Dictionary<ushort, Signature> m_signatures = new Dictionary<ushort, Signature>();
+        private readonly Dictionary<ushort, Procedure> m_procedures = new Dictionary<ushort, Procedure>();
 
         private readonly Stopwatch m_stopwatch = new Stopwatch();
 
@@ -131,7 +131,7 @@ namespace Labyrinth.Runtime
         {
             // combine (Extension) in the event two components have the same signature value
             //      or the instances of the same class are on the gameobject
-            short key = offset.Combine(signature.Value);
+            ushort key = offset.Combine(signature.Value);
             if (!m_signatures.ContainsKey(key))
             {
                 m_signatures.Add(key, signature);
@@ -152,7 +152,7 @@ namespace Labyrinth.Runtime
         {
             // combine (Extension) in the event two components have the same procedure value
             //      or the instances of the same class are on the gameobject
-            short key = offset.Combine(procedure.Value);
+            ushort key = offset.Combine(procedure.Value);
             if (!m_procedures.ContainsKey(key))
             {
                 m_procedures.Add(key, procedure);
@@ -169,7 +169,7 @@ namespace Labyrinth.Runtime
                 return;
             }
 
-            short call = offset.Combine(procedure);
+            ushort call = offset.Combine(procedure);
             if (target == Identity.Any || Network.Internal(Host.Client))
             {
                 Network.Forward(

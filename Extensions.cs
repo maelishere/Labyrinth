@@ -10,15 +10,21 @@ namespace Labyrinth
     public static class Extensions
     {
         /// inserts a into the frist 8 bits of a short and b into the last 8
-        internal static short Combine(this byte a, byte b)
+        internal static ushort Combine(this byte a, byte b)
         {
-            return (short)((a << 8) | (b));
+            ushort value = a;
+            value <<= 8;
+            value |= b;
+            return value;
         }
 
         /// inserts a into the frist 16 bits of an int and b into the last 16
-        internal static int Combine(this ushort a, ushort b)
+        internal static uint Combine(this ushort a, ushort b)
         {
-            return ((a << 16) | (b));
+            uint value = a;
+            value <<= 16;
+            value |= b;
+            return value;
         }
 
         // FNV Hash (gcc optimization: 32 bit FNV-1a)
@@ -143,17 +149,6 @@ namespace Labyrinth
         public static void WriteInstance(this Writer writer, Instance instance)
         {
             writer.Write(instance?.identity ?? Identity.Any);
-        }
-
-        internal static Operation ReadOperation(this Reader reader)
-        {
-            return new Operation(reader.ReadUInt(), (Action)reader.Read());
-        }
-
-        internal static void Write(this Writer writer, Operation operation)
-        {
-            writer.Write(operation.Step);
-            writer.Write((byte)operation.Action);
         }
 
         static Extensions()

@@ -15,7 +15,7 @@ namespace Labyrinth.Runtime
         // [SerializeField] private string m_path;
 
         // unique idenitfier for the asset when spwaning through the network
-        [HideInInspector, SerializeField] internal int n_asset;
+        [HideInInspector, SerializeField] internal uint n_asset;
 
         internal int n_world;
 
