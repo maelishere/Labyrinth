@@ -33,6 +33,10 @@ namespace Labyrinth.Background
                 {
                     m_connections.Clear();
                     n_server = new Server(Mode.IPV4, port, OnReceive, OnRequest, OnAcknowledge, OnError);
+                    NetworkStream.Send = (int connection, Channel channel, Write write) =>
+                    {
+                        n_server.Send(connection, channel, write);
+                    };
                     Network.initialized.Invoke(n_server.Listen);
                     return;
                 }
@@ -45,6 +49,7 @@ namespace Labyrinth.Background
         {
             if (n_server != null)
             {
+                NetworkStream.Send = null;
                 Network.terminating.Invoke(n_server.Listen);
                 m_connections.Clear();
 

@@ -130,39 +130,13 @@ namespace Labyrinth
         }
 
         public static void Forward(byte channel, byte flag, Write write)
-        {
-            /// change to NetworkStream.Queue later
-            /// remove all:
-            if (NetworkServer.Active)
-            {
-                NetworkServer.Send((Channel)channel, Pack(flag, write));
-                return;
-            }
-            if (NetworkClient.Active)
-            {
-                NetworkClient.Send((Channel)channel, Pack(flag, write));
-            }
-        }
+            => NetworkStream.Queue(channel, Pack(flag, write));
 
         public static void Forward(int connection, byte channel, byte flag, Write write)
-        {
-            /// change to NetworkStream.Queue later
-            /// remove:
-            if (NetworkServer.Active)
-            {
-                NetworkServer.Send(connection, (Channel)channel, Pack(flag, write));
-            }
-        }
+            => NetworkStream.Queue(connection, channel, Pack(flag, write));
 
         public static void Forward(Func<int, bool> predicate, byte channel, byte flag, Write write)
-        {
-            /// change to NetworkStream.Queue later
-            /// remove:
-            if (NetworkServer.Active)
-            {
-                NetworkServer.Send(predicate, (Channel)channel, Pack(flag, write));
-            }
-        }
+            => NetworkStream.Queue(predicate, channel, Pack(flag, write));
 
         public static int Authority(bool remote = false)
         {

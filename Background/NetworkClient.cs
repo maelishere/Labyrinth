@@ -23,6 +23,10 @@ namespace Labyrinth.Background
                     m_connected = false;
                     m_disconnecting = false;
                     n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge, OnError);
+                    NetworkStream.Send = (int connection, Channel channel, Write write) =>
+                    {
+                        n_client.Send(channel, write);
+                    };
                     Network.initialized.Invoke(n_client.Local);
                     return;
                 }
@@ -47,6 +51,7 @@ namespace Labyrinth.Background
             {
                 Outgoing();
                 m_disconnecting = false;
+                NetworkStream.Send = null;
                 Network.terminating.Invoke(n_client.Local);
 
                 /*n_client.Close();*/
