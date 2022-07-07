@@ -59,7 +59,6 @@ namespace Labyrinth.Collections
                 case Step.Set:
                     {
                         T value = reader.Read<T>();
-                        m_reference = reader.Read<T>();
                         return () => m_reference = value;
                     }
             }
