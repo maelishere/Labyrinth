@@ -75,7 +75,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Clear();
-            Change(true, Step.Clear);
+            Change(false, Step.Clear);
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
