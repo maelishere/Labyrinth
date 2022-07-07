@@ -46,9 +46,9 @@ namespace Labyrinth.Background
 
         internal static void Queue(byte channel, Write write)
         {
-            foreach(var batch in m_batches)
+            foreach(var connection in m_batches)
             {
-                batch.Value[(Channel)channel].Enqueue(write);
+                connection.Value[(Channel)channel].Enqueue(write);
             }
         }
 
@@ -70,34 +70,35 @@ namespace Labyrinth.Background
 
         internal static void Receive(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            while(reader.Current < reader.Length - 1)
+            do
             {
                 Network.Receive(socket, connection, timestamp, ref reader);
-            }
+            } while (reader.Current < reader.Length);
         }
 
         internal static void Process()
         {
-            foreach (var batch in m_batches)
+            foreach (var connection in m_batches)
             {
-                Release(batch.Key, Channel.Ordered, batch.Value[Channel.Ordered]);
-                Release(batch.Key, Channel.Irregular, batch.Value[Channel.Irregular]);
-                Release(batch.Key, Channel.Direct, batch.Value[Channel.Direct]);
+                Release(connection.Key, Channel.Ordered, connection.Value[Channel.Ordered]);
+                Release(connection.Key, Channel.Irregular, connection.Value[Channel.Irregular]);
+                Release(connection.Key, Channel.Direct, connection.Value[Channel.Direct]);
             }
         }
 
         private static void Release(int connection, Channel channel, Batch batch)
         {
-            while (batch.Count > 0)
+            while (Send != null & batch.Count > 0)
             {
-                Send?.Invoke(connection, channel,
+                Send(connection, channel,
                     (ref Writer writer) =>
                     {
                         // check if there's enough space for the next write
                         // and make sure it's not an infinite loop
-                        while ((writer.Length - writer.Current) < batch.Threshold && batch.Count > 0)
+                        while ((writer.Length - writer.Current) > batch.Threshold && batch.Count > 0)
                         {
-                            batch.Dequeue()(ref writer);
+                            Write write = batch.Dequeue();
+                            write(ref writer);
                         }
                     });
             }

@@ -15,6 +15,7 @@ namespace Labyrinth.Collections
         public const byte Find = 9;
         public const byte Link = 10;
         public const byte Modify = 11;
+        public const byte Ignore = 12;
 
         public struct Callbacks
         {
@@ -38,6 +39,13 @@ namespace Labyrinth.Collections
         private static readonly Dictionary<int, HashSet<ulong>> m_queries = new Dictionary<int, HashSet<ulong>>(); /*the objects each client is looking for*/
         private static readonly Dictionary<ulong, HashSet<int>> m_listeners = new Dictionary<ulong, HashSet<int>>(); /*the clients that have created each object*/
 
+        private static void OnNetworkShutdown(int sokcet)
+        {
+            m_callbacks.Clear();
+            m_queries.Clear();
+            m_queries.Clear();
+        }
+
         // only call this when the network is running
         // index id for an instance (clone) of a class (for static classes 0)
         // offset differentiates between each unit within an instance
@@ -47,13 +55,9 @@ namespace Labyrinth.Collections
             ulong identifier = Generate(typeof(T).FullName.Hash(), index, offset);
             if (!m_callbacks.ContainsKey(identifier))
             {
+                unit.identifier = identifier;
                 m_listeners.Add(identifier, new HashSet<int>());
                 m_callbacks.Add(identifier, new Callbacks(unit.Clone, unit.Apply, () => unit.Pending, unit.Copy, unit.Paste));
-                unit.destructor = () =>
-                {
-                    m_listeners.Remove(identifier);
-                    m_callbacks.Remove(identifier);
-                };
                 if (NetworkClient.Active)
                 {
                     // send find to server
@@ -65,6 +69,20 @@ namespace Labyrinth.Collections
                 return true;
             }
             return false;
+        }
+
+        public static void Remove(ulong identifier)
+        {
+            m_listeners.Remove(identifier);
+            m_callbacks.Remove(identifier);
+            if (NetworkClient.Active)
+            {
+                // send find to server
+                Network.Forward(Channels.Irregular, Ignore, (ref Writer writer) =>
+                {
+                    writer.Write(identifier);
+                });
+            }
         }
 
         internal static void Connected(int connection)
@@ -141,6 +159,7 @@ namespace Labyrinth.Collections
         {
             ulong identifier = reader.ReadULong();
             m_callbacks[identifier].Apply(ref reader);
+            // don't check if it contains it would mess with remaining data in the buffer
         }
 
         // from server to clients
@@ -148,6 +167,14 @@ namespace Labyrinth.Collections
         {
             ulong identifier = reader.ReadULong();
             m_callbacks[identifier].Paste(ref reader);
+            // don't check if it contains it would mess with remaining data in the buffer
+        }
+
+        // from client to server
+        internal static void OnNetworkIgnore(int socket, int connection, uint timestamp, ref Reader reader)
+        {
+            ulong identifier = reader.ReadULong();
+            m_listeners[identifier].Remove(connection);
         }
 
         private static ulong Generate(uint instance, ushort index, ushort offset)
@@ -176,6 +203,7 @@ namespace Labyrinth.Collections
         static Objects()
         {
             NetworkLoop.LateUpdate += Update;
+            Network.terminating.AddListener(OnNetworkShutdown);
         }
     }
 }

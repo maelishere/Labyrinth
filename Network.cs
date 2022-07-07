@@ -24,6 +24,7 @@ namespace Labyrinth
             [Objects.Find] = new Flag(Objects.Link, Objects.OnNetworkFind),
             [Objects.Link] = new Flag(Objects.Link, Objects.OnNetworkLink),
             [Objects.Modify] = new Flag(Objects.Modify, Objects.OnNetworkModify),
+            [Objects.Ignore] = new Flag(Objects.Modify, Objects.OnNetworkIgnore),
 
             [Flags.Procedure] = new Flag(Flags.Procedure, Instance.OnNetworkProcedure),
             [Flags.Signature] = new Flag(Flags.Signature, Instance.OnNetworkSignature),

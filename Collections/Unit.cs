@@ -15,7 +15,7 @@ namespace Labyrinth.Collections
         private readonly Queue<Change> m_changes = new Queue<Change>();
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
 
-        internal Action destructor { get; set; }
+        internal ulong identifier { get; set; }
         internal bool Pending => m_pending.Count > 0;
 
         // for testing (will remove later)
@@ -34,9 +34,10 @@ namespace Labyrinth.Collections
                 return false;
         }
 
-        ~Unit()
+        public void Destroy()
         {
-            destructor?.Invoke();
+            if (Labyrinth.Network.Running)
+                Objects.Remove(identifier);
         }
 
         // these classes can only be edited by a server
