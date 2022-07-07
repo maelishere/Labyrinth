@@ -10,12 +10,12 @@ namespace Labyrinth.Collections
     public abstract class Unit
     {
         private uint m_steps = 0/*total number of changes*/;
-        private uint m_marker = 0/*frist step of changes that was sent*/;
+        private uint m_marker = 0/*frist step of changes that will be sent*/;
         private uint m_count = 0/*number of changes since last network copy*/;
         private readonly Queue<Change> m_changes = new Queue<Change>();
-        private readonly Dictionary<uint, Reader> m_pending = new Dictionary<uint, Reader>();
+        private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
 
-        internal System.Action destructor { get; set; }
+        internal Action destructor { get; set; }
         internal bool Pending => m_pending.Count > 0;
 
         // for testing (will remove later)
@@ -43,7 +43,7 @@ namespace Labyrinth.Collections
         //      client only read from it
         public bool IsReadOnly => NetworkClient.Active;
 
-        protected void Change(bool additive, Action action)
+        protected void Change(bool additive, Step action)
         {
             if (!additive)
             {
@@ -65,7 +65,7 @@ namespace Labyrinth.Collections
             }
         }
 
-        protected void Change<I>(bool additive, Action action, I arg)
+        protected void Change<I>(bool additive, Step action, I arg)
         {
             if (!additive)
             {
@@ -87,7 +87,7 @@ namespace Labyrinth.Collections
             }
         }
 
-        protected void Change<I, T>(bool additive, Action action, I arg1, T arg2)
+        protected void Change<I, T>(bool additive, Step action, I arg1, T arg2)
         {
             if (!additive)
             {
@@ -128,38 +128,38 @@ namespace Labyrinth.Collections
         internal void Copy(ref Writer writer)
         {
             m_count = 0;
-            if (m_changes.Count > 0)
+            writer.Write(m_marker);
+            writer.Write(m_changes.Count);
+            do
             {
-                writer.Write(m_marker);
-                writer.Write(m_changes.Count);
-                do
-                {
-                    Change state = m_changes.Dequeue();
-                    writer.Write((byte)state.Operation);
-                    state.Callback?.Invoke(ref writer);
-                } while (m_changes.Count > 0);
-                m_marker = m_steps;
-            }
+                Change state = m_changes.Dequeue();
+                writer.Write((byte)state.Operation);
+                state.Callback?.Invoke(ref writer);
+            } while (m_changes.Count > 0);
+            m_marker = m_steps;
         }
 
         internal void Paste(ref Reader reader)
         {
             uint marker = reader.ReadUInt();
+            int count = reader.ReadInt();
 
-            if (marker > m_steps)
+            // add to pending
+            while (count > 0)
             {
-                // add to pending
-                // i need to know the size of the state
-                //      (Network Stream batches could pack different types of messages)
-                // or i'll duplicate the buffer (the segement would reference the same array but the position won't change)
-                m_pending.Add(marker, new Reader(ref reader));
+                Step step = (Step)reader.Read();
+                // the args would have been read (and still be somewhere memory) 
+                // call the action when we get there
+                Action action = Deserialize(step, ref reader);
+                m_pending.Add(marker, action);
+                marker++;
+                count--;
             }
-            else if (marker == m_steps)
-            {
-                Replicate(ref reader);
-                Release();
-            }
-            else /*if it recieved a step before it's current step*/
+
+            Release();
+
+            /*if it recieved a step before it's current step*/
+            if (marker < m_steps)
             {
                 /// then this unit is invalid
                 /// this shouldn't be a posibility (for testing)
@@ -169,33 +169,17 @@ namespace Labyrinth.Collections
 
         private void Release()
         {
-            if (m_pending.Count > 0)
+            // release the next steps that are pending
+            while (m_pending.ContainsKey(m_steps))
             {
-                // release the next steps that are pending
-                while (m_pending.ContainsKey(m_steps))
-                {
-                    uint marker = m_steps;
-                    Reader reader = m_pending[marker];
-                    Replicate(ref reader);
-                    m_pending.Remove(marker);
-                }
-            }
-        }
-
-        private void Replicate(ref Reader reader)
-        {
-            int count = reader.ReadInt();
-            while (count > 0)
-            {
-                Action operation = (Action)reader.Read();
-                Deserialize(operation, ref reader);
+                m_pending[m_steps]();
+                m_pending.Remove(m_steps);
                 m_steps++;
-                count--;
             }
         }
 
         protected abstract void Serialize(ref Writer writer);
         protected abstract void Deserialize(ref Reader reader);
-        protected abstract void Deserialize(Action action, ref Reader reader);
+        protected abstract Action Deserialize(Step step, ref Reader reader);
     }
 }

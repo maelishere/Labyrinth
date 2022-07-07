@@ -32,7 +32,7 @@ namespace Labyrinth.Collections
                 if (!_comparer.Equals(value, m_reference))
                 {
                     m_reference = value;
-                    Change(false, Action.Set, value);
+                    Change(false, Step.Set, value);
                 }
             }
         }
@@ -47,18 +47,23 @@ namespace Labyrinth.Collections
             m_reference = reader.Read<T>();
         }
 
-        protected override void Deserialize(Action action, ref Reader reader)
+        protected override Action Deserialize(Step step, ref Reader reader)
         {
-            switch(action)
+            switch(step)
             {
-                case Action.Clear:
-                    m_reference = default;
-                    break;
+                case Step.Clear:
+                    {
+                        return () => m_reference = default;
+                    }
 
-                case Action.Set:
-                    m_reference = reader.Read<T>();
-                    break;
+                case Step.Set:
+                    {
+                        T value = reader.Read<T>();
+                        m_reference = reader.Read<T>();
+                        return () => m_reference = value;
+                    }
             }
+            return null;
         }
 
         public static implicit operator T(Field<T> var)

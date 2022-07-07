@@ -31,12 +31,12 @@ namespace Labyrinth.Collections
                 if (ContainsKey(key))
                 {
                     m_reference[key] = value;
-                    Change(true, Action.Set, key, value);
+                    Change(true, Step.Set, key, value);
                 }
                 else
                 {
                     m_reference[key] = value;
-                    Change(true, Action.Add, key, value);
+                    Change(true, Step.Add, key, value);
                 }
             }
         }
@@ -59,7 +59,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Add(key, value);
-            Change(true, Action.Add, key, value);
+            Change(true, Step.Add, key, value);
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
@@ -75,7 +75,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Clear();
-            Change(true, Action.Clear);
+            Change(true, Step.Clear);
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -107,7 +107,7 @@ namespace Labyrinth.Collections
 
             if (m_reference.Remove(key))
             {
-                Change(true, Action.Remove, key);
+                Change(true, Step.Remove, key);
                 return true;
             }
             return false;
@@ -122,7 +122,7 @@ namespace Labyrinth.Collections
 
             if (m_reference.Remove(item.Key))
             {
-                Change(true, Action.Remove, item.Key);
+                Change(true, Step.Remove, item.Key);
                 return true;
             }
             return false;
@@ -160,34 +160,33 @@ namespace Labyrinth.Collections
             }
         }
 
-        protected override void Deserialize(Action action, ref Reader reader)
+        protected override Action Deserialize(Step step, ref Reader reader)
         {
-            switch (action)
+            switch (step)
             {
-                case Action.Remove:
+                case Step.Remove:
                     {
                         TKey index = reader.Read<TKey>();
-                        m_reference.Remove(index);
+                        return () => m_reference.Remove(index);
                     }
-                    break;
-                case Action.Clear:
-                    m_reference.Clear();
-                    break;
-                case Action.Add:
+                case Step.Clear:
                     {
-                        TKey index = reader.Read<TKey>();
-                        TValue value = reader.Read<TValue>();
-                        m_reference.Add(index, value);
+                        return () => m_reference.Clear();
                     }
-                    break;
-                case Action.Set:
+                case Step.Add:
                     {
                         TKey index = reader.Read<TKey>();
                         TValue value = reader.Read<TValue>();
-                        m_reference[index] = value;
+                        return () => m_reference.Add(index, value);
                     }
-                    break;
+                case Step.Set:
+                    {
+                        TKey index = reader.Read<TKey>();
+                        TValue value = reader.Read<TValue>();
+                        return () => m_reference[index] = value;
+                    }
             }
+            return null;
         }
     }
 }

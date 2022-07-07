@@ -33,7 +33,7 @@ namespace Labyrinth.Collections
                 if (!m_comparer.Equals(value, m_reference[index]))
                 {
                     m_reference[index] = value;
-                    Change(true, Action.Set, index, value);
+                    Change(true, Step.Set, index, value);
                 }
             }
         }
@@ -48,7 +48,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Add(item);
-            Change(true, Action.Add, item);
+            Change(true, Step.Add, item);
         }
 
         public void Clear()
@@ -59,7 +59,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Clear();
-            Change(true, Action.Clear);
+            Change(true, Step.Clear);
         }
 
         public bool Contains(T item)
@@ -90,7 +90,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Insert(index, item);
-            Change(true, Action.Insert, index, item);
+            Change(true, Step.Insert, index, item);
         }
 
         public bool Remove(T item)
@@ -107,7 +107,7 @@ namespace Labyrinth.Collections
 
             /*T value = m_reference[index];*/
             m_reference.RemoveAt(index);
-            Change(true, Action.Remove, index);
+            Change(true, Step.Remove, index);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -135,40 +135,38 @@ namespace Labyrinth.Collections
             }
         }
 
-        protected override void Deserialize(Action action, ref Reader reader)
+        protected override Action Deserialize(Step step, ref Reader reader)
         {
-            switch (action)
+            switch (step)
             {
-                case Action.Remove:
+                case Step.Remove:
                     {
                         int index = reader.ReadInt();
-                        m_reference.RemoveAt(index);
+                        return () => m_reference.RemoveAt(index);
                     }
-                    break;
-                case Action.Clear:
-                    m_reference.Clear();
-                    break;
-                case Action.Insert:
+                case Step.Clear:
                     {
-                        int index = reader.ReadInt();
-                        T value = reader.Read<T>();
-                        m_reference.Insert(index, value);
+                        return ()=> m_reference.Clear();
                     }
-                    break;
-                case Action.Add:
-                    {
-                        T value = reader.Read<T>();
-                        m_reference.Add(value);
-                    }
-                    break;
-                case Action.Set:
+                case Step.Insert:
                     {
                         int index = reader.ReadInt();
                         T value = reader.Read<T>();
-                        m_reference[index] = value;
+                        return () => m_reference.Insert(index, value);
                     }
-                    break;
+                case Step.Add:
+                    {
+                        T value = reader.Read<T>();
+                        return () => m_reference.Add(value);
+                    }
+                case Step.Set:
+                    {
+                        int index = reader.ReadInt();
+                        T value = reader.Read<T>();
+                        return () => m_reference[index] = value;
+                    }
             }
+            return null;
         }
     }
 }

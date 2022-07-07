@@ -14,11 +14,11 @@ namespace Labyrinth.Background
 
         public static bool Active => n_server != null;
 
-        public static void Each(Func<int, bool> fliter, Action<int> callback)
+        public static void Each(Func<int, bool> predicate, Action<int> callback)
         {
             foreach (var connection in m_connections)
             {
-                if (fliter(connection))
+                if (predicate(connection))
                 {
                     callback(connection);
                 }

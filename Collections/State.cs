@@ -4,13 +4,13 @@ namespace Labyrinth.Collections
 
     public struct Change
     {
-        public Change(Action action, Write callback)
+        public Change(Step action, Write callback)
         {
             Operation = action;
             Callback = callback;
         }
 
-        public Action Operation { get; }
+        public Step Operation { get; }
         public Write Callback { get; }
     }
 }

@@ -29,7 +29,7 @@ namespace Labyrinth.Collections
 
             if (m_reference.Add(item))
             {
-                Change(true, Action.Add, item);
+                Change(true, Step.Add, item);
                 return true;
             }
 
@@ -44,7 +44,7 @@ namespace Labyrinth.Collections
             }
 
             m_reference.Clear();
-            Change(true, Action.Clear);
+            Change(true, Step.Clear);
         }
 
         public bool Contains(T item)
@@ -124,7 +124,7 @@ namespace Labyrinth.Collections
 
             if (m_reference.Remove(item))
             {
-                Change(true, Action.Remove, item);
+                Change(true, Step.Remove, item);
                 return true;
             }
             return false;
@@ -199,26 +199,26 @@ namespace Labyrinth.Collections
             }
         }
 
-        protected override void Deserialize(Action action, ref Reader reader)
+        protected override Action Deserialize(Step step, ref Reader reader)
         {
-            switch (action)
+            switch (step)
             {
-                case Action.Remove:
+                case Step.Remove:
                     {
                         T value = reader.Read<T>();
-                        m_reference.Remove(value);
+                        return () => m_reference.Remove(value);
                     }
-                    break;
-                case Action.Clear:
-                    m_reference.Clear();
-                    break;
-                case Action.Add:
+                case Step.Clear:
+                    {
+                        return () => m_reference.Clear();
+                    }
+                case Step.Add:
                     {
                         T value = reader.Read<T>();
-                        m_reference.Add(value);
+                        return () => m_reference.Add(value);
                     }
-                    break;
             }
+            return null;
         }
     }
 }

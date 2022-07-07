@@ -1,6 +1,6 @@
 ﻿namespace Labyrinth.Collections
 {
-    public enum Action : byte
+    public enum Step : byte
     {
         None,
         Set,
