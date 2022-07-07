@@ -144,7 +144,7 @@ namespace Labyrinth.Background
 
         private static void OnReceive(uint timestamp, ref Reader reader)
         {
-            Network.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);
+            NetworkStream.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);
         }
     }
 }

@@ -26,10 +26,13 @@ namespace Labyrinth.Collections
             Valid = true;
         }
 
+        // only call this when the network is running
+        // instance id for an instance (clone) of a class (for static classes 0)
+        // member differentiates between each unit within an instance
         public bool Network<C>(ushort instance, ushort member) where C : class
         {
             if (Labyrinth.Network.Running)
-                return Objects.Register<C>(instance, member, this);
+                return Objects.Add<C>(instance, member, this);
             else
                 return false;
         }

@@ -9,7 +9,6 @@ using UnityEngine.Events;
 namespace Labyrinth
 {
     using Bolt;
-    using Lattice.Delivery;
     using Labyrinth.Runtime;
     using Labyrinth.Collections;
     using Labyrinth.Background;

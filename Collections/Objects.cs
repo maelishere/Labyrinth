@@ -46,11 +46,7 @@ namespace Labyrinth.Collections
             m_queries.Clear();
         }
 
-        // only call this when the network is running
-        // index id for an instance (clone) of a class (for static classes 0)
-        // offset differentiates between each unit within an instance
-        // use Unit.Network<C>();
-        internal static bool Register<T>(ushort index, ushort offset, Unit unit) where T : class
+        internal static bool Add<T>(ushort index, ushort offset, Unit unit) where T : class
         {
             ulong identifier = Generate(typeof(T).FullName.Hash(), index, offset);
             if (!m_callbacks.ContainsKey(identifier))
@@ -71,7 +67,7 @@ namespace Labyrinth.Collections
             return false;
         }
 
-        public static void Remove(ulong identifier)
+        internal static void Remove(ulong identifier)
         {
             m_listeners.Remove(identifier);
             m_callbacks.Remove(identifier);

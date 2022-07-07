@@ -93,13 +93,19 @@ namespace Labyrinth.Background
                 Send(connection, channel,
                     (ref Writer writer) =>
                     {
-                        // check if there's enough space for the next write
-                        // and make sure it's not an infinite loop
-                        while ((writer.Length - writer.Current) > batch.Threshold && batch.Count > 0)
+                        do
                         {
                             Write write = batch.Dequeue();
                             write(ref writer);
-                        }
+
+                            // and make sure it's not an infinite loop
+                            if (batch.Count == 0)
+                            {
+                                break;
+                            }
+
+                            // check if there's enough space for the next write
+                        } while (batch.Threshold <= (writer.Length - writer.Current));
                     });
             }
         }
