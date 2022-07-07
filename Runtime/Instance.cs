@@ -71,6 +71,11 @@ namespace Labyrinth.Runtime
             Synchronous(authority.Value);
         }
 
+        protected virtual void LateUpdate()
+        {
+
+        }
+
         internal bool Create(int identifier, int connection)
         {
             if (!m_instances.ContainsKey(identifier))
@@ -104,7 +109,7 @@ namespace Labyrinth.Runtime
                     switch (signature.Value.Control)
                     {
                         case Signature.Rule.Round:
-                            if (Network.Internal(Host.Server))
+                            if (NetworkServer.Active)
                             {
                                 // send to all relavant connection including authority
                                 callback = () =>
@@ -113,7 +118,7 @@ namespace Labyrinth.Runtime
                                         (a) => true, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, message));
                                 };
                             }
-                            if (Network.Internal(Host.Client))
+                            if (NetworkClient.Active)
                             {
                                 // [Client] send to server
                                 callback = () =>
@@ -123,7 +128,7 @@ namespace Labyrinth.Runtime
                             }
                             break;
                         case Signature.Rule.Server:
-                            if (Network.Internal(Host.Server))
+                            if (NetworkServer.Active)
                             {
                                 // send to all relavant connection overriding authority
                                 callback = () =>
@@ -134,7 +139,7 @@ namespace Labyrinth.Runtime
                             }
                             break;
                         case Signature.Rule.Authority:
-                            if (Network.Internal(Host.Server))
+                            if (NetworkServer.Active)
                             {
                                 // send to all relavant connection excluding authority
                                 callback = () =>
@@ -143,7 +148,7 @@ namespace Labyrinth.Runtime
                                         (a) => a != authority.Value, (c) => Network.Forward(c, Channels.Direct, Flags.Signature, message));
                                 };
                             }
-                            if (Network.Internal(Host.Client))
+                            if (NetworkClient.Active)
                             {
                                 // [Client] send to server
                                 callback = () =>
@@ -236,6 +241,7 @@ namespace Labyrinth.Runtime
             m_instances.Clear();
         }
 
+        // will move this Instance.LateUpdate later
         private static void NetworkUpdate()
         {
             int time = (int)m_stopwatch.ElapsedMilliseconds;

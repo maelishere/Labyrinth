@@ -26,6 +26,14 @@ namespace Labyrinth.Collections
             Valid = true;
         }
 
+        public bool Network<C>(ushort instance, ushort member) where C : class
+        {
+            if (Labyrinth.Network.Running)
+                return Objects.Register<C>(instance, member, this);
+            else
+                return false;
+        }
+
         ~Unit()
         {
             destructor?.Invoke();
@@ -113,6 +121,7 @@ namespace Labyrinth.Collections
         {
             m_steps = reader.ReadUInt();
             Deserialize(ref reader);
+            Release();
         }
 
         // for clients already connected
@@ -137,31 +146,39 @@ namespace Labyrinth.Collections
         {
             uint marker = reader.ReadUInt();
 
-            // i need to know the size of the state
-            //      (Network Stream batches could pack different types of messages)
             if (marker > m_steps)
             {
                 // add to pending
-
+                // i need to know the size of the state
+                //      (Network Stream batches could pack different types of messages)
+                // or i'll duplicate the buffer (the segement would reference the same array but the position won't change)
+                m_pending.Add(marker, new Reader(ref reader));
             }
             else if (marker == m_steps)
             {
-                /*Replicate(ref reader);*/
-
-                if (m_pending.Count > 0)
-                {
-                    while (m_pending.ContainsKey(m_steps))
-                    {
-                        // 
-                        /*Replicate();*/
-                    }
-                }
+                Replicate(ref reader);
+                Release();
             }
             else /*if it recieved a step before it's current step*/
             {
                 /// then this unit is invalid
                 /// this shouldn't be a posibility (for testing)
                 Valid = false;
+            }
+        }
+
+        private void Release()
+        {
+            if (m_pending.Count > 0)
+            {
+                // release the next steps that are pending
+                while (m_pending.ContainsKey(m_steps))
+                {
+                    uint marker = m_steps;
+                    Reader reader = m_pending[marker];
+                    Replicate(ref reader);
+                    m_pending.Remove(marker);
+                }
             }
         }
 

@@ -18,16 +18,18 @@ namespace Labyrinth.Collections
 
         public struct Callbacks
         {
-            public Callbacks(Write clone, Read apply, Write copy, Read paste)
+            public Callbacks(Write clone, Read apply, Func<bool> pending, Write copy, Read paste)
             {
                 Clone = clone;
                 Apply = apply;
+                Pending = pending;
                 Copy = copy;
                 Paste = paste;
             }
 
             public Write Clone { get; }
             public Read Apply { get; }
+            public Func<bool> Pending { get; }
             public Write Copy { get; }
             public Read Paste { get; }
         }
@@ -39,21 +41,26 @@ namespace Labyrinth.Collections
         // only call this when the network is running
         // index id for an instance (clone) of a class (for static classes 0)
         // offset differentiates between each unit within an instance
-        public static bool Register<T>(ushort index, ushort offset, Unit unit) where T : class
+        // use Unit.Network<C>();
+        internal static bool Register<T>(ushort index, ushort offset, Unit unit) where T : class
         {
-            ulong idenitifier = Generate(typeof(T).FullName.Hash(), index, offset);
-            if (!m_callbacks.ContainsKey(idenitifier))
+            ulong identifier = Generate(typeof(T).FullName.Hash(), index, offset);
+            if (!m_callbacks.ContainsKey(identifier))
             {
-                m_listeners.Add(idenitifier, new HashSet<int>());
-                m_callbacks.Add(idenitifier, new Callbacks(unit.Clone, unit.Apply, unit.Copy, unit.Paste));
+                m_listeners.Add(identifier, new HashSet<int>());
+                m_callbacks.Add(identifier, new Callbacks(unit.Clone, unit.Apply, () => unit.Pending, unit.Copy, unit.Paste));
                 unit.destructor = () =>
                 {
-                    m_listeners.Remove(idenitifier);
-                    m_callbacks.Remove(idenitifier);
+                    m_listeners.Remove(identifier);
+                    m_callbacks.Remove(identifier);
                 };
                 if (NetworkClient.Active)
                 {
                     // send find to server
+                    Network.Forward(Channels.Irregular, Find, (ref Writer writer) =>
+                    {
+                        writer.Write(identifier);
+                    });
                 }
                 return true;
             }
@@ -74,17 +81,22 @@ namespace Labyrinth.Collections
         {
             if (NetworkServer.Active)
             {
-                HashSet<ulong> found = new HashSet<ulong>();
                 foreach(var query in m_queries)
                 {
+                    HashSet<ulong> found = new HashSet<ulong>();
+
                     foreach (var identifier in query.Value)
                     {
                         if (m_callbacks.ContainsKey(identifier))
                         {
                             found.Add(identifier);
                             m_listeners[identifier].Add(query.Key);
-                            /*callback.Value.Clone*/
-                            // send duplicate to client (Link)
+                            // send clone to client (Link)
+                            Network.Forward(Channels.Irregular, Link, (ref Writer writer) =>
+                            {
+                                writer.Write(identifier);
+                                m_callbacks[identifier].Clone(ref writer);
+                            });
                         }
                     }
 
@@ -96,10 +108,22 @@ namespace Labyrinth.Collections
 
                 foreach (var callback in m_callbacks)
                 {
-                    /*callback.Value.Copy*/
-                    foreach (var connection in m_listeners[callback.Key])
+                    if (callback.Value.Pending())
                     {
-                        // send changes to clients (Modifiy)
+                        foreach (var connection in m_listeners[callback.Key])
+                        {
+                            /// copy can only be called once 
+                            ///     to capture all changes
+                            Writer buffer = new Writer();
+                            callback.Value.Copy(ref buffer);
+
+                            // send changes to clients (Modifiy)
+                            Network.Forward(Channels.Irregular, Modify, (ref Writer writer) =>
+                            {
+                                writer.Write(callback.Key);
+                                writer.Write(buffer.ToSegment());
+                            });
+                        }
                     }
                 }
             }
@@ -108,19 +132,22 @@ namespace Labyrinth.Collections
         // from client to server
         internal static void OnNetworkFind(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            throw new NotImplementedException();
+            ulong identifier = reader.ReadULong();
+            m_queries[connection].Add(identifier);
         }
 
         // from server to clients
         internal static void OnNetworkLink(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            throw new NotImplementedException();
+            ulong identifier = reader.ReadULong();
+            m_callbacks[identifier].Apply(ref reader);
         }
 
         // from server to clients
         internal static void OnNetworkModify(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            throw new NotImplementedException();
+            ulong identifier = reader.ReadULong();
+            m_callbacks[identifier].Paste(ref reader);
         }
 
         private static ulong Generate(uint instance, ushort index, ushort offset)
