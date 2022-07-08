@@ -49,7 +49,7 @@ namespace Labyrinth.Background
         {
             if (n_server != null)
             {
-                NetworkStream.Send = null;
+                NetworkStream.Clear();
                 Network.terminating.Invoke(n_server.Listen);
                 m_connections.Clear();
 

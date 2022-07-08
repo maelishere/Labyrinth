@@ -51,7 +51,7 @@ namespace Labyrinth.Background
             {
                 Outgoing();
                 m_disconnecting = false;
-                NetworkStream.Send = null;
+                NetworkStream.Clear();
                 Network.terminating.Invoke(n_client.Local);
 
                 /*n_client.Close();*/

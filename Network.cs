@@ -41,13 +41,13 @@ namespace Labyrinth
         public static UnityEvent<int, int> disconnected { get; } = new UnityEvent<int, int>();
         public static UnityEvent<int, int, uint> pinged { get; } = new UnityEvent<int, int, uint>();
 
-        private static Write Pack(byte flag, Write write)
+        private static Write Pack(byte flag, Write write, out int size)
         {
             Writer other = new Writer(200);
             other.Write(flag);
             // check if null not all messages need data
             write?.Invoke(ref other);
-
+            size = 4 + other.Current; // int is 4 bytes
             return (ref Writer writer) =>
             {
                 writer.Write(other.Current);
@@ -139,13 +139,22 @@ namespace Labyrinth
         }
 
         public static void Forward(byte channel, byte flag, Write write)
-            => NetworkStream.Queue(channel, Pack(flag, write));
+        {
+            Write callback = Pack(flag, write, out int size);
+            NetworkStream.Queue(channel, size, callback);
+        }
 
         public static void Forward(int connection, byte channel, byte flag, Write write)
-            => NetworkStream.Queue(connection, channel, Pack(flag, write));
+        {
+            Write callback = Pack(flag, write, out int size);
+            NetworkStream.Queue(connection, channel, size, callback);
+        }
 
         public static void Forward(Func<int, bool> predicate, byte channel, byte flag, Write write)
-            => NetworkStream.Queue(predicate, channel, Pack(flag, write));
+        {
+            Write callback = Pack(flag, write, out int size);
+            NetworkStream.Queue(predicate, channel, size, callback);
+        }
 
         public static int Authority(bool remote = false)
         {

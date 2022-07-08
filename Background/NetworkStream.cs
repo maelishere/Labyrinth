@@ -6,25 +6,25 @@ namespace Labyrinth.Background
     using Bolt;
     using Lattice.Delivery;
 
-    public class Batch : Queue<Write>
+    public readonly struct Packet
     {
-        public int Threshold { get; }
-
-        public Batch(int threshold)
+        public Packet(int size, Write send)
         {
-            Threshold = threshold;
+            Size = size;
+            Send = send;
         }
+
+        public int Size { get; }
+        public Write Send { get; }
     }
 
-    public class Batcher : Dictionary<Channel, Batch>
+    public class Batch : Dictionary<Channel, Queue<Packet>>
     {
-        public Batcher()
-        { 
-            // always make sure that there's at least 200 bytes
-            // (might change later really depends)
-            this[Channel.Ordered] = new Batch(200);
-            this[Channel.Irregular] = new Batch(200);
-            this[Channel.Direct] = new Batch(200);
+        public Batch()
+        {
+            this[Channel.Ordered] = new Queue<Packet>();
+            this[Channel.Irregular] = new Queue<Packet>();
+            this[Channel.Direct] = new Queue<Packet>();
         }
     }
 
@@ -32,11 +32,11 @@ namespace Labyrinth.Background
     {
         internal static Action<int, Channel, Write> Send { get; set; }
 
-        private static readonly Dictionary<int, Batcher> m_batches = new Dictionary<int, Batcher>();
+        private static readonly Dictionary<int, Batch> m_batches = new Dictionary<int, Batch>();
 
         internal static void Incoming(int connection)
         {
-            m_batches.Add(connection, new Batcher());
+            m_batches.Add(connection, new Batch());
         }
 
         internal static void Outgoing(int connection)
@@ -44,29 +44,35 @@ namespace Labyrinth.Background
             m_batches.Remove(connection);
         }
 
-        internal static void Queue(byte channel, Write write)
+        internal static void Clear()
+        {
+            Send = null; 
+            m_batches.Clear();
+        }
+
+        internal static void Queue(byte channel, int size, Write write)
         {
             foreach(var connection in m_batches)
             {
-                connection.Value[(Channel)channel].Enqueue(write);
+                connection.Value[(Channel)channel].Enqueue(new Packet(size, write));
             }
         }
 
-        internal static void Queue(int connection, byte channel, Write write)
+        internal static void Queue(int connection, byte channel, int size, Write write)
         {
             if (m_batches.ContainsKey(connection))
             {
-                m_batches[connection][(Channel)channel].Enqueue(write);
+                m_batches[connection][(Channel)channel].Enqueue(new Packet(size, write));
             }
         }
 
-        internal static void Queue(Func<int, bool> predicate, byte channel, Write write)
+        internal static void Queue(Func<int, bool> predicate, byte channel, int size, Write write)
         {
             foreach (var batch in m_batches)
             {
                 if (predicate(batch.Key))
                 {
-                    batch.Value[(Channel)channel].Enqueue(write);
+                    batch.Value[(Channel)channel].Enqueue(new Packet(size, write));
                 }
             }
         }
@@ -83,35 +89,43 @@ namespace Labyrinth.Background
 
         internal static void Process()
         {
-            foreach (var connection in m_batches)
+            if (Send != null)
             {
-                Release(connection.Key, Channel.Ordered, connection.Value[Channel.Ordered]);
-                Release(connection.Key, Channel.Irregular, connection.Value[Channel.Irregular]);
-                Release(connection.Key, Channel.Direct, connection.Value[Channel.Direct]);
+                foreach (var connection in m_batches)
+                {
+                    Release(connection.Key, Channel.Ordered);
+                    Release(connection.Key, Channel.Irregular);
+                    Release(connection.Key, Channel.Direct);
+                }
             }
         }
 
-        private static void Release(int connection, Channel channel, Batch batch)
+        private static void Release(int connection, Channel channel)
         {
-            while (Send != null & batch.Count > 0)
+            Packet packet;
+            if (m_batches[connection][channel].Count > 0)
             {
-                Send(connection, channel,
-                    (ref Writer writer) =>
-                    {
-                        do
+                packet = m_batches[connection][channel].Dequeue();
+                do
+                {
+                    Send(connection, channel,
+                        (ref Writer writer) =>
                         {
-                            Write write = batch.Dequeue();
-                            write(ref writer);
-
-                            // check if that's all
-                            if (batch.Count == 0)
+                            // check if there's enough space for the next packet
+                            while (packet.Size <= (writer.Length - writer.Current))
                             {
-                                break;
-                            }
+                                packet.Send(ref writer);
 
-                            // check if there's enough space for the next write
-                        } while (batch.Threshold <= (writer.Length - writer.Current));
-                    });
+                                // check if that's all
+                                if (m_batches[connection][channel].Count == 0)
+                                {
+                                    break;
+                                }
+
+                                packet = m_batches[connection][channel].Dequeue();
+                            }
+                        });
+                } while (m_batches[connection][channel].Count > 0);
             }
         }
     }
