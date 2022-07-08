@@ -37,6 +37,17 @@ namespace Labyrinth.Collections
             }
         }
 
+        public void Clear()
+        {
+            if (IsReadOnly)
+            {
+                throw new InvalidOperationException("Network collection can only be modified by the server");
+            }
+
+            m_reference = default;
+            Change(false, Step.Clear);
+        }
+
         protected override void Serialize(ref Writer writer)
         {
             writer.Write(m_reference);

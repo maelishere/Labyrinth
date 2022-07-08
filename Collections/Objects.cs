@@ -108,7 +108,7 @@ namespace Labyrinth.Collections
                     {
                         if (m_units.ContainsKey(identifier))
                         {
-                            UnityEngine.Debug.Log($"Found Object({identifier}) For Client({query.Key})");
+                            /*UnityEngine.Debug.Log($"Found Object({identifier}) For Client({query.Key})");*/
 
                             found.Add(identifier);
                             cloned.Add(new KeyValuePair<ulong, int>(identifier, query.Key));
@@ -141,7 +141,7 @@ namespace Labyrinth.Collections
                         foreach (var connection in m_listeners[callback.Key])
                         {
                             // send changes to clients (Modifiy)
-                            UnityEngine.Debug.Log($"Sending changes made to Object({callback.Key}) to Client({connection})");
+                            /*UnityEngine.Debug.Log($"Sending changes made to Object({callback.Key}) to Client({connection})");*/
                             Network.Forward(connection, Channels.Irregular, Modify, (ref Writer writer) =>
                             {
                                 writer.Write(callback.Key);
@@ -163,7 +163,7 @@ namespace Labyrinth.Collections
         internal static void OnNetworkFind(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            UnityEngine.Debug.Log($"Client({connection}) looking for Object({identifier})");
+            /*UnityEngine.Debug.Log($"Client({connection}) looking for Object({identifier})");*/
             m_queries[connection].Add(identifier);
         }
 
@@ -171,7 +171,7 @@ namespace Labyrinth.Collections
         internal static void OnNetworkLink(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            UnityEngine.Debug.Log($"Server({connection}) found Object({identifier})");
+            /*UnityEngine.Debug.Log($"Server({connection}) found Object({identifier})");*/
             m_units[identifier].Apply(ref reader);
         }
 
@@ -179,7 +179,7 @@ namespace Labyrinth.Collections
         internal static void OnNetworkModify(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            UnityEngine.Debug.Log($"Server({connection}) modifiying Object({identifier})");
+            /*UnityEngine.Debug.Log($"Server({connection}) modifiying Object({identifier})");*/
             m_units[identifier].Paste(ref reader);
         }
 
@@ -187,7 +187,7 @@ namespace Labyrinth.Collections
         internal static void OnNetworkIgnore(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            UnityEngine.Debug.Log($"Client({connection}) deleted Object({identifier})");
+            /*UnityEngine.Debug.Log($"Client({connection}) deleted Object({identifier})");*/
             m_listeners[identifier].Remove(connection);
         }
 

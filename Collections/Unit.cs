@@ -106,7 +106,7 @@ namespace Labyrinth.Collections
         // for new clients connections
         internal void Clone(ref Writer writer)
         {
-            UnityEngine.Debug.Log($"Cloning Step({m_steps}) for Object({identifier})");
+            /*UnityEngine.Debug.Log($"Cloning Step({m_steps}) for Object({identifier})");*/
             writer.Write(m_steps);
             Serialize(ref writer);
         }
@@ -114,7 +114,7 @@ namespace Labyrinth.Collections
         internal void Apply(ref Reader reader)
         {
             m_steps = reader.ReadUInt();
-            UnityEngine.Debug.Log($"Applying Step({m_steps}) for Object({identifier})");
+            /*UnityEngine.Debug.Log($"Applying Step({m_steps}) for Object({identifier})");*/
             Deserialize(ref reader);
 
             Clean();
@@ -142,7 +142,7 @@ namespace Labyrinth.Collections
         // for clients already connected
         internal void Copy(ref Writer writer)
         {
-            UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count-1}) for Object({identifier})");
+            /*UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count-1}) for Object({identifier})");*/
             writer.Write(m_marker);
             writer.Write(m_changes.Count);
             do
@@ -167,7 +167,7 @@ namespace Labyrinth.Collections
                 // call the action when we get there
                 Action action = Deserialize(step, ref reader);
                 m_pending.Add(marker, action);
-                UnityEngine.Debug.Log($"Step({marker}) pending for Object{identifier}");
+                /*UnityEngine.Debug.Log($"Step({marker}) pending for Object{identifier}");*/
                 marker++;
                 count--;
             }
@@ -195,7 +195,7 @@ namespace Labyrinth.Collections
             // release the next steps that are pending
             while (m_pending.ContainsKey(m_steps))
             {
-                UnityEngine.Debug.Log($"Releasing Step({m_steps}) for Object{identifier}");
+                /*UnityEngine.Debug.Log($"Releasing Step({m_steps}) for Object{identifier}");*/
 
                 m_pending[m_steps]();
                 m_pending.Remove(m_steps);
