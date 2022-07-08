@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 namespace Labyrinth.Runtime
 {
     using Bolt;
+    using Labyrinth.Background;
 
     [AddComponentMenu("Labyrinth/Entity")]
     public sealed class Entity : Instance
@@ -55,7 +56,7 @@ namespace Labyrinth.Runtime
             {
                 world.n_entities.Remove(identity.Value);
             }
-            if (!m_networkCeasing && (authority == Network.Authority() || Network.Internal(Host.Server)))
+            if ((!m_networkCeasing && authority == Network.Authority()) || NetworkServer.Active)
             {
                 Network.Forward(Channels.Ordered, Flags.Destroy,
                     (ref Writer writer) =>
@@ -110,7 +111,7 @@ namespace Labyrinth.Runtime
                         Channels.Ordered, Flags.Create, (ref Writer writer) => writer.WriteSpawn(entity));
                 }
 
-                /// ensures it doesn't send a network message when OnDestroy is called
+                /// ensures it doesn't send a network message when OnDestroy is called (Clients)
                 entity.m_networkCeasing = true;
                 Destroy(entity.gameObject);
             }

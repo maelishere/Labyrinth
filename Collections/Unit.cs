@@ -160,6 +160,7 @@ namespace Labyrinth.Collections
                 // call the action when we get there
                 Action action = Deserialize(step, ref reader);
                 m_pending.Add(marker, action);
+                UnityEngine.Debug.Log($"Step({marker}) pending for Object{identifier}");
                 marker++;
                 count--;
             }
