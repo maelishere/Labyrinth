@@ -135,7 +135,8 @@ namespace Labyrinth.Collections
 
                         /// copy can only be called once 
                         ///     to capture all changes
-                        Writer buffer = new Writer(199); /*too much data shouldn't be sent recklessly*/
+                        ///     too much data shouldn't be sent recklessly
+                        Writer buffer = new Writer(Network.Buffer - 1);
                         callback.Value.Copy(ref buffer);
 
                         foreach (var connection in m_listeners[callback.Key])

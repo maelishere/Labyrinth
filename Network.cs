@@ -15,6 +15,22 @@ namespace Labyrinth
 
     public static class Network
     {
+        private static int m_buffer = 1024;
+
+        public static int Buffer
+        {
+            get => m_buffer;
+            set
+            {
+                if (value > 1024)
+                    m_buffer = 1024;
+                else if (value < 255)
+                    m_buffer = 255;
+                else
+                    m_buffer = value;
+            }
+        }
+
         private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>()
         {
             [Flag.Connected] = new Flag(Flag.Connected, OnNetworkConnected),
@@ -43,7 +59,7 @@ namespace Labyrinth
 
         private static Write Pack(byte flag, Write write, out int size)
         {
-            Writer other = new Writer(200);
+            Writer other = new Writer(Buffer);
             other.Write(flag);
             // check if null not all messages need data
             write?.Invoke(ref other);
