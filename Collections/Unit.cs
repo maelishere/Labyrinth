@@ -12,18 +12,15 @@ namespace Labyrinth.Collections
         private uint m_steps = 0/*total number of changes*/;
         private uint m_marker = 0/*frist step of changes that will be sent*/;
         private uint m_count = 0/*number of changes since last network copy*/;
+        private bool m_reconfiguring = false;
         private readonly Queue<Change> m_changes = new Queue<Change>();
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
 
         public ulong identifier { get; internal set; }
         public bool Pending => m_pending.Count > 0;
 
-        // for testing (will remove later)
-        public bool Valid { get; private set; }
-
         protected Unit()
         {
-            Valid = true;
         }
 
         // instance id for an instance (clone) of a class (for static classes 0)
@@ -120,6 +117,7 @@ namespace Labyrinth.Collections
         // for new clients connections
         internal void Clone(ref Writer writer)
         {
+            UnityEngine.Debug.Log($"Cloning Step({m_steps}) for Object{identifier}");
             writer.Write(m_steps);
             Serialize(ref writer);
         }
@@ -129,12 +127,33 @@ namespace Labyrinth.Collections
             m_steps = reader.ReadUInt();
             UnityEngine.Debug.Log($"Applying Step({m_steps}) for Object{identifier}");
             Deserialize(ref reader);
-            m_pending.Clear();
+
+            Clean();
+            Release();
+            m_reconfiguring = false;
+        }
+
+        /// remove any previous step
+        private void Clean()
+        {
+            HashSet<uint> steps = new HashSet<uint>();
+            foreach (var step in m_pending)
+            {
+                if (step.Key < m_steps)
+                {
+                    steps.Add(step.Key);
+                }
+            }
+            foreach (var step in steps)
+            {
+                m_pending.Remove(step);
+            }
         }
 
         // for clients already connected
         internal void Copy(ref Writer writer)
         {
+            UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step{m_marker+m_changes.Count} for Object{identifier}");
             m_count = 0;
             writer.Write(m_marker);
             writer.Write(m_changes.Count);
@@ -165,14 +184,21 @@ namespace Labyrinth.Collections
                 count--;
             }
 
-            Release();
-
             /*if it recieved a step before it's current step*/
-            if (marker < m_steps)
+            if (marker < m_steps && !m_reconfiguring)
             {
-                /// then this unit is invalid
-                /// this shouldn't be a posibility (for testing)
-                Valid = false;
+                /// then this unit is out of order
+                /// request for a clone
+                Network.Forward(Channels.Irregular, Objects.Find, (ref Writer writer) =>
+                {
+                    writer.Write(identifier);
+                });
+                m_reconfiguring = true;
+            }
+
+            if (!m_reconfiguring)
+            {
+                Release();
             }
         }
 
