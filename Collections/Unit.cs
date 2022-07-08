@@ -139,7 +139,7 @@ namespace Labyrinth.Collections
             HashSet<uint> steps = new HashSet<uint>();
             foreach (var step in m_pending)
             {
-                if (step.Key < m_steps)
+                if (step.Key <= m_steps)
                 {
                     steps.Add(step.Key);
                 }
