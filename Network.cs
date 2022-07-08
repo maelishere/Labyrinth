@@ -144,16 +144,43 @@ namespace Labyrinth
             NetworkStream.Queue(channel, size, callback);
         }
 
+        public static void Send<T>(byte channel, byte flag, T value)
+        {
+            Forward(channel, flag,
+                (ref Writer writer) =>
+                {
+                    writer.Write(value);
+                });
+        }
+
         public static void Forward(int connection, byte channel, byte flag, Write write)
         {
             Write callback = Pack(flag, write, out int size);
             NetworkStream.Queue(connection, channel, size, callback);
         }
 
+        public static void Send<T>(int connection, byte channel, byte flag, T value)
+        {
+            Forward(connection, channel, flag,
+                (ref Writer writer) =>
+                {
+                    writer.Write(value);
+                });
+        }
+
         public static void Forward(Func<int, bool> predicate, byte channel, byte flag, Write write)
         {
             Write callback = Pack(flag, write, out int size);
             NetworkStream.Queue(predicate, channel, size, callback);
+        }
+
+        public static void Send<T>(Func<int, bool> predicate, byte channel, byte flag, T value)
+        {
+            Forward(predicate, channel, flag,
+                (ref Writer writer) =>
+                {
+                    writer.Write(value);
+                });
         }
 
         public static int Authority(bool remote = false)
