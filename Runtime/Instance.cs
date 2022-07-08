@@ -275,7 +275,7 @@ namespace Labyrinth.Runtime
                     /*Debug.Log($"Found Call({call.Procedure})");*/
                     if (Network.Internal(Host.Server))
                     {
-                        byte[] parameters = reader.Peek(reader.Length - reader.Current);
+                        Segment parameters = reader.Peek(reader.Length - reader.Current);
                         // if the target is any connection, forward to the other clients
                         if (call.Target == Identity.Any)
                         {
