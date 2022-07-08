@@ -17,7 +17,7 @@ namespace Labyrinth.Collections
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
 
         public ulong identifier { get; internal set; }
-        public bool Pending => m_pending.Count > 0;
+        public bool Changed => m_changes.Count > 0;
 
         protected Unit()
         {
@@ -56,11 +56,7 @@ namespace Labyrinth.Collections
                 m_count = 0;
             }
 
-            m_changes.Enqueue(new Change(action, 
-                (ref Writer writer) =>
-                {
-                    writer.Write(0);
-                }));
+            m_changes.Enqueue(new Change(action, null));
 
             if (additive)
             {
@@ -117,7 +113,7 @@ namespace Labyrinth.Collections
         // for new clients connections
         internal void Clone(ref Writer writer)
         {
-            UnityEngine.Debug.Log($"Cloning Step({m_steps}) for Object{identifier}");
+            UnityEngine.Debug.Log($"Cloning Step({m_steps}) for Object({identifier})");
             writer.Write(m_steps);
             Serialize(ref writer);
         }
@@ -125,7 +121,7 @@ namespace Labyrinth.Collections
         internal void Apply(ref Reader reader)
         {
             m_steps = reader.ReadUInt();
-            UnityEngine.Debug.Log($"Applying Step({m_steps}) for Object{identifier}");
+            UnityEngine.Debug.Log($"Applying Step({m_steps}) for Object({identifier})");
             Deserialize(ref reader);
 
             Clean();
@@ -153,7 +149,7 @@ namespace Labyrinth.Collections
         // for clients already connected
         internal void Copy(ref Writer writer)
         {
-            UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step{m_marker+m_changes.Count} for Object{identifier}");
+            UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count}) for Object({identifier})");
             m_count = 0;
             writer.Write(m_marker);
             writer.Write(m_changes.Count);
