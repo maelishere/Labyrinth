@@ -11,7 +11,6 @@ namespace Labyrinth.Collections
     {
         private uint m_steps = 0/*total number of changes*/;
         private uint m_marker = 0/*frist step of changes that will be sent*/;
-        private uint m_count = 0/*number of changes since last network copy*/;
         private bool m_reconfiguring = false;
         private readonly Queue<Change> m_changes = new Queue<Change>();
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
@@ -52,8 +51,7 @@ namespace Labyrinth.Collections
             if (!additive)
             {
                 m_changes.Clear();
-                m_steps -= m_count;
-                m_count = 0;
+                m_steps = m_marker;
             }
 
             m_changes.Enqueue(new Change(action, null));
@@ -61,7 +59,6 @@ namespace Labyrinth.Collections
             if (additive)
             {
                 m_steps++;
-                m_count++;
             }
         }
 
@@ -70,8 +67,7 @@ namespace Labyrinth.Collections
             if (!additive)
             {
                 m_changes.Clear();
-                m_steps -= m_count;
-                m_count = 0;
+                m_steps = m_marker;
             }
 
             m_changes.Enqueue(new Change(action,
@@ -83,7 +79,6 @@ namespace Labyrinth.Collections
             if (additive)
             {
                 m_steps++;
-                m_count++;
             }
         }
 
@@ -92,8 +87,7 @@ namespace Labyrinth.Collections
             if (!additive)
             {
                 m_changes.Clear();
-                m_steps -= m_count;
-                m_count = 0;
+                m_steps = m_marker;
             }
 
             m_changes.Enqueue(new Change(action,
@@ -106,7 +100,6 @@ namespace Labyrinth.Collections
             if (additive)
             {
                 m_steps++;
-                m_count++;
             }
         }
 
@@ -149,8 +142,7 @@ namespace Labyrinth.Collections
         // for clients already connected
         internal void Copy(ref Writer writer)
         {
-            UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count}) for Object({identifier})");
-            m_count = 0;
+            UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count-1}) for Object({identifier})");
             writer.Write(m_marker);
             writer.Write(m_changes.Count);
             do
