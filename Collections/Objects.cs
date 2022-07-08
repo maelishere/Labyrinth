@@ -46,9 +46,9 @@ namespace Labyrinth.Collections
             m_queries.Clear();
         }
 
-        internal static bool Add<T>(ushort index, ushort offset, Unit unit) where T : class
+        internal static bool Add(string type, ushort index, ushort offset, Unit unit)
         {
-            ulong identifier = Generate(typeof(T).FullName.Hash(), index, offset);
+            ulong identifier = Generate(type.Hash(), index, offset);
             if (!m_callbacks.ContainsKey(identifier))
             {
                 unit.identifier = identifier;

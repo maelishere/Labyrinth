@@ -29,17 +29,17 @@ namespace Labyrinth.Collections
         // only call this when the network is running
         // instance id for an instance (clone) of a class (for static classes 0)
         // member differentiates between each unit within an instance
-        public bool Network<C>(ushort instance, ushort member) where C : class
+        public bool Create(string type, ushort instance, ushort member)
         {
-            if (Labyrinth.Network.Running)
-                return Objects.Add<C>(instance, member, this);
+            if (Network.Running)
+                return Objects.Add(type, instance, member, this);
             else
                 return false;
         }
 
         public void Destroy()
         {
-            if (Labyrinth.Network.Running)
+            if (Network.Running)
                 Objects.Remove(identifier);
         }
 
