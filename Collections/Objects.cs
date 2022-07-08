@@ -131,7 +131,7 @@ namespace Labyrinth.Collections
                 {
                     if (m_listeners[callback.Key].Count > 0 && callback.Value.Changed)
                     {
-                        UnityEngine.Debug.Log($"Object({callback.Key}) has changed");
+                        /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
 
                         /// copy can only be called once 
                         ///     to capture all changes
