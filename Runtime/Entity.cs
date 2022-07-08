@@ -56,7 +56,7 @@ namespace Labyrinth.Runtime
             {
                 world.n_entities.Remove(identity.Value);
             }
-            if ((!m_networkCeasing && authority == Network.Authority()) || NetworkServer.Active)
+            if (!m_networkCeasing && (authority == Network.Authority() || NetworkServer.Active))
             {
                 Network.Forward(Channels.Ordered, Flags.Destroy,
                     (ref Writer writer) =>
@@ -111,7 +111,8 @@ namespace Labyrinth.Runtime
                         Channels.Ordered, Flags.Create, (ref Writer writer) => writer.WriteSpawn(entity));
                 }
 
-                /// ensures it doesn't send a network message when OnDestroy is called (Clients)
+                /// ensures it doesn't send a network message when OnDestroy is called
+                ///  (Server to Clients) server can destroy any entity even if it doesn't have authority
                 entity.m_networkCeasing = true;
                 Destroy(entity.gameObject);
             }
