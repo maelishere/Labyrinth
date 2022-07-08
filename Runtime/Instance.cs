@@ -331,8 +331,8 @@ namespace Labyrinth.Runtime
                     // fliter out older packets
                     if (timestamp >= instance.m_synchronous[sync.Signature].Last)
                     {
-                        instance.m_signatures[sync.Signature].Recieving(ref reader);
                         instance.m_synchronous[sync.Signature].Last = timestamp;
+                        instance.m_signatures[sync.Signature].Recieving(ref reader);
                     }
                 }
             }

@@ -43,10 +43,15 @@ namespace Labyrinth
 
         private static Write Pack(byte flag, Write write)
         {
+            Writer other = new Writer(200);
+            other.Write(flag);
+            // check if null not all messages need data
+            write?.Invoke(ref other);
+
             return (ref Writer writer) =>
             {
-                writer.Write(flag);
-                write?.Invoke(ref writer);
+                writer.Write(other.Current);
+                writer.Write(other.ToSegment());
             };
         }
 
@@ -94,13 +99,17 @@ namespace Labyrinth
 
         internal static void Receive(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            byte flag = reader.Read();
-            /*Debug.Log($"Received {flag}");*/
+            int lenght = reader.ReadInt();
+            Segment segment = reader.ReadSegment(lenght);
+
+            Reader other = new Reader(segment);
+            byte flag = other.Read();
             if (m_callbacks.ContainsKey(flag))
             {
-                m_callbacks[flag].Callback(socket, connection, timestamp, ref reader);
+                m_callbacks[flag].Callback(socket, connection, timestamp, ref other);
                 return;
             }
+
             Debug.LogError($"Network received invalid flag [{flag}]");
         }
 

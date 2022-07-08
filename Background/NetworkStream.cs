@@ -54,7 +54,10 @@ namespace Labyrinth.Background
 
         internal static void Queue(int connection, byte channel, Write write)
         {
-            m_batches[connection][(Channel)channel].Enqueue(write);
+            if (m_batches.ContainsKey(connection))
+            {
+                m_batches[connection][(Channel)channel].Enqueue(write);
+            }
         }
 
         internal static void Queue(Func<int, bool> predicate, byte channel, Write write)
@@ -73,7 +76,9 @@ namespace Labyrinth.Background
             do
             {
                 Network.Receive(socket, connection, timestamp, ref reader);
-            } while (reader.Current < reader.Length);
+                // i need to remove what's left in the reader (for the next flag) beacuse the messages are packed
+                // this causes invalid flag or the wrong callback being called
+            } while (reader.Current < reader.Length - 1);
         }
 
         internal static void Process()
@@ -98,7 +103,7 @@ namespace Labyrinth.Background
                             Write write = batch.Dequeue();
                             write(ref writer);
 
-                            // and make sure it's not an infinite loop
+                            // check if that's all
                             if (batch.Count == 0)
                             {
                                 break;
