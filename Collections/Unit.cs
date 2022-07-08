@@ -26,14 +26,21 @@ namespace Labyrinth.Collections
             Valid = true;
         }
 
-        // only call this when the network is running
         // instance id for an instance (clone) of a class (for static classes 0)
         // member differentiates between each unit within an instance
+        // (Static classes)
+        //          for server use Network.initialized,
+        //          clients use Network.connected
+        //          (check if the connection is actually the server)
         public bool Create(string type, ushort instance, ushort member)
         {
             return Objects.Add(type, instance, member, this);
         }
 
+        // (Static classes)
+        //          for server use Network.terminating,
+        //          clients use Network.disconnected
+        //          (check if the connection is actually the server)
         public void Destroy()
         {
             Objects.Remove(identifier);
@@ -120,8 +127,9 @@ namespace Labyrinth.Collections
         internal void Apply(ref Reader reader)
         {
             m_steps = reader.ReadUInt();
+            UnityEngine.Debug.Log($"Applying Step({m_steps}) for Object{identifier}");
             Deserialize(ref reader);
-            Release();
+            m_pending.Clear();
         }
 
         // for clients already connected
@@ -172,6 +180,8 @@ namespace Labyrinth.Collections
             // release the next steps that are pending
             while (m_pending.ContainsKey(m_steps))
             {
+                UnityEngine.Debug.Log($"Releasing Step({m_steps}) for Object{identifier}");
+
                 m_pending[m_steps]();
                 m_pending.Remove(m_steps);
                 m_steps++;

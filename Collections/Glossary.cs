@@ -150,8 +150,8 @@ namespace Labyrinth.Collections
 
         protected override void Deserialize(ref Reader reader)
         {
-            int count = reader.ReadInt();
             m_reference.Clear();
+            int count = reader.ReadInt();
             for (int i = 0; i < count; i++)
             {
                 TKey index = reader.Read<TKey>();

@@ -75,7 +75,7 @@ namespace Labyrinth.Collections
             m_callbacks.Remove(identifier);
             if (NetworkClient.Active)
             {
-                // send find to server
+                // send ignore to server
                 Network.Forward(Channels.Irregular, Ignore, (ref Writer writer) =>
                 {
                     writer.Write(identifier);
@@ -107,6 +107,8 @@ namespace Labyrinth.Collections
                     {
                         if (m_callbacks.ContainsKey(identifier))
                         {
+                            UnityEngine.Debug.Log($"Found Object({identifier}) For Client({query.Key})");
+
                             found.Add(identifier);
                             cloned.Add(new KeyValuePair<ulong, int>(identifier, query.Key));
                             // send clone to client (Link)
@@ -126,11 +128,11 @@ namespace Labyrinth.Collections
 
                 foreach (var callback in m_callbacks)
                 {
-                    if (callback.Value.Pending())
+                    if (callback.Value.Pending() && m_listeners[callback.Key].Count > 0)
                     {
                         /// copy can only be called once 
                         ///     to capture all changes
-                        Writer buffer = new Writer();
+                        Writer buffer = new Writer(100); /*too much data shouldn't be sent recklessly*/
                         callback.Value.Copy(ref buffer);
 
                         foreach (var connection in m_listeners[callback.Key])
