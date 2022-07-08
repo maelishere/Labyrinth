@@ -46,9 +46,9 @@ namespace Labyrinth.Collections
             m_queries.Clear();
         }
 
-        internal static bool Add(string type, ushort index, ushort offset, Unit unit)
+        internal static bool Add(string type, ushort instance, ushort member, Unit unit)
         {
-            ulong identifier = Generate(type.Hash(), index, offset);
+            ulong identifier = Generate(type.Hash(), instance, member);
             if (!m_callbacks.ContainsKey(identifier))
             {
                 unit.identifier = identifier;
@@ -57,6 +57,8 @@ namespace Labyrinth.Collections
                 if (NetworkClient.Active)
                 {
                     // send find to server
+                    // it doesn't matter if this is received orderedly
+                    // the server won't sync the object until you send this
                     Network.Forward(Channels.Irregular, Find, (ref Writer writer) =>
                     {
                         writer.Write(identifier);
@@ -95,7 +97,9 @@ namespace Labyrinth.Collections
         {
             if (NetworkServer.Active)
             {
-                foreach(var query in m_queries)
+                List<KeyValuePair<ulong, int>> cloned = new List<KeyValuePair<ulong, int>>();
+
+                foreach (var query in m_queries)
                 {
                     HashSet<ulong> found = new HashSet<ulong>();
 
@@ -104,9 +108,9 @@ namespace Labyrinth.Collections
                         if (m_callbacks.ContainsKey(identifier))
                         {
                             found.Add(identifier);
-                            m_listeners[identifier].Add(query.Key);
+                            cloned.Add(new KeyValuePair<ulong, int>(identifier, query.Key));
                             // send clone to client (Link)
-                            Network.Forward(Channels.Irregular, Link, (ref Writer writer) =>
+                            Network.Forward(query.Key, Channels.Irregular, Link, (ref Writer writer) =>
                             {
                                 writer.Write(identifier);
                                 m_callbacks[identifier].Clone(ref writer);
@@ -124,15 +128,15 @@ namespace Labyrinth.Collections
                 {
                     if (callback.Value.Pending())
                     {
+                        /// copy can only be called once 
+                        ///     to capture all changes
+                        Writer buffer = new Writer();
+                        callback.Value.Copy(ref buffer);
+
                         foreach (var connection in m_listeners[callback.Key])
                         {
-                            /// copy can only be called once 
-                            ///     to capture all changes
-                            Writer buffer = new Writer();
-                            callback.Value.Copy(ref buffer);
-
                             // send changes to clients (Modifiy)
-                            Network.Forward(Channels.Irregular, Modify, (ref Writer writer) =>
+                            Network.Forward(connection, Channels.Irregular, Modify, (ref Writer writer) =>
                             {
                                 writer.Write(callback.Key);
                                 writer.Write(buffer.ToSegment());
@@ -140,6 +144,12 @@ namespace Labyrinth.Collections
                         }
                     }
                 }
+
+                // we don't need to send it a copy when we sent a clone
+                foreach(var clone in cloned)
+                {
+                    m_listeners[clone.Key].Add(clone.Value);
+                }    
             }
         }
 
@@ -147,6 +157,7 @@ namespace Labyrinth.Collections
         internal static void OnNetworkFind(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
+            UnityEngine.Debug.Log($"Client({connection}) looking for Object({identifier})");
             m_queries[connection].Add(identifier);
         }
 
@@ -154,28 +165,29 @@ namespace Labyrinth.Collections
         internal static void OnNetworkLink(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
+            UnityEngine.Debug.Log($"Server({connection}) found Object({identifier})");
             m_callbacks[identifier].Apply(ref reader);
-            // don't check if it contains it would mess with remaining data in the buffer
         }
 
         // from server to clients
         internal static void OnNetworkModify(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
+            UnityEngine.Debug.Log($"Server({connection}) modifiying Object({identifier})");
             m_callbacks[identifier].Paste(ref reader);
-            // don't check if it contains it would mess with remaining data in the buffer
         }
 
         // from client to server
         internal static void OnNetworkIgnore(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
+            UnityEngine.Debug.Log($"Client({connection}) deleted Object({identifier})");
             m_listeners[identifier].Remove(connection);
         }
 
-        private static ulong Generate(uint instance, ushort index, ushort offset)
+        private static ulong Generate(uint name, ushort index, ushort offset)
         {
-            return Combine(instance, Combine(index, offset));
+            return Combine(name, Combine(index, offset));
         }
 
         /// inserts a into the frist 16 bits of a uint and b into the last 16

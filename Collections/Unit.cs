@@ -15,8 +15,8 @@ namespace Labyrinth.Collections
         private readonly Queue<Change> m_changes = new Queue<Change>();
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
 
-        internal ulong identifier { get; set; }
-        internal bool Pending => m_pending.Count > 0;
+        public ulong identifier { get; internal set; }
+        public bool Pending => m_pending.Count > 0;
 
         // for testing (will remove later)
         public bool Valid { get; private set; }
@@ -31,16 +31,12 @@ namespace Labyrinth.Collections
         // member differentiates between each unit within an instance
         public bool Create(string type, ushort instance, ushort member)
         {
-            if (Network.Running)
-                return Objects.Add(type, instance, member, this);
-            else
-                return false;
+            return Objects.Add(type, instance, member, this);
         }
 
         public void Destroy()
         {
-            if (Network.Running)
-                Objects.Remove(identifier);
+            Objects.Remove(identifier);
         }
 
         // these classes can only be edited by a server
