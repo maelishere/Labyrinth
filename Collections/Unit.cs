@@ -16,7 +16,7 @@ namespace Labyrinth.Collections
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
 
         public ulong identifier { get; internal set; }
-        public bool Changed => m_changes.Count > 0;
+        public bool changed => m_changes.Count > 0;
 
         protected Unit()
         {

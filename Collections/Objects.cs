@@ -125,7 +125,7 @@ namespace Labyrinth.Collections
                 {
                     if (unit.Value != null)
                     {
-                        if (unit.Value.Changed)
+                        if (unit.Value.changed)
                         {
                             /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
 
