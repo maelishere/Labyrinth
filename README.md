@@ -102,7 +102,7 @@ Note: A Sector (on the server) is required if you set relevancy to Relevance.Sec
 
 Relevancy also comes with custom layers (not attached to unity's layers) to allow for more complexity in synchronizing the overall gameworld.
 
-# Network Collections
+### Network Collections
 
 These objects are independent of runtime network instances and can be used to sync Fields, Lists (Vector), Dictionaries (Glossary) and Hashsets (Series or Sequence). Messages are only sent when the object was changed during a frame. To link then over the network call .Create and call .Destroy when you're done with them
 
