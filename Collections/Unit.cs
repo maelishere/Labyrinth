@@ -33,7 +33,6 @@ namespace Labyrinth.Collections
             return Objects.Add(type, instance, member, this);
         }
 
-        // Note: not neccessary (Server Only), but good practice
         // (Static classes)
         //          for server use Network.terminating,
         //          clients use Network.disconnected
