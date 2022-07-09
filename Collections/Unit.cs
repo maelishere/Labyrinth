@@ -48,6 +48,10 @@ namespace Labyrinth.Collections
 
         protected void Change(bool additive, Step action)
         {
+            // we don't need to add to the queue when the server isn't running
+            if (!NetworkServer.Active)
+                return;
+
             if (!additive)
             {
                 m_changes.Clear();
@@ -64,6 +68,10 @@ namespace Labyrinth.Collections
 
         protected void Change<I>(bool additive, Step action, I arg)
         {
+            // we don't need to add to the queue when the server isn't running
+            if (!NetworkServer.Active)
+                return;
+
             if (!additive)
             {
                 m_changes.Clear();
@@ -84,6 +92,10 @@ namespace Labyrinth.Collections
 
         protected void Change<I, T>(bool additive, Step action, I arg1, T arg2)
         {
+            // we don't need to add to the queue when the server isn't running
+            if (!NetworkServer.Active)
+                return;
+
             if (!additive)
             {
                 m_changes.Clear();
