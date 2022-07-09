@@ -17,24 +17,6 @@ namespace Labyrinth.Collections
         public const byte Modify = 11;
         public const byte Ignore = 12;
 
-        public struct Callbacks
-        {
-            public Callbacks(Write clone, Read apply, Func<bool> pending, Write copy, Read paste)
-            {
-                Clone = clone;
-                Apply = apply;
-                Pending = pending;
-                Copy = copy;
-                Paste = paste;
-            }
-
-            public Write Clone { get; }
-            public Read Apply { get; }
-            public Func<bool> Pending { get; }
-            public Write Copy { get; }
-            public Read Paste { get; }
-        }
-
         private static readonly Dictionary<ulong, Unit> m_units = new Dictionary<ulong, Unit>();
         private static readonly Dictionary<int, HashSet<ulong>> m_queries = new Dictionary<int, HashSet<ulong>>(); /*the objects each client is looking for*/
         private static readonly Dictionary<ulong, HashSet<int>> m_listeners = new Dictionary<ulong, HashSet<int>>(); /*the clients that have created each object*/
@@ -52,8 +34,11 @@ namespace Labyrinth.Collections
             if (!m_units.ContainsKey(identifier))
             {
                 unit.identifier = identifier;
-                m_listeners.Add(identifier, new HashSet<int>());
                 m_units.Add(identifier, unit);
+                if (NetworkServer.Active)
+                {
+                    m_listeners.Add(identifier, new HashSet<int>());
+                }
                 if (NetworkClient.Active)
                 {
                     // send find to server
@@ -72,8 +57,11 @@ namespace Labyrinth.Collections
         internal static void Remove(ulong identifier)
         {
             m_units[identifier].identifier = 0;
-            m_listeners.Remove(identifier);
             m_units.Remove(identifier);
+            if (NetworkServer.Active)
+            {
+                m_listeners.Remove(identifier);
+            }
             if (NetworkClient.Active)
             {
                 // send ignore to server
@@ -127,13 +115,13 @@ namespace Labyrinth.Collections
                     }
                 }
 
-                foreach (var callback in m_units)
+                foreach (var unit in m_units)
                 {
                     // m_listeners[callback.Key].Count > 0
                     // it could send previous steps to the client that just requested for clone
                     //              the next frame and we don't need that
 
-                    if (callback.Value.Changed)
+                    if (unit.Value.Changed)
                     {
                         /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
 
@@ -141,15 +129,15 @@ namespace Labyrinth.Collections
                         ///     to capture all changes
                         ///     (too much data shouldn't be sent recklessly)
                         Writer buffer = new Writer(Network.Buffer - 1);
-                        callback.Value.Copy(ref buffer);
+                        unit.Value.Copy(ref buffer);
 
-                        foreach (var connection in m_listeners[callback.Key])
+                        foreach (var connection in m_listeners[unit.Key])
                         {
                             // send changes to clients (Modifiy)
                             /*UnityEngine.Debug.Log($"Sending changes made to Object({callback.Key}) to Client({connection})");*/
                             Network.Forward(connection, Channels.Irregular, Modify, (ref Writer writer) =>
                             {
-                                writer.Write(callback.Key);
+                                writer.Write(unit.Key);
                                 writer.Write(buffer.ToSegment());
                             });
                         }
