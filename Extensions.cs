@@ -151,6 +151,11 @@ namespace Labyrinth
             writer.Write(instance?.identity ?? Identity.Any);
         }
 
+        // when defining your own Custom Writer/Reader 
+        //      don't use a Static Constructor
+        //      static contrustors don't get called
+        //          when unity classes (not structs) are used within the class or struct
+        //          not sure if this is the reason why but in my testing in the sample it didn't work
         static Extensions()
         {
             Extension.Generic<Vector2>.SetRead((ref Reader reader) =>

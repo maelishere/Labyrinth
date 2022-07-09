@@ -79,6 +79,8 @@ namespace Labyrinth.Background
             if (!Network.Running)
                 return;
 
+            NetworkDebug.EarlyReset();
+
             NetworkServer.Receive();
             NetworkClient.Receive();
 
@@ -101,7 +103,7 @@ namespace Labyrinth.Background
             NetworkServer.Update();
             NetworkClient.Update();
 
-            NetworkDebug.Reset();
+            NetworkDebug.LateReset();
         }
     }
 }
