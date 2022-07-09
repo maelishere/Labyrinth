@@ -76,7 +76,7 @@ Function calls - use Appendix.Method() to register and Appendix.RPC() to call ov
     
 ### Network Relevancy
 
-Instance messages for Variables and Function call make use of relevance, in order for the server to save bandwidth when sending data. For it to work an Observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script; or NetworkTranform or NetworkRigidbody. 
+Instance messages for Variables and Function calls make use of relevance, in order for the server to save bandwidth when sending data. For it to work an Observer component (***Requirement***) must be placed on represention of a player (Character), which in turn requires an Entity component. You have to sync it's position, from client to server, through your own script. 
 
 Note: you can have multiple observers for each client.
 
@@ -112,7 +112,7 @@ These objects are independent of runtime network instances. Messages are only se
 
     Sets/HashSets (Series or Sequence)
 
-To link them over the network call .Create and call .Destroy when you're done with them.
+To link them over the network call Unit.Create() and call Unit.Destroy() when you're done with them.
     
 Note: when the network is running only the server can change them.
 
