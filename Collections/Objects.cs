@@ -56,7 +56,10 @@ namespace Labyrinth.Collections
 
         internal static void Remove(ulong identifier)
         {
-            m_units[identifier].identifier = 0;
+            if (m_units[identifier] != null)
+            {
+                m_units[identifier].identifier = 0;
+            }
             m_units.Remove(identifier);
             if (NetworkServer.Active)
             {
@@ -96,16 +99,19 @@ namespace Labyrinth.Collections
                     {
                         if (m_units.ContainsKey(identifier))
                         {
-                            /*UnityEngine.Debug.Log($"Found Object({identifier}) For Client({query.Key})");*/
-
-                            found.Add(identifier);
-                            cloned.Add(new KeyValuePair<ulong, int>(identifier, query.Key));
-                            // send clone to client (Link)
-                            Network.Forward(query.Key, Channels.Irregular, Link, (ref Writer writer) =>
+                            if (m_units[identifier] != null)
                             {
-                                writer.Write(identifier);
-                                m_units[identifier].Clone(ref writer);
-                            });
+                                /*UnityEngine.Debug.Log($"Found Object({identifier}) For Client({query.Key})");*/
+
+                                found.Add(identifier);
+                                cloned.Add(new KeyValuePair<ulong, int>(identifier, query.Key));
+                                // send clone to client (Link)
+                                Network.Forward(query.Key, Channels.Irregular, Link, (ref Writer writer) =>
+                                {
+                                    writer.Write(identifier);
+                                    m_units[identifier].Clone(ref writer);
+                                });
+                            }
                         }
                     }
 
@@ -115,32 +121,40 @@ namespace Labyrinth.Collections
                     }
                 }
 
+                HashSet<ulong> missing = new HashSet<ulong>();
                 foreach (var unit in m_units)
                 {
                     // m_listeners[callback.Key].Count > 0
                     // it could send previous steps to the client that just requested for clone
                     //              the next frame and we don't need that
 
-                    if (unit.Value.Changed)
+                    if (unit.Value != null)
                     {
-                        /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
-
-                        /// copy can only be called once 
-                        ///     to capture all changes
-                        ///     (too much data shouldn't be sent recklessly)
-                        Writer buffer = new Writer(Network.Buffer - 1);
-                        unit.Value.Copy(ref buffer);
-
-                        foreach (var connection in m_listeners[unit.Key])
+                        if (unit.Value.Changed)
                         {
-                            // send changes to clients (Modifiy)
-                            /*UnityEngine.Debug.Log($"Sending changes made to Object({callback.Key}) to Client({connection})");*/
-                            Network.Forward(connection, Channels.Irregular, Modify, (ref Writer writer) =>
+                            /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
+
+                            /// copy can only be called once 
+                            ///     to capture all changes
+                            ///     (too much data shouldn't be sent recklessly)
+                            Writer buffer = new Writer(Network.Buffer - 1);
+                            unit.Value.Copy(ref buffer);
+
+                            foreach (var connection in m_listeners[unit.Key])
                             {
-                                writer.Write(unit.Key);
-                                writer.Write(buffer.ToSegment());
-                            });
+                                // send changes to clients (Modifiy)
+                                /*UnityEngine.Debug.Log($"Sending changes made to Object({callback.Key}) to Client({connection})");*/
+                                Network.Forward(connection, Channels.Irregular, Modify, (ref Writer writer) =>
+                                {
+                                    writer.Write(unit.Key);
+                                    writer.Write(buffer.ToSegment());
+                                });
+                            }
                         }
+                    }
+                    else
+                    {
+                        missing.Add(unit.Key);
                     }
                 }
 
@@ -148,6 +162,13 @@ namespace Labyrinth.Collections
                 foreach (var clone in cloned)
                 {
                     m_listeners[clone.Key].Add(clone.Value);
+                }
+
+                // when you forget to call Unit.Destroy
+                //      before it removed from system memory
+                foreach (var unit in missing)
+                {
+                    Remove(unit);
                 }
             }
         }
