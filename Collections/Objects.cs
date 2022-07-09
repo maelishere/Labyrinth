@@ -129,13 +129,17 @@ namespace Labyrinth.Collections
 
                 foreach (var callback in m_units)
                 {
-                    if (m_listeners[callback.Key].Count > 0 && callback.Value.Changed)
+                    // m_listeners[callback.Key].Count > 0
+                    // it could send it to client that just requested for clone
+                    //              the next frame and we don't need that
+
+                    if (callback.Value.Changed)
                     {
                         /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
 
                         /// copy can only be called once 
                         ///     to capture all changes
-                        ///     too much data shouldn't be sent recklessly
+                        ///     (too much data shouldn't be sent recklessly)
                         Writer buffer = new Writer(Network.Buffer - 1);
                         callback.Value.Copy(ref buffer);
 

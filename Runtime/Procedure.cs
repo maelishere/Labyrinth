@@ -31,7 +31,6 @@
             /// if this prodecure can run on client or server or both
             /// if the network is the target
 
-            bool run = false;
             bool isTarget = target == Identity.Any || target == Network.Authority();
 
             if (Network.Internal(Host.Server))
@@ -40,8 +39,7 @@
                 {
                     case Rule.Any:
                     case Rule.Server:
-                        run = isTarget;
-                        break;
+                        return isTarget;
                 }
             }
 
@@ -51,12 +49,11 @@
                 {
                     case Rule.Any:
                     case Rule.Client:
-                        run = isTarget;
-                        break;
+                        return isTarget;
                 }
             }
 
-            return run;
+            return false;
         }
     }
 }

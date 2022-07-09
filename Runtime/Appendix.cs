@@ -11,7 +11,7 @@ namespace Labyrinth.Runtime
         [Serializable]
         public struct Variable
         {
-            public int Rate;
+            public float Rate;
             public Signature.Rule Control;
             public Relevancy Relevancy;
         }
@@ -30,7 +30,7 @@ namespace Labyrinth.Runtime
         public int authority => n_network.authority.Value;
         public bool owner => Network.Authority(authority);
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevancy relevancy, Func<T> get, Action<T> set) where T : struct
+        public bool Var<T>(byte signature, float rate, Signature.Rule control, Relevancy relevancy, Func<T> get, Action<T> set) where T : struct
         {
             return n_network.Register(n_offset,
                 new Signature(signature, rate, control, relevancy,
@@ -47,12 +47,12 @@ namespace Labyrinth.Runtime
                 }));
         }
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Layers layers, Func<T> get, Action<T> set) where T : struct
+        public bool Var<T>(byte signature, float rate, Signature.Rule control, Relevance relevance, Layers layers, Func<T> get, Action<T> set) where T : struct
         {
             return Var(signature, rate, control, new Relevancy(relevance, layers), get, set);
         }
 
-        public bool Var<T>(byte signature, int rate, Signature.Rule control, Relevance relevance, Func<T> get, Action<T> set) where T : struct
+        public bool Var<T>(byte signature, float rate, Signature.Rule control, Relevance relevance, Func<T> get, Action<T> set) where T : struct
         {
             return Var(signature, rate, control, new Relevancy(relevance), get, set);
         }

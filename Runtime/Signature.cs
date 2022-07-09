@@ -11,7 +11,7 @@
             Authority
         }
 
-        public Signature(byte value, int rate, Rule control, Relevancy relevancy, Write sending, Read recieving)
+        public Signature(byte value, float rate, Rule control, Relevancy relevancy, Write sending, Read recieving)
         {
             Value = value;
             Rate = rate;
@@ -22,7 +22,7 @@
         }
 
         public byte Value { get; }
-        public int Rate { get; }
+        public float Rate { get; }
         public Rule Control { get; }
         public Relevancy Relevancy { get; }
         public Write Sending { get; }

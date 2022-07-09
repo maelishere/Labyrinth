@@ -73,7 +73,19 @@ namespace Labyrinth.Runtime
 
         protected virtual void LateUpdate()
         {
-
+            int time = (int)m_stopwatch.ElapsedMilliseconds;
+            foreach (var signature in m_synchronous)
+            {
+                if (signature.Value.Sync)
+                {
+                    if (time >= signature.Value.Next)
+                    {
+                        // if send is null, something is wrong
+                        signature.Value.Send();
+                        signature.Value.Post(time);
+                    }
+                }
+            }
         }
 
         internal bool Create(int identifier, int connection)
@@ -158,7 +170,7 @@ namespace Labyrinth.Runtime
                             }
                             break;
                     }
-                    container = new Container(callback, (1000 / signature.Value.Rate));
+                    container = new Container(callback, Mathf.RoundToInt(1000 * signature.Value.Rate));
                 }
                 m_synchronous.Add(signature.Key, container ?? new Container());
             }
@@ -241,8 +253,8 @@ namespace Labyrinth.Runtime
             m_instances.Clear();
         }
 
-        // will move this Instance.LateUpdate later
-        private static void NetworkUpdate()
+        // Moved to Instance.LateUpdate
+        /*private static void NetworkUpdate()
         {
             int time = (int)m_stopwatch.ElapsedMilliseconds;
             foreach (var instance in m_instances)
@@ -260,7 +272,7 @@ namespace Labyrinth.Runtime
                     }
                 }
             }
-        }
+        }*/
 
         internal static void OnNetworkProcedure(int socket, int connection, uint timestamp, ref Reader reader)
         {
@@ -387,7 +399,7 @@ namespace Labyrinth.Runtime
 
         static Instance()
         {
-            NetworkLoop.LateUpdate += NetworkUpdate;
+            /*NetworkLoop.LateUpdate += NetworkUpdate;*/
             Network.initialized.AddListener(NetworkStartup);
             Network.terminating.AddListener(NetworkReset);
         }

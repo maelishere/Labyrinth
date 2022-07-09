@@ -87,10 +87,9 @@ namespace Labyrinth
                 Objects.Connected(connection);
             }
 
-            if (NetworkClient.Active)
+            /*if (NetworkClient.Active)
             {
-                // we joined the server
-            }
+            }*/
 
             connected.Invoke(socket, connection);
         }
@@ -106,27 +105,37 @@ namespace Labyrinth
                 Objects.Disconnected(connection);
             }
 
-            if (NetworkClient.Active)
+            /*if (NetworkClient.Active)
             {
-            }
+            }*/
 
             disconnected.Invoke(socket, connection);
         }
 
         internal static void Receive(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            int lenght = reader.ReadInt();
-            Segment segment = reader.ReadSegment(lenght);
-
-            Reader other = new Reader(segment);
-            byte flag = other.Read();
-            if (m_callbacks.ContainsKey(flag))
+            try
             {
-                m_callbacks[flag].Callback(socket, connection, timestamp, ref other);
-                return;
-            }
+                int lenght = reader.ReadInt();
+                Segment segment = reader.ReadSegment(lenght);
 
-            Debug.LogError($"Network received invalid flag [{flag}]");
+                Reader other = new Reader(segment);
+                byte flag = other.Read();
+                if (m_callbacks.ContainsKey(flag))
+                {
+                    m_callbacks[flag].Callback(socket, connection, timestamp, ref other);
+                    return;
+                }
+
+                Debug.LogError($"Network received invalid flag [{flag}]");
+            }
+            catch(Exception e)
+            {
+                // messages are in batches
+                //      exceptions wouldn't allow the
+                //      remaining messages to be received
+                Debug.LogError(e);
+            }
         }
 
         // add a custom callback for a network flag
@@ -156,8 +165,18 @@ namespace Labyrinth
 
         public static void Forward(byte channel, byte flag, Write write)
         {
-            Write callback = Pack(flag, write, out int size);
-            NetworkStream.Queue(channel, size, callback);
+            try
+            {
+                Write callback = Pack(flag, write, out int size);
+                NetworkStream.Queue(channel, size, callback);
+            }
+            catch (Exception e)
+            {
+                // there could be an exception when writing in Pack();
+                //      it shouldn't interupt the current frame
+                //      so messages are sent
+                Debug.LogError(e);
+            }
         }
 
         public static void Send<T>(byte channel, byte flag, T value)
@@ -171,8 +190,18 @@ namespace Labyrinth
 
         public static void Forward(int connection, byte channel, byte flag, Write write)
         {
-            Write callback = Pack(flag, write, out int size);
-            NetworkStream.Queue(connection, channel, size, callback);
+            try
+            {
+                Write callback = Pack(flag, write, out int size);
+                NetworkStream.Queue(connection, channel, size, callback);
+            }
+            catch (Exception e)
+            {
+                // there could be an exception when writing in Pack();
+                //      it shouldn't interupt the current frame
+                //      so messages are sent
+                Debug.LogError(e);
+            }
         }
 
         public static void Send<T>(int connection, byte channel, byte flag, T value)
@@ -186,8 +215,18 @@ namespace Labyrinth
 
         public static void Forward(Func<int, bool> predicate, byte channel, byte flag, Write write)
         {
-            Write callback = Pack(flag, write, out int size);
-            NetworkStream.Queue(predicate, channel, size, callback);
+            try
+            {
+                Write callback = Pack(flag, write, out int size);
+                NetworkStream.Queue(predicate, channel, size, callback);
+            }
+            catch (Exception e)
+            {
+                // there could be an exception when writing in Pack();
+                //      it shouldn't interupt the current frame
+                //      so messages are sent
+                Debug.LogError(e);
+            }
         }
 
         public static void Send<T>(Func<int, bool> predicate, byte channel, byte flag, T value)
@@ -218,6 +257,7 @@ namespace Labyrinth
             return connection == Identity.Any ? false : connection == Authority(remote);
         }
 
+        // this may be removed (not sure)
         public static bool Internal(Host local)
         {
             switch (local)

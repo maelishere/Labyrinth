@@ -93,6 +93,7 @@ namespace Labyrinth.Collections
             Change(true, Step.Insert, index, item);
         }
 
+        [Obsolete("Vector.Remove isn't implemented, use Vector.RemoveAt", true)]
         public bool Remove(T item)
         {
             throw new NotImplementedException();
