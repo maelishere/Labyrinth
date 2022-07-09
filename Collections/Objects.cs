@@ -162,7 +162,7 @@ namespace Labyrinth.Collections
                 }
 
                 // when you forget to call Unit.Destroy
-                //      before it removed from system memory
+                //      before it's removed from system memory
                 foreach (var unit in missing)
                 {
                     Remove(unit);

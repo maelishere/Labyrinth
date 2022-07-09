@@ -2,13 +2,11 @@
 
 Network Library For Unity
 
-***Experimental***
-
 Dependencies: [Bolt](https://github.com/maelishere/Bolt) and [Lattice](https://github.com/maelishere/Lattice)
 
 ## Description
 
-This is my attempt at writing a unity networking library without Mono.Cecil, the secret sauce behind [Mirror](https://github.com/vis2k/Mirror) and UNet.
+This is my attempt at writing a unity networking library without Mono.Cecil, inspired by [Mirror](https://github.com/vis2k/Mirror).
 
 Dedicated Server or Clients. However, not at the same time.
 
@@ -112,7 +110,7 @@ These objects are independent of runtime network instances. Messages are only se
 
     Dictionaries (Glossary) 
 
-    Hashsets (Series or Sequence)
+    Sets/HashSets (Series or Sequence)
 
 To link them over the network call .Create and call .Destroy when you're done with them.
     
@@ -133,7 +131,3 @@ Currently i am not aware of any bugs, if any living soul out there decides to us
 ### Unity Asset Store 
 
 I am working towards the review of this library from unity's team; at the moment i am in the queue. When i publish it on the asset store i will put a link here. The asset will come will a sample project.
-
-### Open World Game (No name)
-
-I plan on making a simple networked open world game to fully test it's production readiness. Then make more changes to bring it out of the experimental phase.
