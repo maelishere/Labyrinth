@@ -104,7 +104,10 @@ Relevancy also comes with custom layers (not attached to unity's layers) to allo
 
 ### Network Collections
 
-These objects are independent of runtime network instances and can be used to sync Fields, Lists (Vector), Dictionaries (Glossary) and Hashsets (Series or Sequence). Messages are only sent when the object was changed during a frame. To link then over the network call .Create and call .Destroy when you're done with them
+These objects are independent of runtime network instances and can be used to sync Fields, Lists (Vector), Dictionaries (Glossary) and Hashsets (Series or Sequence). Messages are only sent when the object was changed during a frame. To link then over the network call .Create and call .Destroy when you're done with them.
+    
+Note: when the network is running only the server can change them.
+Note: ensure you only change these class vairbales when you need to (not every frame).
 
 ## Roadmap
 
