@@ -141,17 +141,26 @@ namespace Labyrinth.Collections
         }
 
         // for clients already connected
-        internal void Copy(ref Writer writer)
+        internal void Copy(ref Writer writer, bool listeners)
         {
-            /*UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count-1}) for Object({identifier})");*/
-            writer.Write(m_marker);
-            writer.Write(m_changes.Count);
-            do
+            // we only write to the buffer when clients have this object
+            if (listeners)
             {
-                Change state = m_changes.Dequeue();
-                writer.Write((byte)state.Operation);
-                state.Callback?.Invoke(ref writer);
-            } while (m_changes.Count > 0);
+                /*UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count-1}) for Object({identifier})");*/
+                writer.Write(m_marker);
+                writer.Write(m_changes.Count);
+                do
+                {
+                    Change state = m_changes.Dequeue();
+                    writer.Write((byte)state.Operation);
+                    state.Callback?.Invoke(ref writer);
+                } while (m_changes.Count > 0);
+            }
+            else
+            {
+                m_changes.Clear();
+            }
+            // the marker should still move on, no matter what
             m_marker = m_steps;
         }
 

@@ -90,7 +90,6 @@ namespace Labyrinth.Collections
             if (NetworkServer.Active)
             {
                 List<KeyValuePair<ulong, int>> cloned = new List<KeyValuePair<ulong, int>>();
-
                 foreach (var query in m_queries)
                 {
                     HashSet<ulong> found = new HashSet<ulong>();
@@ -124,21 +123,19 @@ namespace Labyrinth.Collections
                 HashSet<ulong> missing = new HashSet<ulong>();
                 foreach (var unit in m_units)
                 {
-                    // m_listeners[callback.Key].Count > 0
-                    // it could send previous steps to the client that just requested for clone
-                    //              the next frame and we don't need that
-
                     if (unit.Value != null)
                     {
                         if (unit.Value.Changed)
                         {
                             /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
 
+                            bool listeners = m_listeners[unit.Key].Count > 0;
+
                             /// copy can only be called once 
                             ///     to capture all changes
                             ///     (too much data shouldn't be sent recklessly)
-                            Writer buffer = new Writer(Network.Buffer - 1);
-                            unit.Value.Copy(ref buffer);
+                            Writer buffer = listeners ? new Writer(Network.Buffer - 1) : null;
+                            unit.Value.Copy(ref buffer, listeners);
 
                             foreach (var connection in m_listeners[unit.Key])
                             {
