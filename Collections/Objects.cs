@@ -130,7 +130,7 @@ namespace Labyrinth.Collections
                 foreach (var callback in m_units)
                 {
                     // m_listeners[callback.Key].Count > 0
-                    // it could send it to client that just requested for clone
+                    // it could send previous steps to the client that just requested for clone
                     //              the next frame and we don't need that
 
                     if (callback.Value.Changed)
