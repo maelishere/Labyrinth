@@ -33,7 +33,7 @@ namespace Labyrinth.Collections
             return Objects.Add(type, instance, member, this);
         }
 
-        // Note: not neccessary, but good practice
+        // Note: not neccessary (Server Only), but good practice
         // (Static classes)
         //          for server use Network.terminating,
         //          clients use Network.disconnected
@@ -149,12 +149,12 @@ namespace Labyrinth.Collections
                 /*UnityEngine.Debug.Log($"Copying Step({m_marker}) to Step({m_marker+m_changes.Count-1}) for Object({identifier})");*/
                 writer.Write(m_marker);
                 writer.Write(m_changes.Count);
-                do
+                while (m_changes.Count > 0)
                 {
                     Change state = m_changes.Dequeue();
                     writer.Write((byte)state.Operation);
                     state.Callback?.Invoke(ref writer);
-                } while (m_changes.Count > 0);
+                }
             }
             else
             {
