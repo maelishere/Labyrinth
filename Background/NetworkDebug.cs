@@ -11,11 +11,11 @@ namespace Labyrinth.Background
         private static int m_sending;
         private static int m_receiving;
 
-        // How many packets were lost relative to the previous frame
+        // How many retransimisions before it was recieved at the current frame (use update or fixed update)
         public static int Loss => m_losing;
-        // How many bytes were sent during the current frame
+        // How many bytes were sent during the current frame (use late update)
         public static int Sent => m_sending;
-        // How many byte were received during the current frame
+        // How many byte were received during the current frame (use update or fixed update)
         public static int Received => m_receiving;
 
         [RuntimeInitializeOnLoadMethod]
