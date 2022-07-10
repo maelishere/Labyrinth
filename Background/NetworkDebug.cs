@@ -13,14 +13,16 @@ namespace Labyrinth.Background
         private static int m_sending;
         private static int m_receiving;
 
+        private static long m_next;
+
         private static readonly Stopwatch m_stopwatch = new Stopwatch();
 
         // How many retransimisions per second
-        public static int Loss => m_losing;
+        public static int Loss { get; private set; }
         // How many bytes are sent per second
-        public static int Sent => m_sending;
+        public static int Sent { get; private set; }
         // How many byte are received per second
-        public static int Received => m_receiving;
+        public static int Received { get; private set; }
 
         public static bool DebugSlient { get; set; } = false;
 
@@ -60,18 +62,22 @@ namespace Labyrinth.Background
 
         internal static void EarlyReset()
         {
-            if (m_stopwatch.ElapsedMilliseconds % 1000 == 0)
+            if (m_stopwatch.ElapsedMilliseconds > m_next)
             {
-                m_sending = 0;
+                Loss = m_losing;
+                Sent = m_sending;
+                Received = m_receiving;
             }
         }
 
         internal static void LateReset()
         {
-            if (m_stopwatch.ElapsedMilliseconds % 1000 == 0)
+            if (m_stopwatch.ElapsedMilliseconds > m_next)
             {
                 m_losing = 0;
+                m_sending = 0;
                 m_receiving = 0;
+                m_next = m_stopwatch.ElapsedMilliseconds + 1000;
             }
         }
 
