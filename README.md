@@ -28,7 +28,7 @@ Allows for networked level streaming
 
 ### Network Messages (Flag)
 
-These are usualy static function callbacks sent through the network. Use Network.Register, but id 0, 255, 1 - 13 are taken. You can use this for messages that need to be called without the need of an instance within the networked game world. There are several channels available to send a message through:
+These are usualy static function callbacks sent through the network. Use Network.Register(), but id 0, 255, 1 - 12 are taken. There are several channels available to send a message through:
 
     Channels.Direct - not guaranteed
     
