@@ -48,9 +48,11 @@ Create a prefab with an Entity component, then save it in a resources folder. Af
 
 To Instantiate, frist you need to find a World component of the scene you want the entity to be in. After you call World.Anchor(), this ensures all newly locally instantiated enitites belong to this scene. Then use the regular unity Instantiate, the entity script does the rest. Alternatively you can call World.Instantiate()
 
-Note: to change authority on an entity (Server Only) use Entity.Advocate().
+Note: every scene you spawn in an Entity, there needs to be a gameobject with a World component (Anchor()) or else it gets destoryed after instantiate.
 
-Note: to move an entity to another scene (Server Only) over the network after you create it Entity.Scenery().
+Note: to change authority on an Entity (Server Only) use Entity.Advocate().
+
+Note: to move an Entity to another scene (Server Only) over the network after you create it Entity.Scenery().
 
 ### Network Behaviour Scripts
 

@@ -14,6 +14,14 @@ namespace Labyrinth.Background
 
         public static bool Active => n_server != null;
 
+        public static void Each(Action<int> callback)
+        {
+            foreach (var connection in m_connections)
+            {
+                callback(connection);
+            }
+        }
+
         public static void Each(Func<int, bool> predicate, Action<int> callback)
         {
             foreach (var connection in m_connections)

@@ -67,54 +67,64 @@ namespace Labyrinth.Runtime
             }
         }
 
-        // changes the scene of the entity over the network
         // server only
-        public void Scenery(int scene)
+        // changes the scene of the entity over the network
+        public void Scenery(int world)
         {
             if (NetworkClient.Active)
             {
                 Debug.LogError($"Only server move an entity to another scene");
                 return;
             }
-            int world = n_world;
+            int old = n_world;
             // only send if server has loaded in the scene and actually is running
-            if (Move(scene) && NetworkServer.Active)
+            // Move() puts the gameobject in the new scene (if it was loaded)
+            if (Move(world) && NetworkServer.Active)
             {
-                // if both scenes were loaded on a client 
-                //      tell the client to just to move the entity
                 NetworkServer.Each(
-                    (c) => World.Loaded(c, world) && World.Loaded(c, scene),
-                    (c) => Network.Forward(c, Channels.Ordered, Flags.Transition,
-                    (ref Writer writer) =>
+                    (connection) =>
                     {
-                        writer.Write(identity.Value);
-                        writer.Write(scene);
-                    }));
+                        // if both scenes were loaded on a client 
+                        if (World.Loaded(connection, old) && World.Loaded(connection, world))
+                        {
+                            //      tell the client to just to move the entity
+                            Network.Forward(connection, Channels.Ordered, Flags.Transition,
+                                (ref Writer writer) =>
+                                {
+                                    writer.Write(identity.Value);
+                                    writer.Write(world);
+                                });
+                            return;
+                        }
 
-                // if the old scene is the only one loaded on a client 
-                //      tell the client to destroy the entity
-                NetworkServer.Each(
-                    (c) => World.Loaded(c, world) && !World.Loaded(c, scene),
-                    (c) => Network.Forward(c, Channels.Ordered, Flags.Destroy,
-                    (ref Writer writer) =>
-                    {
-                        writer.Write(identity.Value);
-                    }));
+                        // if the old scene is the only one loaded on a client 
+                        if (World.Loaded(connection, old) && !World.Loaded(connection, world))
+                        {
+                            //      tell the client to destroy the entity
+                            Network.Forward(connection, Channels.Ordered, Flags.Destroy,
+                                (ref Writer writer) =>
+                                {
+                                    writer.Write(identity.Value);
+                                });
+                            return;
+                        }
 
-                // if the new scene is only one loaded on a client 
-                //      tell the client to create the entity
-                NetworkServer.Each(
-                    (c) => !World.Loaded(c, world) && World.Loaded(c, scene),
-                    (c) => Network.Forward(c, Channels.Ordered, Flags.Create,
-                    (ref Writer writer) =>
-                    {
-                        writer.WriteSpawn(this);
-                    }));
+                        // if the new scene is only one loaded on a client
+                        if (!World.Loaded(connection, old) && World.Loaded(connection, world))
+                        {
+                            //      tell the client to create the entity
+                            Network.Forward(connection, Channels.Ordered, Flags.Create,
+                                (ref Writer writer) =>
+                                {
+                                    writer.WriteSpawn(this);
+                                });
+                        }
+                    });
             }
         }
 
-        // changes the authority of this on all client to connection
         // server only
+        // changes the authority of this on all client to connection
         public void Advocate(int connection)
         {
             if (NetworkClient.Active)
