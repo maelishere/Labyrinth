@@ -63,7 +63,7 @@ namespace Labyrinth
         public static UnityEvent<int> terminating { get; } = new UnityEvent<int>();
         public static UnityEvent<int, int> connected { get; } = new UnityEvent<int, int>();
         public static UnityEvent<int, int> disconnected { get; } = new UnityEvent<int, int>();
-        public static UnityEvent<int, int, uint> pinged { get; } = new UnityEvent<int, int, uint>();
+        public static UnityEvent<int, int, int> pinged { get; } = new UnityEvent<int, int, int>();
 
         private static Write Pack(byte flag, Write write, out int size)
         {

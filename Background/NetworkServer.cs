@@ -140,7 +140,13 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Ping:
-                    Network.pinged.Invoke(n_server.Listen, connection, rtt);
+                    {
+                        // not sure if i'm calculating this right
+                        int ping = (int)(rtt - NetworkDebug.Delta);
+                        ping = ping < 0 ? 0 : ping;
+
+                        Network.pinged.Invoke(n_server.Listen, connection, ping);
+                    }
                     break;
                 case Request.Connect:
                     // reconnection

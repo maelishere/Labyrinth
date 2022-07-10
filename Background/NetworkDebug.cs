@@ -5,15 +5,14 @@ namespace Labyrinth.Background
 {
     using Lattice;
 
-    // i know this needs work
-    // it's not accraute (don't trust it)
+    // it's kinda accraute
     public static class NetworkDebug
     {
         private static int m_losing;
         private static int m_sending;
         private static int m_receiving;
 
-        private static long m_next;
+        private static long m_next, m_utime;
 
         private static readonly Stopwatch m_stopwatch = new Stopwatch();
 
@@ -23,6 +22,9 @@ namespace Labyrinth.Background
         public static int Sent { get; private set; }
         // How many byte are received per second
         public static int Received { get; private set; }
+
+        // time between each full network update
+        public static long Delta { get; private set; }
 
         public static bool DebugSlient { get; set; } = false;
 
@@ -62,6 +64,7 @@ namespace Labyrinth.Background
 
         internal static void EarlyReset()
         {
+            Delta = m_stopwatch.ElapsedMilliseconds - m_utime;
             if (m_stopwatch.ElapsedMilliseconds > m_next)
             {
                 Loss = m_losing;
@@ -79,6 +82,7 @@ namespace Labyrinth.Background
                 m_receiving = 0;
                 m_next = m_stopwatch.ElapsedMilliseconds + 1000;
             }
+            m_utime = m_stopwatch.ElapsedMilliseconds;
         }
 
         internal static void Slient(object message)

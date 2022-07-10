@@ -23,7 +23,7 @@ namespace Labyrinth.Runtime
         protected override void Awake()
         {
             base.Awake();
-            // check if it was instantiated (just now) locally the identitifer would be 0
+            // check if it was instantiated (just now) from a prefab the identitifer would be 0
             // and make sure it wasn't the network isn't creating it
             if (identity.Value == Identity.Any && !m_networkSpawning)
             {
@@ -47,6 +47,10 @@ namespace Labyrinth.Runtime
                     Debug.LogError($"Instance({id.Value}) already exists");
                 }
             }
+            /*else
+            {
+                // maybe you cloned a gameobject that was already in your scene (why!)
+            }*/
         }
 
         protected override void Start()
