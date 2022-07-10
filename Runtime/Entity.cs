@@ -80,7 +80,7 @@ namespace Labyrinth.Runtime
             // only send if server has loaded in the scene and actually is running
             if (Move(scene) && NetworkServer.Active)
             {
-                // if both scene were loaded on a client 
+                // if both scenes were loaded on a client 
                 //      tell the client to just to move the entity
                 NetworkServer.Each(
                     (c) => World.Loaded(c, world) && World.Loaded(c, scene),
@@ -162,7 +162,7 @@ namespace Labyrinth.Runtime
             }
             if (!Find(scene, out World world))
             {
-                Debug.LogError($"World({scene}) wasn't loaded destroying Entity({identity.Value})");
+                Debug.LogWarning($"World({scene}) wasn't loaded destroying Entity({identity.Value})");
                 Destroy(gameObject);
                 return false;
             }
