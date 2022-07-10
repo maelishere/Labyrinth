@@ -383,6 +383,11 @@ namespace Labyrinth.Runtime
             }*/
         }
 
+        public static bool Exists(int identity)
+        {
+            return m_instances.ContainsKey(identity);
+        }
+
         public static bool Find<T>(int identity, out T instance) where T : Instance
         {
             if (m_instances.TryGetValue(identity, out Instance value))

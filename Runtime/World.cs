@@ -98,7 +98,7 @@ namespace Labyrinth.Runtime
             return false;
         }
 
-        // has a client loaded in this world (Server Only)
+        // has this client loaded in this world (Server Only)
         public static bool Loaded(int client, int world)
         {
             if (m_network.ContainsKey(client))
@@ -107,10 +107,11 @@ namespace Labyrinth.Runtime
                 return false;
         }
 
-        // have all client and the server loaded in this world (Server Only)
+        // has all clients and the server loaded in this world (Server Only)
+        // if you want to check if only the server has loaded a scene use Instance.Exists();
         public static bool Loaded(int world)
         {
-            if (Find(world, out World _))
+            if (Exists(world))
             {
                 foreach (var client in m_network)
                 {
