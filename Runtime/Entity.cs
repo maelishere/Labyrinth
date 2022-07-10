@@ -73,7 +73,7 @@ namespace Labyrinth.Runtime
         {
             if (NetworkClient.Active)
             {
-                Debug.LogError($"Only server move an entity to another scene");
+                Debug.LogError($"Only the server can move an entity to another scene");
                 return;
             }
             int old = n_world;
@@ -129,7 +129,7 @@ namespace Labyrinth.Runtime
         {
             if (NetworkClient.Active)
             {
-                Debug.LogError($"Only server can change an entity's authority");
+                Debug.LogError($"Only the server can change an entity's authority");
                 return;
             }
             // only send if server actually is running
