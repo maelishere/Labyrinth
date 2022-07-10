@@ -68,10 +68,14 @@ namespace Labyrinth.Runtime
 
         protected virtual void Start()
         {
-            Synchronous(authority.Value);
+            if (Network.Running)
+            {
+                // Create would be called in Awake or right after Instantiate
+                Synchronous(authority.Value);
+            }
         }
 
-        protected virtual void LateUpdate()
+        protected virtual void Update()
         {
             int time = (int)m_stopwatch.ElapsedMilliseconds;
             foreach (var signature in m_synchronous)
@@ -96,14 +100,16 @@ namespace Labyrinth.Runtime
                 authority = new Identity(connection);
                 m_instances.Add(identifier, this);
 
-                /*Debug.Log($"Created Instance[{identifier}] authority: Host({authority.Value})");*/
+                NetworkDebug.Slient($"Created Instance({identifier}) authority: Host({authority.Value})");
                 return true;
             }
             return false;
         }
 
-        private void Synchronous(int connection)
+        internal void Synchronous(int connection)
         {
+            authority = new Identity(connection);
+            m_synchronous.Clear();
             foreach (var signature in m_signatures)
             {
                 Container container = null;
@@ -217,7 +223,7 @@ namespace Labyrinth.Runtime
             }
 
             ushort call = offset.Combine(procedure);
-            if (target == Identity.Any || Network.Internal(Host.Client))
+            if (target == Identity.Any || NetworkClient.Active)
             {
                 Network.Forward(
                     channel,
@@ -228,7 +234,7 @@ namespace Labyrinth.Runtime
                         write(ref writer);
                     });
             }
-            else if (Network.Internal(Host.Server))
+            else if (NetworkServer.Active)
             {
                 /// make sure receivers are relevant
                 Central.Relavant(transform.position, m_procedures[call].Relevancy,
@@ -253,7 +259,7 @@ namespace Labyrinth.Runtime
             m_instances.Clear();
         }
 
-        // Moved to Instance.LateUpdate
+        // Moved to Instance.Update
         /*private static void NetworkUpdate()
         {
             int time = (int)m_stopwatch.ElapsedMilliseconds;
@@ -277,15 +283,14 @@ namespace Labyrinth.Runtime
         internal static void OnNetworkProcedure(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Call call = reader.ReadCall();
-            /*Debug.Log($"Received Call({call.Procedure}) [Target -> Host({call.Target})] for Instance({call.Identity})");*/
+            NetworkDebug.Slient($"Received Call({call.Procedure}) [Target -> Host({call.Target})] for Instance({call.Identity})");
             if (m_instances.ContainsKey(call.Identity))
             {
                 Instance instance = m_instances[call.Identity];
-                /*Debug.Log($"Found Instance({call.Identity})");*/
+                /*NetworkDebug.Slient($"Found Instance({call.Identity})");*/
                 if (instance.m_procedures.ContainsKey(call.Procedure))
                 {
-                    /*Debug.Log($"Found Call({call.Procedure})");*/
-                    if (Network.Internal(Host.Server))
+                    if (NetworkServer.Active)
                     {
                         Segment parameters = reader.Peek(reader.Length - reader.Current);
                         // if the target is any connection, forward to the other clients
@@ -322,32 +327,52 @@ namespace Labyrinth.Runtime
 
                     if (Procedure.Valid(call.Target, instance.m_procedures[call.Procedure].Control))
                     {
+                        /*NetworkDebug.Slient($"Running Call({call.Procedure})");*/
                         instance.m_procedures[call.Procedure].Callback(ref reader);
                     }
+                    else
+                    {
+                        UnityEngine.Debug.LogWarning($"Network RPC Call({call.Procedure}) on Instance({call.Identity}) is invalid");
+                    }
                 }
+                else
+                {
+                    UnityEngine.Debug.LogWarning($"Instance({call.Identity}) doesn't contain Call({call.Procedure})");
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"Instance({call.Identity}) doesn't exist");
             }
         }
 
         internal static void OnNetworkSignature(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Sync sync = reader.ReadSync();
-            /*Debug.Log($"Receiving Sync({sync.Signature}) from Host({connection})");*/
+            /*NetworkDebug.Slient($"Received Sync({sync.Signature}) from Host({connection}) for Instance({sync.Identity})");*/
             if (m_instances.ContainsKey(sync.Identity))
             {
                 Instance instance = m_instances[sync.Identity];
-                /*Debug.Log($"Found Instance({sync.Identity})");*/
+                /*NetworkDebug.Slient($"Found Instance({sync.Identity})");*/
                 if (instance.m_signatures.ContainsKey(sync.Signature) && instance.m_synchronous.ContainsKey(sync.Signature))
                 {
-                    /*Debug.Log($"Found Sync({sync.Signature})");*/
-
                     // fliter out older packets
                     if (timestamp >= instance.m_synchronous[sync.Signature].Last)
                     {
+                        /*NetworkDebug.Slient($"Syncing({sync.Signature})");*/
                         instance.m_synchronous[sync.Signature].Last = timestamp;
                         instance.m_signatures[sync.Signature].Recieving(ref reader);
                     }
                 }
+                /*else // direct messages get there faster than orderded messages (this debug message would be annoying)
+                {
+                    UnityEngine.Debug.LogWarning($"Instance({sync.Identity}) doesn't contain Sync({sync.Signature})");
+                }*/
             }
+            /*else // direct messages get there faster than orderded messages (this debug message would be annoying)
+            {
+                UnityEngine.Debug.LogWarning($"Instance({sync.Identity}) doesn't exist");
+            }*/
         }
 
         public static bool Find<T>(int identity, out T instance) where T : Instance

@@ -10,5 +10,6 @@ namespace Labyrinth.Runtime
         public const byte Offloaded = 6;
         public const byte Create = 7;
         public const byte Destroy = 8;
+        public const byte Ownership = 9;
     }
 }

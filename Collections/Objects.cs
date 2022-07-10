@@ -12,10 +12,10 @@ namespace Labyrinth.Collections
     //      doesn't require using network instance
     public static class Objects
     {
-        public const byte Find = 9;
-        public const byte Link = 10;
-        public const byte Modify = 11;
-        public const byte Ignore = 12;
+        public const byte Find = 10;
+        public const byte Link = 11;
+        public const byte Modify = 12;
+        public const byte Ignore = 13;
 
         private static readonly Dictionary<ulong, Unit> m_units = new Dictionary<ulong, Unit>();
         private static readonly Dictionary<int, HashSet<ulong>> m_queries = new Dictionary<int, HashSet<ulong>>(); /*the objects each client is looking for*/
@@ -100,7 +100,7 @@ namespace Labyrinth.Collections
                         {
                             if (m_units[identifier] != null)
                             {
-                                /*UnityEngine.Debug.Log($"Found Object({identifier}) For Client({query.Key})");*/
+                                NetworkDebug.Slient($"Found Object({identifier}) For Client({query.Key})");
 
                                 found.Add(identifier);
                                 cloned.Add(new KeyValuePair<ulong, int>(identifier, query.Key));
@@ -127,7 +127,7 @@ namespace Labyrinth.Collections
                     {
                         if (unit.Value.changed)
                         {
-                            /*UnityEngine.Debug.Log($"Object({callback.Key}) has changed");*/
+                            NetworkDebug.Slient($"Object({unit.Key}) has changed");
 
                             bool listeners = m_listeners[unit.Key].Count > 0;
 
@@ -140,7 +140,7 @@ namespace Labyrinth.Collections
                             foreach (var connection in m_listeners[unit.Key])
                             {
                                 // send changes to clients (Modifiy)
-                                /*UnityEngine.Debug.Log($"Sending changes made to Object({callback.Key}) to Client({connection})");*/
+                                NetworkDebug.Slient($"Sending changes made to Object({unit.Key}) to Client({connection})");
                                 Network.Forward(connection, Channels.Irregular, Modify, (ref Writer writer) =>
                                 {
                                     writer.Write(unit.Key);
@@ -174,32 +174,60 @@ namespace Labyrinth.Collections
         internal static void OnNetworkFind(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            /*UnityEngine.Debug.Log($"Client({connection}) looking for Object({identifier})");*/
-            m_queries[connection].Add(identifier);
+            NetworkDebug.Slient($"Client({connection}) looking for Object({identifier})");
+            if (m_queries.ContainsKey(connection))
+            {
+                m_queries[connection].Add(identifier);
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"Client({connection}) isn't connected");
+            }
         }
 
         // from server to clients
         internal static void OnNetworkLink(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            /*UnityEngine.Debug.Log($"Server({connection}) found Object({identifier})");*/
-            m_units[identifier].Apply(ref reader);
+            NetworkDebug.Slient($"Server({connection}) found Object({identifier})");
+            if (m_units.ContainsKey(identifier))
+            {
+                m_units[identifier].Apply(ref reader);
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"Object({identifier}) wasn't created or was already destoryed on Client({socket})");
+            }
         }
 
         // from server to clients
         internal static void OnNetworkModify(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            /*UnityEngine.Debug.Log($"Server({connection}) modifiying Object({identifier})");*/
-            m_units[identifier].Paste(ref reader);
+            NetworkDebug.Slient($"Server({connection}) modifiying Object({identifier})");
+            if (m_units.ContainsKey(identifier))
+            {
+                m_units[identifier].Paste(ref reader);
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"Object({identifier}) wasn't created or was already destoryed on Client({socket})");
+            }
         }
 
         // from client to server
         internal static void OnNetworkIgnore(int socket, int connection, uint timestamp, ref Reader reader)
         {
             ulong identifier = reader.ReadULong();
-            /*UnityEngine.Debug.Log($"Client({connection}) deleted Object({identifier})");*/
-            m_listeners[identifier].Remove(connection);
+            NetworkDebug.Slient($"Client({connection}) deleted Object({identifier})");
+            if (m_units.ContainsKey(identifier))
+            {
+                m_listeners[identifier].Remove(connection);
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"Object({identifier}) wasn't created or was already destoryed on Client({socket})");
+            }
         }
 
         private static ulong Generate(uint name, ushort index, ushort offset)

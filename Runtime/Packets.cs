@@ -95,6 +95,16 @@ namespace Labyrinth.Runtime
             writer.Write(entity.transform.rotation.eulerAngles);
         }
 
+        public static void WriteSpawn(this Writer writer, Spawn spawn)
+        {
+            writer.Write(spawn.Asset);
+            writer.Write(spawn.World);
+            writer.Write(spawn.Identity);
+            writer.Write(spawn.Authority);
+            writer.Write(spawn.Position);
+            writer.Write(spawn.Rotation);
+        }
+
         public struct Cease
         {
             public Cease(int identity, int authority)
@@ -116,29 +126,6 @@ namespace Labyrinth.Runtime
         {
             writer.Write(identity);
             writer.Write(authority);
-        }
-
-        public struct Section
-        {
-            public Section(int scene, int client)
-            {
-                Scene = scene;
-                Client = client;
-            }
-
-            public int Scene { get; }
-            public int Client { get; }
-        }
-
-        public static Section ReadSection(this Reader reader)
-        {
-            return new Section(reader.ReadInt(), reader.ReadInt());
-        }
-
-        public static void WriteSection(this Writer writer, int scene, int client)
-        {
-            writer.Write(scene);
-            writer.Write(client);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 namespace Labyrinth.Runtime
 {
     using Bolt;
+    using Labyrinth.Background;
 
     // server authority instances
     [AddComponentMenu("Labyrinth/World")]
@@ -46,26 +47,26 @@ namespace Labyrinth.Runtime
                     Anchor();
                 }
             }
-            if (Network.Internal(Host.Client))
+            if (NetworkClient.Active)
             {
                 // Request for entities within this scene
                 Network.Forward(Channels.Ordered, Flags.Loaded,
                     (ref Writer writer) =>
                     {
-                        writer.WriteSection(m_scene, Network.Authority());
+                        writer.Write(m_scene);
                     });
             }
         }
 
         private void OnDestroy()
         {
-            if (Network.Internal(Host.Client))
+            if (NetworkClient.Active)
             {
                 // let server know this scene is unloaded
                 Network.Forward(Channels.Ordered, Flags.Offloaded,
                     (ref Writer writer) =>
                     {
-                        writer.WriteSection(m_scene, Network.Authority());
+                        writer.Write(m_scene);
                     });
             }
             Destroy();
@@ -99,36 +100,44 @@ namespace Labyrinth.Runtime
         // this flag always comes from clients to server
         internal static void OnNetworkLoaded(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            Packets.Section section = reader.ReadSection();
-            /*Debug.Log($"Client({section.Client}) loaded scene {section.Scene}");*/
-            if (Find(section.Scene, out World world))
+            int scene = reader.ReadInt();
+            NetworkDebug.Slient($"Client({connection}) loaded scene {scene}");
+            if (Find(scene, out World world))
             {
-                world.n_network.Add(section.Client);
-                // Debug.Log($"Sending {world.n_entities.Count} entities to Client({section.Client})");
+                world.n_network.Add(connection);
+                NetworkDebug.Slient($"Sending {world.n_entities.Count} entities to Client({connection})");
                 foreach (var instance in world.n_entities)
                 {
                     if (Find(instance, out Entity entity))
                     {
                         // send client all entities within the scene
-                        Network.Forward(section.Client, Channels.Ordered, Flags.Create,
+                        Network.Forward(connection, Channels.Ordered, Flags.Create,
                             (ref Writer writer) =>
                             {
                                 writer.WriteSpawn(entity);
                             });
-                        /*Debug.Log($"Sending Entity({instance}) to Client({section.Client})");*/
+                        NetworkDebug.Slient($"Sending Entity({instance}) to Client({connection})");
                     }
                 }
+            }
+            else
+            {
+                Debug.LogWarning($"World({scene}) isn't loaded on Server({socket})");
             }
         }
 
         // this flag always comes from clients to server
         internal static void OnNetworkOffloaded(int socket, int connection, uint timestamp, ref Reader reader)
         {
-            Packets.Section section = reader.ReadSection();
-            if (Find(section.Scene, out World world))
+            int scene = reader.ReadInt();
+            NetworkDebug.Slient($"Client({connection}) unloaded scene {scene}");
+            if (Find(scene, out World world))
             {
-                world.n_network.Remove(section.Client);
-                // Debug.Log($"Client({section.Client}) unloaded scene {section.Scene}");
+                world.n_network.Remove(connection);
+            }
+            else
+            {
+                Debug.LogWarning($"World({scene}) isn't loaded on Server({socket})");
             }
         }
     }

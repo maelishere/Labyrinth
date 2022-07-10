@@ -1,8 +1,9 @@
 ﻿namespace Labyrinth.Runtime
 {
     using Bolt;
+    using Labyrinth.Background;
 
-    public struct Procedure : IRemote<byte>
+    public struct Procedure
     {
         public enum Rule
         {
@@ -33,7 +34,7 @@
 
             bool isTarget = target == Identity.Any || target == Network.Authority();
 
-            if (Network.Internal(Host.Server))
+            if (NetworkServer.Active)
             {
                 switch (rule)
                 {
@@ -43,7 +44,7 @@
                 }
             }
 
-            if (Network.Internal(Host.Client))
+            if (NetworkClient.Active)
             {
                 switch (rule)
                 {

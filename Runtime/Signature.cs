@@ -1,8 +1,9 @@
 ﻿namespace Labyrinth.Runtime
 {
     using Bolt;
+    using Labyrinth.Background;
 
-    public struct Signature : ISynchronizer<byte>
+    public struct Signature
     {
         public enum Rule
         {
@@ -30,7 +31,7 @@
 
         public static bool Valid(int authority, Rule rule)
         {
-            if (Network.Internal(Host.Server))
+            if (NetworkServer.Active)
                 return true;
 
             switch (rule)

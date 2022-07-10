@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 
 namespace Labyrinth
 {
-    public struct Identity : IIdentifier<int>, IEquatable<int>, IEquatable<Identity>
+    public struct Identity : IEquatable<int>, IEquatable<Identity>
     {
         public const int Any = 0;
 

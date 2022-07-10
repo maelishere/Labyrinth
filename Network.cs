@@ -15,6 +15,11 @@ namespace Labyrinth
 
     public static class Network
     {
+        public const byte Connected = 1;
+        public const byte Disconnected = 2;
+
+        public delegate void Recieved(int socket, int connection, uint timestamp, ref Reader reader);
+
         private static int m_buffer = 1024;
 
         public static int Buffer
@@ -31,24 +36,27 @@ namespace Labyrinth
             }
         }
 
-        private static readonly Dictionary<byte, Flag> m_callbacks = new Dictionary<byte, Flag>()
+        private static readonly Dictionary<byte, Recieved> m_callbacks = new Dictionary<byte, Recieved>()
         {
-            [Flag.Connected] = new Flag(Flag.Connected, OnNetworkConnected),
-            [Flag.Disconnected] = new Flag(Flag.Disconnected, OnNetworkDisconnected),
+            [Connected] = OnNetworkConnected,
+            [Disconnected] = OnNetworkDisconnected,
 
-            [Objects.Find] = new Flag(Objects.Link, Objects.OnNetworkFind),
-            [Objects.Link] = new Flag(Objects.Link, Objects.OnNetworkLink),
-            [Objects.Modify] = new Flag(Objects.Modify, Objects.OnNetworkModify),
-            [Objects.Ignore] = new Flag(Objects.Modify, Objects.OnNetworkIgnore),
+            [Objects.Find] = Objects.OnNetworkFind,
+            [Objects.Link] = Objects.OnNetworkLink,
+            [Objects.Modify] = Objects.OnNetworkModify,
+            [Objects.Ignore] = Objects.OnNetworkIgnore,
 
-            [Flags.Procedure] = new Flag(Flags.Procedure, Instance.OnNetworkProcedure),
-            [Flags.Signature] = new Flag(Flags.Signature, Instance.OnNetworkSignature),
-            [Flags.Loaded] = new Flag(Flags.Loaded, World.OnNetworkLoaded),
-            [Flags.Offloaded] = new Flag(Flags.Offloaded, World.OnNetworkOffloaded),
-            [Flags.Create] = new Flag(Flags.Create, Entity.OnNetworkCreate),
-            [Flags.Destroy] = new Flag(Flags.Destroy, Entity.OnNetworkDestory)
+            [Flags.Procedure] = Instance.OnNetworkProcedure,
+            [Flags.Signature] = Instance.OnNetworkSignature,
+            [Flags.Loaded] = World.OnNetworkLoaded,
+            [Flags.Offloaded] = World.OnNetworkOffloaded,
+            [Flags.Create] = Entity.OnNetworkCreate,
+            [Flags.Destroy] = Entity.OnNetworkDestory,
+            [Flags.Ownership] = Entity.OnNetworkOwnership
         };
 
+        public static bool Client => NetworkClient.Active;
+        public static bool Server => NetworkServer.Active;
         public static bool Running => NetworkServer.Active || NetworkClient.Active;
 
         public static UnityEvent<int> initialized { get; } = new UnityEvent<int>();
@@ -77,12 +85,12 @@ namespace Labyrinth
             {
                 /// tell every client a new client connected
                 Forward((c) => c != connection, Channels.Ordered,
-                    Flag.Connected, (ref Writer writer) => writer.Write(connection));
+                    Connected, (ref Writer writer) => writer.Write(connection));
 
                 /// tell the new client about every current connection
                 NetworkServer.Each((a) => a != connection,
                     (c) => Forward(connection, Channels.Ordered,
-                    Flag.Connected, (ref Writer writer) => writer.Write(c)));
+                    Connected, (ref Writer writer) => writer.Write(c)));
 
                 Objects.Connected(connection);
             }
@@ -100,7 +108,7 @@ namespace Labyrinth
             {
                 /// tell ever client someone disconnected
                 Forward((c) => c != connection, Channels.Ordered,
-                    Flag.Disconnected, (ref Writer writer) => writer.Write(connection));
+                    Disconnected, (ref Writer writer) => writer.Write(connection));
 
                 Objects.Disconnected(connection);
             }
@@ -123,7 +131,7 @@ namespace Labyrinth
                 byte flag = other.Read();
                 if (m_callbacks.ContainsKey(flag))
                 {
-                    m_callbacks[flag].Callback(socket, connection, timestamp, ref other);
+                    m_callbacks[flag](socket, connection, timestamp, ref other);
                     return;
                 }
 
@@ -139,11 +147,11 @@ namespace Labyrinth
         }
 
         // add a custom callback for a network flag
-        public static bool Register(byte flag, Flag.Recieved callback)
+        public static bool Register(byte flag, Recieved callback)
         {
             if (flag != Identity.Any & !m_callbacks.ContainsKey(flag))
             {
-                m_callbacks.Add(flag, new Flag(flag, callback));
+                m_callbacks.Add(flag, callback);
                 return true;
             }
             return false;
@@ -255,18 +263,6 @@ namespace Labyrinth
         public static bool Authority(int connection, bool remote = false)
         {
             return connection == Identity.Any ? false : connection == Authority(remote);
-        }
-
-        // this may be removed (not sure)
-        public static bool Internal(Host local)
-        {
-            switch (local)
-            {
-                default:
-                case Host.Any: return Running;
-                case Host.Client: return NetworkClient.Active;
-                case Host.Server: return NetworkServer.Active;
-            }
         }
 
         // allows usage of custom struct or classes being send over the network
