@@ -8,19 +8,38 @@ namespace Labyrinth.Runtime
     {
         private static readonly Dictionary<uint, Entity> m_resources = new Dictionary<uint, Entity>();
 
+        internal static bool Find(uint asset, out Entity prefab) => m_resources.TryGetValue(asset, out prefab);
+
         // where your prefabs are located inside the resources folder
         // unique idenitifer for a prefab
         // e.g. characters/player
         [SerializeField] private string[] m_prefabs = new string[0];
 
+        // incase you don't want a potential impact on performance
+        // comment out Initialize below (and call this before you start up the network)
+        public void Load()
+        {
+            for (ushort i = 0; i < m_prefabs.Length; i++)
+            {
+                Entity entity = Resources.Load<Entity>(m_prefabs[i]);
+                if (entity)
+                {
+                    entity.n_asset = m_prefabs[i].Hash();
+                    m_resources.Add(entity.n_asset, entity);
+                }
+                else
+                {
+                    Debug.LogWarning($"Prefab located at {m_prefabs[i]} isn't a network entity");
+                }
+            }
+        }
+
         // this should only be called once because the network can always be restarted
-        // i encourage you to change this cause of the potential impact on performance
+        // i encourage you to think about using the function above and commenting this one out
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
             // when assigning each entity prefab a idenitifer it must be preditable
-            // we start at 1 because an asset with 0 is an empty
-
             // find all registries at the root of resources folder
             Registry[] registries = Resources.LoadAll<Registry>(""); /*Ram (Overkill)*/
             for (ushort i = 0; i < registries.Length; i++)
@@ -30,7 +49,7 @@ namespace Labyrinth.Runtime
                     Entity entity = Resources.Load<Entity>(registries[i].m_prefabs[x]);
                     if (entity)
                     {
-                        entity.n_asset = ((ushort)(i + 1)).Combine(x);
+                        entity.n_asset = i.Combine(x);
                         m_resources.Add(entity.n_asset, entity);
                     }
                     else
@@ -40,7 +59,5 @@ namespace Labyrinth.Runtime
                 }
             }
         }
-
-        internal static bool Find(uint asset, out Entity prefab) => m_resources.TryGetValue(asset, out prefab);
     }
 }

@@ -232,16 +232,7 @@ namespace Labyrinth.Collections
 
         private static ulong Generate(uint name, ushort index, ushort offset)
         {
-            return Combine(name, Combine(index, offset));
-        }
-
-        /// inserts a into the frist 16 bits of a uint and b into the last 16
-        private static uint Combine(ushort a, ushort b)
-        {
-            uint value = a;
-            value <<= 16;
-            value |= b;
-            return value;
+            return Combine(name, index.Combine(offset));
         }
 
         /// inserts a into the frist 32 bits of a ulong and b into the last 32
