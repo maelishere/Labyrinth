@@ -15,8 +15,8 @@ namespace Labyrinth
 
     public static class Network
     {
-        public const byte Connected = 1;
-        public const byte Disconnected = 2;
+        public const byte Connected = byte.MinValue;
+        public const byte Disconnected = byte.MaxValue;
 
         public delegate void Recieved(int socket, int connection, uint timestamp, ref Reader reader);
 
@@ -52,7 +52,8 @@ namespace Labyrinth
             [Flags.Offloaded] = World.OnNetworkOffloaded,
             [Flags.Create] = Entity.OnNetworkCreate,
             [Flags.Destroy] = Entity.OnNetworkDestory,
-            [Flags.Ownership] = Entity.OnNetworkOwnership
+            [Flags.Ownership] = Entity.OnNetworkOwnership,
+            [Flags.Transition] = Entity.OnNetworkTransition
         };
 
         public static bool Client => NetworkClient.Active;

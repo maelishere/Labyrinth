@@ -4,7 +4,6 @@ namespace Labyrinth.Runtime
 {
     using Bolt;
     using Labyrinth.Background;
-    using System;
 
     [AddComponentMenu("Labyrinth/Entity")]
     public sealed class Entity : Instance
@@ -68,17 +67,65 @@ namespace Labyrinth.Runtime
             }
         }
 
+        // changes the scene of the entity over the network
+        // server only
+        public void Scenery(int scene)
+        {
+            if (NetworkClient.Active)
+            {
+                Debug.LogError($"Only server move an entity to another scene");
+                return;
+            }
+            int world = n_world;
+            // only send if server has loaded in the scene and actually is running
+            if (Move(scene) && NetworkServer.Active)
+            {
+                // if both scene were loaded on a client 
+                //      tell the client to just to move the entity
+                NetworkServer.Each(
+                    (c) => World.Loaded(c, world) && World.Loaded(c, scene),
+                    (c) => Network.Forward(c, Channels.Ordered, Flags.Transition,
+                    (ref Writer writer) =>
+                    {
+                        writer.Write(identity.Value);
+                        writer.Write(scene);
+                    }));
+
+                // if the old scene is the only one loaded on a client 
+                //      tell the client to destroy the entity
+                NetworkServer.Each(
+                    (c) => World.Loaded(c, world) && !World.Loaded(c, scene),
+                    (c) => Network.Forward(c, Channels.Ordered, Flags.Destroy,
+                    (ref Writer writer) =>
+                    {
+                        writer.Write(identity.Value);
+                    }));
+
+                // if the new scene is only one loaded on a client 
+                //      tell the client to create the entity
+                NetworkServer.Each(
+                    (c) => !World.Loaded(c, world) && World.Loaded(c, scene),
+                    (c) => Network.Forward(c, Channels.Ordered, Flags.Create,
+                    (ref Writer writer) =>
+                    {
+                        writer.WriteSpawn(this);
+                    }));
+            }
+        }
+
         // changes the authority of this on all client to connection
+        // server only
         public void Advocate(int connection)
         {
             if (NetworkClient.Active)
             {
-                Debug.LogError($"Only server can request a change of authority");
+                Debug.LogError($"Only server can change an entity's authority");
                 return;
             }
             // only send if server actually is running
             if (NetworkServer.Active)
             {
+                // only call synchronous if newtork is running
                 Synchronous(connection);
                 Network.Forward(Channels.Ordered, Flags.Ownership,
                     (ref Writer writer) =>
@@ -106,6 +153,26 @@ namespace Labyrinth.Runtime
             Destroy();
         }
 
+        // move to another world locally
+        private bool Move(int scene)
+        {
+            if (!Find(n_world, out World old))
+            {
+                Debug.LogWarning($"World({n_world}) wasn't loaded");
+            }
+            if (!Find(scene, out World world))
+            {
+                Debug.LogError($"World({scene}) wasn't loaded destroying Entity({identity.Value})");
+                Destroy(gameObject);
+                return false;
+            }
+            n_world = scene;
+            old?.n_entities.Remove(identity.Value);
+            world.n_entities.Add(identity.Value);
+            world.Move(gameObject);
+            return true;
+        }
+
         internal static void OnNetworkCreate(int socket, int connection, uint timestamp, ref Reader reader)
         {
             Packets.Spawn spawn = reader.ReadSpawn();
@@ -116,16 +183,8 @@ namespace Labyrinth.Runtime
                 {
                     /// Server -> Send Other Connections Spawn() that have loaded the world;
                     /// the server should have all the worlds loaded or at least before any client
-                    if (Find(spawn.World, out World world))
-                    {
-                        Network.Forward((c) => spawn.Authority != c && world.n_network.Contains(spawn.Authority),
-                            Channels.Ordered, Flags.Create, (ref Writer writer) => writer.WriteSpawn(spawn));
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Server({socket}) hasn't loaded in World({spawn.World}) can't created Entity({spawn.Identity})");
-                        return;
-                    }
+                    Network.Forward((c) => spawn.Authority != c && World.Loaded(c, spawn.World),
+                        Channels.Ordered, Flags.Create, (ref Writer writer) => writer.WriteSpawn(spawn));
                 }
 
                 m_networkSpawning = true;
@@ -149,38 +208,45 @@ namespace Labyrinth.Runtime
             NetworkDebug.Slient($"Destroying Entity({identity})");
             if (Find(identity, out Entity entity))
             {
-                if (connection == entity.authority.Value || connection == Network.Authority(true))
+                if (NetworkServer.Active)
                 {
-                    if (NetworkServer.Active)
+                    if (connection == entity.authority.Value)
                     {
                         /// Server -> Send Other Connections Cease() that have loaded the world;
                         /// the server should have all the worlds loaded or at least before any client
-                        if (Find(entity.n_world, out World world))
-                        {
-                            Network.Forward((c) => entity.authority.Value != c && world.n_network.Contains(entity.authority.Value),
-                                Channels.Ordered, Flags.Create, (ref Writer writer) => writer.Write(identity));
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"Server({socket}) hasn't loaded in World({entity.n_world}) can't destroy Entity({identity})");
-                            return;
-                        }
+                        Network.Forward((c) => entity.authority.Value != c && World.Loaded(c, entity.n_world),
+                            Channels.Ordered, Flags.Create, (ref Writer writer) => writer.Write(identity));
                     }
+                    else
+                    {
+                        Debug.LogWarning($"Client({connection}) was trying to destroy Entity({identity}) but its authority is Client({entity.authority.Value})");
+                        return;
+                    }
+                }
 
-                    /// ensures it doesn't send a network message when OnDestroy is called
-                    ///  (Server to Clients) server can destroy any entity even if it doesn't have authority
-                    entity.m_networkCeasing = true;
-                    Destroy(entity.gameObject);
-                }
-                else
-                {
-                    // incase of a bug
-                    Debug.LogWarning($"Client({connection}) was trying to destroy Entity({identity}) but its authority is Client({entity.authority.Value})");
-                }
+                /// ensures it doesn't send a network message when OnDestroy is called
+                ///  (Server to Clients) server can destroy any entity even if it doesn't have authority
+                entity.m_networkCeasing = true;
+                Destroy(entity.gameObject);
             }
             else
             {
                 Debug.LogWarning($"Network was trying to destroy an entity doesn't exist");
+            }
+        }
+
+        // always from server
+        internal static void OnNetworkTransition(int socket, int connection, uint timestamp, ref Reader reader)
+        {
+            int identity = reader.ReadInt();
+            int world = reader.ReadInt();
+            if (Find(identity, out Entity entity))
+            {
+                entity.Move(world);
+            }
+            else
+            {
+                Debug.LogWarning($"Network was trying to access an entity doesn't exist");
             }
         }
 

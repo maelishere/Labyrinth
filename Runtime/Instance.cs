@@ -121,7 +121,7 @@ namespace Labyrinth.Runtime
                         signature.Value.Sending(ref writer);
                     };
 
-                    // if callback is still null before add, something is wrong
+                    // if callback is still null before add, the network isn't running
                     Action callback = null;
 
                     switch (signature.Value.Control)
@@ -245,6 +245,14 @@ namespace Labyrinth.Runtime
                         write(ref writer);
                     }));
             }
+        }
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            /*NetworkLoop.LateUpdate += NetworkUpdate;*/
+            Network.initialized.AddListener(NetworkStartup);
+            Network.terminating.AddListener(NetworkReset);
         }
 
         private static void NetworkStartup(int socket)
@@ -420,13 +428,6 @@ namespace Labyrinth.Runtime
                 {
                     return m_instances.ContainsKey(value) && (Central.n_instance?.NetworkScene(value) ?? true);
                 });
-        }
-
-        static Instance()
-        {
-            /*NetworkLoop.LateUpdate += NetworkUpdate;*/
-            Network.initialized.AddListener(NetworkStartup);
-            Network.terminating.AddListener(NetworkReset);
         }
     }
 }

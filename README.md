@@ -26,9 +26,9 @@ Allows for networked level streaming
 
     NetworkServer.Close(); or NetworkClient.Disconnect();
 
-### Network Flags
+### Network Messages (Flag)
 
-These are usualy static function callbacks sent through the network. Use Network.Register, but id 0 is not allowed and 1 - 13 is taken. You can use this for messages that need to be called without the need of an instance within the networked game world. There are several channels available to send a message through:
+These are usualy static function callbacks sent through the network. Use Network.Register, but id 0, 255, 1 - 13 are taken. You can use this for messages that need to be called without the need of an instance within the networked game world. There are several channels available to send a message through:
 
     Channels.Direct - not guaranteed
     
@@ -48,7 +48,9 @@ Create a prefab with an Entity component, then save it in a resources folder. Af
 
 To Instantiate, frist you need to find a World component of the scene you want the entity to be in. After you call World.Anchor(), this ensures all newly locally instantiated enitites belong to this scene. Then use the regular unity Instantiate, the entity script does the rest. Alternatively you can call World.Instantiate()
 
-Note: to change authority on an entity (Only Server) you call Entity.Advocate().
+Note: to change authority on an entity (Server Only) use Entity.Advocate().
+
+Note: to move an entity to another scene (Server Only) over the network after you create it Entity.Scenery().
 
 ### Network Behaviour Scripts
 

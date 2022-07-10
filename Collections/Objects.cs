@@ -12,10 +12,10 @@ namespace Labyrinth.Collections
     //      doesn't require using network instance
     public static class Objects
     {
-        public const byte Find = 10;
-        public const byte Link = 11;
-        public const byte Modify = 12;
-        public const byte Ignore = 13;
+        public const byte Find = 1;
+        public const byte Link = 2;
+        public const byte Modify = 3;
+        public const byte Ignore = 4;
 
         private static readonly Dictionary<ulong, Unit> m_units = new Dictionary<ulong, Unit>();
         private static readonly Dictionary<int, HashSet<ulong>> m_queries = new Dictionary<int, HashSet<ulong>>(); /*the objects each client is looking for*/

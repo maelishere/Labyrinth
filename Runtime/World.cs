@@ -12,14 +12,15 @@ namespace Labyrinth.Runtime
     [AddComponentMenu("Labyrinth/World")]
     public sealed class World : Instance
     {
+        // virtual marker for which world the next locally spawn entity belongs to
         internal static int n_active;
+
+        // which scenes are loaded on each client (Server Only)
+        private static readonly Dictionary<int, HashSet<int>> m_network = new Dictionary<int, HashSet<int>>();
 
         // network representation of a scene
         // it must be already loaded by the client
         [SerializeField] private int m_scene;
-
-        // which client has loaded in this scene
-        internal readonly HashSet<int> n_network = new HashSet<int>();
 
         // fill this either through an Entity on their Start()
         //      or find entities through scene.GetRootGameObjects()
@@ -97,6 +98,32 @@ namespace Labyrinth.Runtime
             return false;
         }
 
+        // has a client loaded in this world (Server Only)
+        public static bool Loaded(int client, int world)
+        {
+            if (m_network.ContainsKey(client))
+                return m_network[client].Contains(world);
+            else
+                return false;
+        }
+
+        // have all client and the server loaded in this world (Server Only)
+        public static bool Loaded(int world)
+        {
+            if (Find(world, out World _))
+            {
+                foreach (var client in m_network)
+                {
+                    if (!client.Value.Contains(world))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
         // this flag always comes from clients to server
         internal static void OnNetworkLoaded(int socket, int connection, uint timestamp, ref Reader reader)
         {
@@ -104,7 +131,7 @@ namespace Labyrinth.Runtime
             NetworkDebug.Slient($"Client({connection}) loaded scene {scene}");
             if (Find(scene, out World world))
             {
-                world.n_network.Add(connection);
+                m_network[connection].Add(scene);
                 NetworkDebug.Slient($"Sending {world.n_entities.Count} entities to Client({connection})");
                 foreach (var instance in world.n_entities)
                 {
@@ -133,11 +160,34 @@ namespace Labyrinth.Runtime
             NetworkDebug.Slient($"Client({connection}) unloaded scene {scene}");
             if (Find(scene, out World world))
             {
-                world.n_network.Remove(connection);
+                m_network[connection].Remove(scene);
             }
             else
             {
                 Debug.LogWarning($"World({scene}) isn't loaded on Server({socket})");
+            }
+        }
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            Network.connected.AddListener(OnNetworkConnected);
+            Network.disconnected.AddListener(OnNetworkDisconnected);
+        }
+
+        private static void OnNetworkConnected(int socket, int connection)
+        {
+            if (NetworkServer.Active)
+            {
+                m_network.Add(connection, new HashSet<int>());
+            }
+        }
+
+        private static void OnNetworkDisconnected(int socket, int connection)
+        {
+            if (NetworkClient.Active)
+            {
+                m_network.Remove(connection);
             }
         }
     }
