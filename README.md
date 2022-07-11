@@ -80,7 +80,7 @@ Function calls - use Appendix.Method() to register and Appendix.RPC() to call ov
     
 ### Network Relevancy
 
-Instance messages for Variables and Function calls make use of relevance, in order for the server to save bandwidth when sending data. For it to work an Observer component (Requirement) must be placed on representation of a player (Character), which in turn requires an Entity component. You have to sync its position, from client to server, through your own script.
+Network instance messages for Variables and Function calls make use of relevance, in order for the server to save bandwidth when sending data. For it to work an Observer component (Requirement) must be placed on representation of a player (Character), which in turn requires an Entity component. You have to sync its position, from client to server, through your own script.
 
 Note: you can have multiple observers for each client.
 

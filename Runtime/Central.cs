@@ -46,7 +46,7 @@ namespace Labyrinth.Runtime
             return false;
         }
 
-        // *** redo ****
+        // check if a connection is relevant
         public static bool Relevant(int authority, Vector3 point, Relevance relevance, Layers layers)
         {
             switch (relevance)

@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+
+using System;
 using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
@@ -51,6 +53,40 @@ namespace Labyrinth.Runtime
         internal static bool Contains(Vector3 center, float radius, Vector3 point)
         {
             return Vector3.Distance(center, point) <= radius;
+        }
+
+        // loops through each observer
+        public static void Each(Action<int, Observer> callback)
+        {
+            foreach (var authority in n_observers)
+            {
+                foreach (var observer in authority.Value)
+                {
+                    callback(authority.Key, observer);
+                }
+            }
+        }
+
+        // get all observers for a connection
+        public static Observer[] All(int authority)
+        {
+            List<Observer> observers = new List<Observer>();
+            if (n_observers.ContainsKey(authority))
+            {
+                observers.AddRange(n_observers[authority]);
+            }
+            return observers.ToArray();
+        }
+
+        // get all observers that exists
+        public static Observer[] All()
+        {
+            List<Observer> observers = new List<Observer>();
+            foreach (var observer in n_observers)
+            {
+                observers.AddRange(observer.Value);
+            }
+            return observers.ToArray();
         }
     }
 }
