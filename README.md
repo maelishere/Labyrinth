@@ -10,6 +10,8 @@ Allows for networked level streaming. Dedicated Server or Clients (Not at the sa
 
 ## Getting Started
 
+Setting up your project is really easy. However it may require some exploration, with the source code, depending on what you want to accomplish.
+
 ### Starting Up
 
     using Labyrith.Background;
