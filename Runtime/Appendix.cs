@@ -14,6 +14,13 @@ namespace Labyrinth.Runtime
             public float Rate;
             public Signature.Rule Control;
             public Relevancy Relevancy;
+
+            public Variable(float rate, Signature.Rule control, Relevancy relevancy)
+            {
+                Rate = rate;
+                Control = control;
+                Relevancy = relevancy;
+            }
         }
 
         [Serializable]
@@ -21,6 +28,12 @@ namespace Labyrinth.Runtime
         {
             public Procedure.Rule Control;
             public Relevancy Relevancy;
+
+            public Function(Procedure.Rule control, Relevancy relevancy)
+            {
+                Control = control;
+                Relevancy = relevancy;
+            }
         }
 
         internal byte n_offset;
