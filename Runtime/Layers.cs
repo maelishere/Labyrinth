@@ -6,7 +6,7 @@ namespace Labyrinth.Runtime
     [Serializable]
     public struct Layers : IEquatable<Layers>
     {
-        public static readonly Layers All = new Layers();
+        public static readonly Layers All = new Layers(0);
 
         public Bits[] Values;
 
