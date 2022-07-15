@@ -83,6 +83,13 @@ namespace Labyrinth.Collections
         internal static void Disconnected(int connection)
         {
             m_queries.Remove(connection);
+            foreach(var unit in m_listeners)
+            {
+                if (unit.Value.Contains(connection))
+                {
+                    unit.Value.Remove(connection);
+                }
+            }
         }
 
         internal static void Update()
