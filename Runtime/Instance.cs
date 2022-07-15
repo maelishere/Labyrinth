@@ -84,7 +84,6 @@ namespace Labyrinth.Runtime
                 {
                     if (time >= signature.Value.Next)
                     {
-                        // if send is null, something is wrong
                         signature.Value.Send();
                         signature.Value.Post(time);
                     }
@@ -121,7 +120,6 @@ namespace Labyrinth.Runtime
                         signature.Value.Sending(ref writer);
                     };
 
-                    // if callback is still null before add, the network isn't running
                     Action callback = null;
 
                     switch (signature.Value.Control)

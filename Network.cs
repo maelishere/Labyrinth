@@ -22,6 +22,7 @@ namespace Labyrinth
 
         private static int m_buffer = 1024;
 
+        // no support for fragmented messages
         public static int Buffer
         {
             get => m_buffer;

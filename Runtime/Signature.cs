@@ -41,7 +41,6 @@
                     return authority == Network.Authority(false);
             }
 
-            // it would only down here if network isn't running
             return false;
         }
     }
