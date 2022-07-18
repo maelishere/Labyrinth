@@ -1,6 +1,6 @@
 # Labyrinth
 
-Network Library For Unity
+Network Library For [Unity](https://assetstore.unity.com/packages/slug/225827)
 
 Dependencies: [Bolt](https://github.com/maelishere/Bolt) and [Lattice](https://github.com/maelishere/Lattice)
 
