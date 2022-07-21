@@ -6,7 +6,7 @@ namespace Labyrinth.Collections
 {
     using Bolt;
 
-    // Network Dictionary Set Equivalent
+    // Network Dictionary Equivalent
     public class Glossary<TKey, TValue> : Unit, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>
     {
         private readonly IDictionary<TKey, TValue> m_reference;

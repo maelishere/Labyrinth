@@ -12,7 +12,7 @@ namespace Labyrinth.Collections
         private uint m_steps = 0/*total number of changes*/;
         private uint m_marker = 0/*frist step of changes that will be sent*/;
         private bool m_reconfiguring = false;
-        private readonly Queue<Change> m_changes = new Queue<Change>();
+        private readonly Queue<State> m_changes = new Queue<State>();
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
 
         public ulong identifier { get; internal set; }
@@ -56,7 +56,7 @@ namespace Labyrinth.Collections
                 m_steps = m_marker;
             }
 
-            m_changes.Enqueue(new Change(step, callback));
+            m_changes.Enqueue(new State(step, callback));
 
             if (additive)
             {
@@ -147,7 +147,7 @@ namespace Labyrinth.Collections
                 writer.Write(m_changes.Count);
                 while (m_changes.Count > 0)
                 {
-                    Change state = m_changes.Dequeue();
+                    State state = m_changes.Dequeue();
                     writer.Write((byte)state.Operation);
                     state.Callback?.Invoke(ref writer);
                 }

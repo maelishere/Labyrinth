@@ -2,9 +2,9 @@ namespace Labyrinth.Collections
 {
     using Bolt;
 
-    public struct Change
+    public struct State
     {
-        public Change(Step action, Write callback)
+        public State(Step action, Write callback)
         {
             Operation = action;
             Callback = callback;
