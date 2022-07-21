@@ -73,10 +73,10 @@ namespace Labyrinth
             other.Write(flag);
             // check if null not all messages need data
             write?.Invoke(ref other);
-            size = 4 + other.Current; // int is 4 bytes
+            size = 2 + other.Current; // ushort is 2 bytes
             return (ref Writer writer) =>
             {
-                writer.Write(other.Current);
+                writer.Write((ushort)other.Current);
                 writer.Write(other.ToSegment());
             };
         }
@@ -126,7 +126,7 @@ namespace Labyrinth
         {
             try
             {
-                int lenght = reader.ReadInt();
+                ushort lenght = reader.ReadUShort();
                 Segment segment = reader.ReadSegment(lenght);
 
                 Reader other = new Reader(segment);
@@ -251,13 +251,13 @@ namespace Labyrinth
         public static int Authority(bool remote = false)
         {
             if (NetworkServer.Active)
-                return NetworkServer.n_server.Listen;
+                return NetworkServer.Local;
             if (NetworkClient.Active)
             {
                 if (remote)
-                    return NetworkClient.n_client.Remote;
+                    return NetworkClient.Remote;
                 else
-                    return NetworkClient.n_client.Local;
+                    return NetworkClient.Local;
             }
             return Identity.Any;
         }

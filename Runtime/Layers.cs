@@ -10,6 +10,8 @@ namespace Labyrinth.Runtime
 
         public Bits[] Values;
 
+        public int Lenght => Values.Length;
+
         public Layers(int layers)
         {
             Values = new Bits[layers];

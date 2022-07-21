@@ -9,10 +9,12 @@ namespace Labyrinth.Background
 
     public static class NetworkServer
     {
-        internal static Server n_server;
+        private static Server m_server;
         private static readonly HashSet<int> m_connections = new HashSet<int>();
 
-        public static bool Active => n_server != null;
+        public static bool Active => m_server != null;
+
+        public static int Local => m_server.Listen;
 
         public static void Each(Action<int> callback)
         {
@@ -40,12 +42,12 @@ namespace Labyrinth.Background
                 if (!Active)
                 {
                     m_connections.Clear();
-                    n_server = new Server(Mode.IPV4, port, OnReceive, OnRequest, OnAcknowledge, OnError);
+                    m_server = new Server(Mode.IPV4, port, OnReceive, OnRequest, OnAcknowledge, OnError);
                     NetworkStream.Send = (int connection, Channel channel, Write write) =>
                     {
-                        n_server.Send(connection, channel, write);
+                        m_server.Send(connection, channel, write);
                     };
-                    Network.initialized.Invoke(n_server.Listen);
+                    Network.initialized.Invoke(m_server.Listen);
                     return;
                 }
                 throw new InvalidOperationException($"Network Server was already running");
@@ -55,45 +57,45 @@ namespace Labyrinth.Background
 
         public static void Close()
         {
-            if (n_server != null)
+            if (m_server != null)
             {
                 NetworkStream.Clear();
-                Network.terminating.Invoke(n_server.Listen);
+                Network.terminating.Invoke(m_server.Listen);
                 m_connections.Clear();
 
                 /*n_server.Close();*/
-                n_server = null;
+                m_server = null;
             }
         }
 
         internal static void Receive()
         {
-            n_server?.Receive();
+            m_server?.Receive();
         }
 
         internal static void Update()
         {
-            n_server?.Update();
+            m_server?.Update();
         }
 
         internal static void Send(Channel channel, Write write)
         {
-            if (n_server != null)
+            if (m_server != null)
             {
-                n_server.Send(channel, write);
+                m_server.Send(channel, write);
             }
         }
 
         internal static bool Send(int connection, Channel channel, Write write)
         {
-            return n_server.Send(connection, channel, write);
+            return m_server.Send(connection, channel, write);
         }
 
         internal static void Send(Func<int, bool> predicate, Channel channel, Write write)
         {
-            if (n_server != null)
+            if (m_server != null)
             {
-                n_server.Send(predicate, channel, write);
+                m_server.Send(predicate, channel, write);
             }
         }
 
@@ -102,7 +104,7 @@ namespace Labyrinth.Background
             if (m_connections.Remove(connection))
             {
                 NetworkStream.Outgoing(connection);
-                Network.Outgoing(n_server.Listen, connection);
+                Network.Outgoing(m_server.Listen, connection);
             }
         }
 
@@ -112,7 +114,7 @@ namespace Labyrinth.Background
             {
                 // new connection
                 NetworkStream.Incoming(connection);
-                Network.Incoming(n_server.Listen, connection);
+                Network.Incoming(m_server.Listen, connection);
             }
         }
 
@@ -142,7 +144,7 @@ namespace Labyrinth.Background
             }
         }
 
-        // acknowledge of a connect or disconnect request that was pushed from here(Server)
+        // acknowledge of a request that was pushed from here(Server)
         private static void OnAcknowledge(int connection, Request request, uint rtt)
         {
             switch (request)
@@ -153,7 +155,7 @@ namespace Labyrinth.Background
                         int ping = (int)(rtt - NetworkDebug.Delta);
                         ping = ping < 0 ? 0 : ping;
 
-                        Network.pinged.Invoke(n_server.Listen, connection, ping);
+                        Network.pinged.Invoke(m_server.Listen, connection, ping);
                     }
                     break;
                 case Request.Connect:
@@ -168,7 +170,7 @@ namespace Labyrinth.Background
 
         private static void OnReceive(int connection, uint timestamp, ref Reader reader)
         {
-            NetworkStream.Receive(n_server.Listen, connection, timestamp, ref reader);
+            NetworkStream.Receive(m_server.Listen, connection, timestamp, ref reader);
         }
     }
 }

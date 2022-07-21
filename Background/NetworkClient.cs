@@ -9,10 +9,13 @@ namespace Labyrinth.Background
 
     public static class NetworkClient
     {
-        internal static Client n_client;
+        private static Client m_client;
         private static bool m_connected, m_disconnecting;
 
-        public static bool Active => n_client != null;
+        public static bool Active => m_client != null;
+
+        public static int Local => m_client.Local;
+        public static int Remote => m_client.Remote;
 
         public static void Connect(IPEndPoint endpoint)
         {
@@ -22,12 +25,12 @@ namespace Labyrinth.Background
                 {
                     m_connected = false;
                     m_disconnecting = false;
-                    n_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge, OnError);
+                    m_client = new Client(Mode.IPV4, endpoint, OnReceive, OnRequest, OnAcknowledge, OnError);
                     NetworkStream.Send = (int connection, Channel channel, Write write) =>
                     {
-                        n_client.Send(channel, write);
+                        m_client.Send(channel, write);
                     };
-                    Network.initialized.Invoke(n_client.Local);
+                    Network.initialized.Invoke(m_client.Local);
                     return;
                 }
                 throw new InvalidOperationException($"Network Client was already running");
@@ -40,40 +43,40 @@ namespace Labyrinth.Background
             if (!m_disconnecting)
             {
                 // inside the client(Host): it will stop pinging; if it times out, would still count as disconnected
-                n_client?.Disconnect();
+                m_client?.Disconnect();
                 m_disconnecting = true;
             }
         }
 
         internal static void Close()
         {
-            if (n_client != null)
+            if (m_client != null)
             {
                 Outgoing();
                 m_disconnecting = false;
                 NetworkStream.Clear();
-                Network.terminating.Invoke(n_client.Local);
+                Network.terminating.Invoke(m_client.Local);
 
                 /*n_client.Close();*/
-                n_client = null;
+                m_client = null;
             }
         }
 
         internal static void Receive()
         {
-            n_client?.Receive();
+            m_client?.Receive();
         }
 
         internal static void Update()
         {
-            n_client?.Update();
+            m_client?.Update();
         }
 
         internal static void Send(Channel channel, Write write)
         {
             if (!m_disconnecting)
             {
-                n_client.Send(channel, write);
+                m_client.Send(channel, write);
             }
         }
 
@@ -82,8 +85,8 @@ namespace Labyrinth.Background
             if (m_connected)
             {
                 m_connected = false;
-                NetworkStream.Outgoing(n_client.Remote);
-                Network.Outgoing(n_client.Local, n_client.Remote);
+                NetworkStream.Outgoing(m_client.Remote);
+                Network.Outgoing(m_client.Local, m_client.Remote);
             }
         }
 
@@ -92,8 +95,8 @@ namespace Labyrinth.Background
             if (!m_connected)
             {
                 m_connected = true;
-                NetworkStream.Incoming(n_client.Remote);
-                Network.Incoming(n_client.Local, n_client.Remote);
+                NetworkStream.Incoming(m_client.Remote);
+                Network.Incoming(m_client.Local, m_client.Remote);
             }
         }
 
@@ -124,7 +127,7 @@ namespace Labyrinth.Background
             }
         }
 
-        // acknowledge of a connect or disconnect request that was pushed from here(Client)
+        // acknowledge of a request that was pushed from here(Client)
         private static void OnAcknowledge(Request request, uint rtt)
         {
             switch(request)
@@ -135,7 +138,7 @@ namespace Labyrinth.Background
                         int ping = (int)(rtt - NetworkDebug.Delta);
                         ping = ping < 0 ? 0 : ping;
 
-                        Network.pinged.Invoke(n_client.Local, n_client.Remote, ping);
+                        Network.pinged.Invoke(m_client.Local, m_client.Remote, ping);
                     }
                     break;
                 case Request.Connect:
@@ -150,7 +153,7 @@ namespace Labyrinth.Background
 
         private static void OnReceive(uint timestamp, ref Reader reader)
         {
-            NetworkStream.Receive(n_client.Local, n_client.Remote, timestamp, ref reader);
+            NetworkStream.Receive(m_client.Local, m_client.Remote, timestamp, ref reader);
         }
     }
 }

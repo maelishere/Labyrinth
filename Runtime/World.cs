@@ -20,7 +20,8 @@ namespace Labyrinth.Runtime
 
         // network representation of a scene
         // it must be already loaded by the client
-        [SerializeField] private int m_scene;
+        // you shouldn't use scene 0 but it should still work
+        [SerializeField] private int m_scene = 1;
 
         // fill this either through an Entity on their Start()
         //      or find entities through scene.GetRootGameObjects()
@@ -125,7 +126,7 @@ namespace Labyrinth.Runtime
             return false;
         }
 
-        // this flag always comes from clients to server
+        // this always comes from clients to server
         internal static void OnNetworkLoaded(int socket, int connection, uint timestamp, ref Reader reader)
         {
             int scene = reader.ReadInt();
@@ -154,7 +155,7 @@ namespace Labyrinth.Runtime
             }
         }
 
-        // this flag always comes from clients to server
+        // this always comes from clients to server
         internal static void OnNetworkOffloaded(int socket, int connection, uint timestamp, ref Reader reader)
         {
             int scene = reader.ReadInt();
@@ -174,6 +175,7 @@ namespace Labyrinth.Runtime
         {
             Network.connected.AddListener(OnNetworkConnected);
             Network.disconnected.AddListener(OnNetworkDisconnected);
+            Network.terminating.AddListener(NetworkReset);
         }
 
         private static void OnNetworkConnected(int socket, int connection)
@@ -186,9 +188,17 @@ namespace Labyrinth.Runtime
 
         private static void OnNetworkDisconnected(int socket, int connection)
         {
-            if (NetworkClient.Active)
+            if (NetworkServer.Active)
             {
                 m_network.Remove(connection);
+            }
+        }
+
+        private static void NetworkReset(int socket)
+        {
+            if (NetworkServer.Active)
+            {
+                m_network.Clear();
             }
         }
     }

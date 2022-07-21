@@ -48,19 +48,15 @@ namespace Labyrinth.Collections
         //      client only read from it
         public bool IsReadOnly => NetworkClient.Active;
 
-        protected void Change(bool additive, Step action)
+        private void Change(bool additive, Step step, Write callback)
         {
-            // we don't need to add to the queue when the server isn't running
-            if (!NetworkServer.Active)
-                return;
-
             if (!additive)
             {
                 m_changes.Clear();
                 m_steps = m_marker;
             }
 
-            m_changes.Enqueue(new Change(action, null));
+            m_changes.Enqueue(new Change(step, callback));
 
             if (additive)
             {
@@ -68,53 +64,40 @@ namespace Labyrinth.Collections
             }
         }
 
-        protected void Change<I>(bool additive, Step action, I arg)
+        protected void Change(bool additive, Step step)
         {
             // we don't need to add to the queue when the server isn't running
             if (!NetworkServer.Active)
                 return;
 
-            if (!additive)
-            {
-                m_changes.Clear();
-                m_steps = m_marker;
-            }
+            Change(additive, step, null);
+        }
 
-            m_changes.Enqueue(new Change(action,
+        protected void Change<I>(bool additive, Step step, I arg)
+        {
+            // we don't need to add to the queue when the server isn't running
+            if (!NetworkServer.Active)
+                return;
+
+            Change(additive, step, 
                 (ref Writer writer) =>
                 {
                     writer.Write(arg);
-                }));
-
-            if (additive)
-            {
-                m_steps++;
-            }
+                });
         }
 
-        protected void Change<I, T>(bool additive, Step action, I arg1, T arg2)
+        protected void Change<I, T>(bool additive, Step step, I arg1, T arg2)
         {
             // we don't need to add to the queue when the server isn't running
             if (!NetworkServer.Active)
                 return;
 
-            if (!additive)
-            {
-                m_changes.Clear();
-                m_steps = m_marker;
-            }
-
-            m_changes.Enqueue(new Change(action,
+            Change(additive, step,
                 (ref Writer writer) =>
                 {
                     writer.Write(arg1);
                     writer.Write(arg2);
-                }));
-
-            if (additive)
-            {
-                m_steps++;
-            }
+                });
         }
 
         // for new clients connections
@@ -194,9 +177,10 @@ namespace Labyrinth.Collections
                 marker++;
                 count--;
             }
-
+            
+            // this will likely never be called
             /*if it recieved a step before it's current step*/
-            if (marker < m_steps && !m_reconfiguring)
+            /*if (marker < m_steps && !m_reconfiguring)
             {
                 /// then this unit is out of order
                 /// request for a clone
@@ -205,7 +189,7 @@ namespace Labyrinth.Collections
                     writer.Write(identifier);
                 });
                 m_reconfiguring = true;
-            }
+            }*/
 
             if (!m_reconfiguring)
             {
