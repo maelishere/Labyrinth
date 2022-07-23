@@ -9,6 +9,8 @@ namespace Labyrinth.Collections
     // Base class for all collections types
     public abstract class Unit
     {
+        const int MINBUFFER = 55;
+
         private uint m_steps = 0/*total number of changes*/;
         private uint m_marker = 0/*frist step of changes that will be sent*/;
         private bool m_reconfiguring = false;
@@ -145,19 +147,24 @@ namespace Labyrinth.Collections
                 NetworkDebug.Slient($"Copying Step({m_marker}) to Step({m_marker + m_changes.Count - 1}) for Object({identifier})");
                 writer.Write(m_marker);
                 writer.Write(m_changes.Count);
-                while (m_changes.Count > 0)
+
+                // we check if there enough space for in buffer
+                //      or else we wait for the next call to send the remaining
+                while (m_changes.Count > 0 && MINBUFFER <= (writer.Length - writer.Current))
                 {
                     State state = m_changes.Dequeue();
                     writer.Write((byte)state.Operation);
                     state.Callback?.Invoke(ref writer);
+
+                    // the marker should still move on, no matter what
+                    m_marker++;
                 }
             }
             else
             {
                 m_changes.Clear();
             }
-            // the marker should still move on, no matter what
-            m_marker = m_steps;
+            /*m_marker = m_steps;*/
         }
 
         internal void Paste(ref Reader reader)

@@ -20,8 +20,6 @@ namespace Labyrinth.Editor
             OSX*/
         }
 
-        [SerializeField] private BuildTargetGroup m_group;
-
         //StandaloneBuildSubtarget
         [SerializeField] private string m_server_name;
         [SerializeField] private Standalone m_server_platform;
@@ -105,7 +103,11 @@ namespace Labyrinth.Editor
             EditorGUI.LabelField(rect, "Defines");
         }
 
-        private static BuildPlayerOptions Get(string name, string path, BuildTargetGroup group, BuildTarget target, int subTarget, BuildOptions options, string[] defines)
+        private static BuildPlayerOptions Get(string name, string path, BuildTargetGroup group, BuildTarget target,
+#if UNITY_2021_2_OR_NEWER
+            int subTarget,
+#endif
+            BuildOptions options, string[] defines)
         {
             BuildPlayerOptions player = new BuildPlayerOptions();
 
@@ -122,7 +124,10 @@ namespace Labyrinth.Editor
             player.targetGroup = group;
             player.target = target;
 
+#if UNITY_2021_2_OR_NEWER
             player.subtarget = subTarget;
+#endif
+
             player.options = options;
             player.extraScriptingDefines = defines;
 
@@ -184,11 +189,20 @@ namespace Labyrinth.Editor
                         case Standalone.OSX:
                             break;*/
                     }
-                    BuildPipeline.BuildPlayer(Get(m_server_name, m_server_build_path, BuildTargetGroup.Standalone, target, (int)StandaloneBuildSubtarget.Server, m_server_options, m_server_definitions.ToArray()));
+                    BuildPipeline.BuildPlayer(Get(m_server_name, m_server_build_path, BuildTargetGroup.Standalone, target,
+#if UNITY_2021_2_OR_NEWER
+                        (int)StandaloneBuildSubtarget.Server,
+#endif
+
+                        m_server_options, m_server_definitions.ToArray()));
                 }
                 else
                 {
-                    BuildPipeline.BuildPlayer(Get(m_client_name, m_client_build_path, m_client_group, m_client_target, (int)StandaloneBuildSubtarget.Player, m_client_options, m_client_definitions.ToArray()));
+                    BuildPipeline.BuildPlayer(Get(m_client_name, m_client_build_path, m_client_group, m_client_target,
+#if UNITY_2021_2_OR_NEWER
+                        (int)StandaloneBuildSubtarget.Player,
+#endif
+                        m_client_options, m_client_definitions.ToArray()));
                 }
                 m_build = false;
             }
@@ -227,12 +241,6 @@ namespace Labyrinth.Editor
             EditorGUILayout.Space();
 
             EditorGUILayout.EndVertical();
-
-
-            EditorGUILayout.Space();
-            m_group = (BuildTargetGroup)EditorGUILayout.EnumPopup("Group", m_group);
-            EditorGUILayout.Space();
-
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 

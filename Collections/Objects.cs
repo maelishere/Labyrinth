@@ -132,7 +132,8 @@ namespace Labyrinth.Collections
                 {
                     if (unit.Value != null)
                     {
-                        if (unit.Value.changed)
+                        // loop if not all steps where saved to the buffer the frist time
+                        while (unit.Value.changed)
                         {
                             NetworkDebug.Slient($"Object({unit.Key}) has changed");
 
@@ -141,7 +142,7 @@ namespace Labyrinth.Collections
                             /// copy can only be called once 
                             ///     to capture all changes
                             ///     (too much data shouldn't be sent recklessly)
-                            Writer buffer = listeners ? new Writer(Network.Buffer - 1) : null;
+                            Writer buffer = listeners ? new Writer(Network.Buffer - 2) : null;
                             unit.Value.Copy(ref buffer, listeners);
 
                             foreach (var connection in m_listeners[unit.Key])
