@@ -34,11 +34,15 @@ These are static function callbacks sent through the network. Use Network.Regist
     
     Channels.Ordered - guaranteed in order
 
+Note: don’t mistake the word flag for a bit mask
+
 ### Network Scenes
 
 Each scene must have a gameobject with the World component attached (also with their build index). The Server must either have all possible scenes opened or for performance ensure that every scene any client has loaded or is about to load is always loaded before all clients. When a scene is loaded on a client it sends a message to the server which in turns sends back all the entities within that scene.
 
 The usual process in level streaming is to have one main scene which will remain loaded for the duration of the game; in this main scene you would include a gameobject with a World and Central component. Central script indicates the scene that will not be unloaded until you disconnect.
+
+Note: i don’t recommend using the main (0) as a network scene but it should still work fine.
 
 ### Creating Entities
 
