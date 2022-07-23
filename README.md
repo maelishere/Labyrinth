@@ -42,7 +42,7 @@ Each scene must have a gameobject with the World component attached (also with t
 
 The usual process in level streaming is to have one main scene which will remain loaded for the duration of the game; in this main scene you would include a gameobject with a World and Central component. Central script indicates the scene that will not be unloaded until you disconnect.
 
-Note: i don’t recommend using the main (0) as a network scene but it should still work fine.
+Note: don’t use the main scene (0) as a network scene because when you connect the entities on the server won’t be created.
 
 ### Creating Entities
 
