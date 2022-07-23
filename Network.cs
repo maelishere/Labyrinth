@@ -31,8 +31,8 @@ namespace Labyrinth
             {
                 if (value > byte.MaxValue)
                     m_buffer = byte.MaxValue;
-                else if (value < 1)
-                    m_buffer = 1;
+                else if (value < 2)
+                    m_buffer = 2;
                 else
                     m_buffer = value;
             }
