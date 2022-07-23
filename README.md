@@ -6,7 +6,7 @@ Dependencies: [Bolt](https://github.com/maelishere/Bolt) and [Lattice](https://g
 
 ## Description
 
-Allows for networked level streaming. Dedicated Server or Clients (Not at the same time).
+Allows for networked level streaming. Dedicated Server or Clients (Not at the same time). To open the builder window goto “Window/Labyrinth/Builder”.
 
 ## Getting Started
 

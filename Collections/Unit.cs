@@ -9,6 +9,8 @@ namespace Labyrinth.Collections
     // Base class for all collections types
     public abstract class Unit
     {
+        // not sure how big each copy will be
+        //      you can make this a public variable
         const int MINBUFFER = 55;
 
         private uint m_steps = 0/*total number of changes*/;
@@ -105,8 +107,8 @@ namespace Labyrinth.Collections
         // for new clients connections
         internal void Clone(ref Writer writer)
         {
-            NetworkDebug.Slient($"Cloning Step({m_steps}) for Object({identifier})");
-            writer.Write(m_steps);
+            NetworkDebug.Slient($"Cloning Step({m_marker}) for Object({identifier})");
+            writer.Write(m_marker);
             Serialize(ref writer);
         }
 
@@ -144,36 +146,40 @@ namespace Labyrinth.Collections
             // we only write to the buffer when clients have this object
             if (listeners)
             {
-                NetworkDebug.Slient($"Copying Step({m_marker}) to Step({m_marker + m_changes.Count - 1}) for Object({identifier})");
                 writer.Write(m_marker);
-                writer.Write(m_changes.Count);
+
+                // don't need the count
+                /*writer.Write(m_changes.Count);*/
 
                 // we check if there enough space for in buffer
                 //      or else we wait for the next call to send the remaining
                 while (m_changes.Count > 0 && MINBUFFER <= (writer.Length - writer.Current))
                 {
+                    NetworkDebug.Slient($"Copying Step({m_marker}) for Object({identifier})");
+
                     State state = m_changes.Dequeue();
                     writer.Write((byte)state.Operation);
                     state.Callback?.Invoke(ref writer);
 
-                    // the marker should still move on, no matter what
                     m_marker++;
                 }
             }
             else
             {
                 m_changes.Clear();
+                m_marker = m_steps;
             }
-            /*m_marker = m_steps;*/
         }
 
         internal void Paste(ref Reader reader)
         {
             uint marker = reader.ReadUInt();
-            int count = reader.ReadInt();
+
+            /*int count = reader.ReadInt();*/
 
             // add to pending
-            while (count > 0)
+            // make sure to read the whole buffer
+            while (/*count > 0 && */(reader.Length - reader.Current) > 0)
             {
                 Step step = (Step)reader.Read();
                 // the args would have been read (and still be somewhere memory) 
@@ -182,7 +188,7 @@ namespace Labyrinth.Collections
                 m_pending.Add(marker, action);
                 NetworkDebug.Slient($"Step({marker}) pending for Object{identifier}");
                 marker++;
-                count--;
+                /*count--;*/
             }
             
             // this will likely never be called
