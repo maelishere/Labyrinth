@@ -16,11 +16,11 @@ namespace Labyrinth.Background
 
         private static readonly Stopwatch m_stopwatch = new Stopwatch();
 
-        // How many retransimisions per second
+        // How many retransimisions occurred the last second (not including direct channel)
         public static int Loss { get; private set; }
-        // How many bytes are sent per second
+        // How many bytes where sent the last second
         public static int Sent { get; private set; }
-        // How many byte are received per second
+        // How many byte where received the last second
         public static int Received { get; private set; }
 
         // time between each full network update

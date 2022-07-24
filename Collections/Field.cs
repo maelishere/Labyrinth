@@ -9,14 +9,14 @@ namespace Labyrinth.Collections
     public class Field<T> : Unit
     {
         private T m_reference;
-        private readonly IEqualityComparer<T> _comparer;
+        private readonly IEqualityComparer<T> m_comparer;
 
         public Field() : this(EqualityComparer<T>.Default, default(T)) { }
         public Field(T value) : this(EqualityComparer<T>.Default, value) { }
         public Field(IEqualityComparer<T> comparer, T value)
         {
             m_reference = value;
-            _comparer = comparer ?? EqualityComparer<T>.Default;
+            m_comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
         public T value
@@ -29,7 +29,7 @@ namespace Labyrinth.Collections
                     throw new InvalidOperationException("Network collection can only be modified by the server");
                 }
 
-                if (!_comparer.Equals(value, m_reference))
+                if (!m_comparer.Equals(value, m_reference))
                 {
                     m_reference = value;
                     Change(false, Step.Set, value);

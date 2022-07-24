@@ -69,6 +69,10 @@ namespace Labyrinth.Runtime
 
         // server only
         // changes the scene of the entity over the network
+        // limitations:
+        //          entities destroyed on a scene that is unloaded by the server are gone forever
+        //          for this reason, important entities should probably exist in the central scene
+        //          or only move entities to the central scene then to another scene
         public void Scenery(int world)
         {
             if (NetworkClient.Active)
@@ -119,6 +123,8 @@ namespace Labyrinth.Runtime
                                     writer.WriteSpawn(this);
                                 });
                         }
+
+                        // when both scene aren't loaded do nothing
                     });
             }
         }

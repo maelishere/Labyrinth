@@ -48,7 +48,7 @@ namespace Labyrinth
 
         public static Identity Generate(Func<int, bool> filter)
         {
-            int value = 0;
+            int value;
             do
             {
                 byte[] buffer = new byte[sizeof(int)];

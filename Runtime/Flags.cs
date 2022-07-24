@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace Labyrinth.Runtime
+﻿namespace Labyrinth.Runtime
 {
     public static class Flags
     {

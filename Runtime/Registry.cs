@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
 {
-    [CreateAssetMenuAttribute(fileName = "Registry", menuName = "Labyrith/Registry", order = 100)]
+    [CreateAssetMenu(fileName = "Registry", menuName = "Labyrith/Registry", order = 100)]
     public class Registry : ScriptableObject
     {
         private static readonly Dictionary<uint, Entity> m_resources = new Dictionary<uint, Entity>();
@@ -15,8 +15,8 @@ namespace Labyrinth.Runtime
         // e.g. characters/player
         [SerializeField] private string[] m_prefabs = new string[0];
 
-        // incase you don't want a potential impact on performance
-        // comment out Initialize below (and call this before you start up the network)
+        // incase you don't want a potential impact on initial performance
+        // comment out Initialize below (and call this, only once on startup, before you start up the network)
         public void Load()
         {
             for (ushort i = 0; i < m_prefabs.Length; i++)

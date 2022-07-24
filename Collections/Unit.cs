@@ -6,7 +6,7 @@ namespace Labyrinth.Collections
     using Bolt;
     using Labyrinth.Background;
 
-    // Base class for all collections types
+    // Base class for all network collections types
     public abstract class Unit
     {
         // not sure how big each copy will be
@@ -14,7 +14,7 @@ namespace Labyrinth.Collections
         const int MINBUFFER = 55;
 
         private uint m_steps = 0/*total number of changes*/;
-        private uint m_marker = 0/*frist step of changes that will be sent*/;
+        private uint m_marker = 0/*frist step of changes that will be sent or the current step*/;
         private bool m_reconfiguring = false;
         private readonly Queue<State> m_changes = new Queue<State>();
         private readonly Dictionary<uint, Action> m_pending = new Dictionary<uint, Action>();
@@ -114,8 +114,8 @@ namespace Labyrinth.Collections
 
         internal void Apply(ref Reader reader)
         {
-            m_steps = reader.ReadUInt();
-            NetworkDebug.Slient($"Applying Step({m_steps}) for Object({identifier})");
+            m_marker = m_steps = reader.ReadUInt();
+            NetworkDebug.Slient($"Applying Step({m_marker}) for Object({identifier})");
             Deserialize(ref reader);
 
             Clean();
@@ -129,7 +129,7 @@ namespace Labyrinth.Collections
             HashSet<uint> steps = new HashSet<uint>();
             foreach (var step in m_pending)
             {
-                if (step.Key <= m_steps)
+                if (step.Key <= m_marker)
                 {
                     steps.Add(step.Key);
                 }
@@ -221,6 +221,7 @@ namespace Labyrinth.Collections
                 m_pending.Remove(m_steps);
                 m_steps++;
             }
+            m_marker = m_steps;
         }
 
         protected abstract void Serialize(ref Writer writer);

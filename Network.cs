@@ -13,6 +13,11 @@ namespace Labyrinth
     using Labyrinth.Collections;
     using Labyrinth.Background;
 
+    /* IMPORTANT!
+     * make sure the system on both server and client uses the same order of bytes
+     * LittleEndian is more common (on windows and most linux systems)
+     */
+
     public static class Network
     {
         public const byte Connected = byte.MinValue;
@@ -24,6 +29,7 @@ namespace Labyrinth
 
         // no support for fragmented messages
         // i'm using the byte range to encourage data saving 
+        //          (i.e use very short strings)
         public static int Buffer
         {
             get => m_buffer;

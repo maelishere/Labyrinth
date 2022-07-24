@@ -5,7 +5,6 @@ using UnityEngine.PlayerLoop;
 
 namespace Labyrinth.Background
 {
-
     // mixed with url: https://github.com/vis2k/Mirror/blob/master/Assets/Mirror/Runtime/NetworkLoop.cs
     public static class NetworkLoop
     {

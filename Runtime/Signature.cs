@@ -34,11 +34,14 @@
             if (NetworkServer.Active)
                 return true;
 
-            switch (rule)
+            if (NetworkClient.Active)
             {
-                case Rule.Round:
-                case Rule.Authority:
-                    return authority == Network.Authority(false);
+                switch (rule)
+                {
+                    case Rule.Round:
+                    case Rule.Authority:
+                        return authority == Network.Authority(false);
+                }
             }
 
             return false;

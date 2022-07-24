@@ -1,12 +1,9 @@
 ﻿using UnityEngine;
 
 using System;
-using System.Collections.Generic;
 
 namespace Labyrinth.Runtime
 {
-    using Bolt;
-
     // this is place on the scene that will always stay loaded
     //      this scene where level streaming is processed
     [RequireComponent(typeof(World)), AddComponentMenu("Labyrinth/Central")]

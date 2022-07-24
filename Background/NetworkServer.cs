@@ -159,7 +159,7 @@ namespace Labyrinth.Background
                     }
                     break;
                 case Request.Connect:
-                    // reconnection
+                    // reconnection (not implemented yet!)
                     Incoming(connection);
                     break;
                 case Request.Disconnect:

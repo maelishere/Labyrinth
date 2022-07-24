@@ -1,15 +1,13 @@
 ﻿using UnityEngine;
-using System.Security.Cryptography;
 
 namespace Labyrinth
 {
     using Bolt;
     using Labyrinth.Runtime;
-    using Labyrinth.Collections;
 
     public static class Extensions
     {
-        /// inserts a into the frist 8 bits of a short and b into the last 8
+        /// inserts a into the frist 8 bits of a ushort and b into the last 8
         internal static ushort Combine(this byte a, byte b)
         {
             ushort value = a;
@@ -18,7 +16,7 @@ namespace Labyrinth
             return value;
         }
 
-        /// inserts a into the frist 16 bits of an int and b into the last 16
+        /// inserts a into the frist 16 bits of an uint and b into the last 16
         internal static uint Combine(this ushort a, ushort b)
         {
             uint value = a;

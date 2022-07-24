@@ -118,7 +118,7 @@ namespace Labyrinth.Background
             switch (request)
             {
                 case Request.Connect:
-                    // server is reconnecting
+                    // server is reconnecting (not implemented yet!)
                     Incoming();
                     break;
                 case Request.Disconnect:

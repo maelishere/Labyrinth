@@ -82,8 +82,6 @@ namespace Labyrinth.Background
             do
             {
                 Network.Receive(socket, connection, timestamp, ref reader);
-                // i need to remove what's left in the reader (for the next flag) beacuse the messages are packed
-                // this causes invalid flag or the wrong callback being called
             } while (reader.Current < reader.Length - 1);
         }
 

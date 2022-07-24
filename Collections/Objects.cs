@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Labyrinth.Collections
 {
@@ -234,7 +233,7 @@ namespace Labyrinth.Collections
             }
             else
             {
-                UnityEngine.Debug.LogWarning($"Object({identifier}) wasn't created or was already destoryed on Client({socket})");
+                UnityEngine.Debug.LogWarning($"Object({identifier}) wasn't created or was already destoryed on Server({socket})");
             }
         }
 
