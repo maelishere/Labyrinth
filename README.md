@@ -118,7 +118,7 @@ These objects (Units) are independent of runtime network instances. Messages are
 
     Vector (List)
 
-    Glossary (Dictionary)
+    Glossary or Map (Dictionary or SortedDictionary)
 
     Series or Sequence (HashSet or SortedSet)
 
