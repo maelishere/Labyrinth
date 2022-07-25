@@ -25,18 +25,16 @@ namespace Labyrinth
 
         public delegate void Recieved(int socket, int connection, uint timestamp, ref Reader reader);
 
-        private static int m_buffer = byte.MaxValue;
+        private static int m_buffer = 1024;
 
         // no support for fragmented messages
-        // i'm using the byte range to encourage data saving 
-        //          (i.e use very short strings)
         public static int Buffer
         {
             get => m_buffer;
             set
             {
-                if (value > byte.MaxValue)
-                    m_buffer = byte.MaxValue;
+                if (value > 1180)
+                    m_buffer = 1180;
                 else if (value < 2)
                     m_buffer = 2;
                 else
@@ -80,10 +78,10 @@ namespace Labyrinth
             other.Write(flag);
             // check if null not all messages need data
             write?.Invoke(ref other);
-            size = 1 + other.Current; // 1 extra byte
+            size = 2 + other.Current; // ushort is 2 bytes
             return (ref Writer writer) =>
             {
-                writer.Write((byte)other.Current);
+                writer.Write((ushort)other.Current);
                 writer.Write(other.ToSegment());
             };
         }
@@ -133,7 +131,7 @@ namespace Labyrinth
         {
             try
             {
-                byte lenght = reader.Read();
+                ushort lenght = reader.ReadUShort();
                 Segment segment = reader.ReadSegment(lenght);
 
                 Reader other = new Reader(segment);
